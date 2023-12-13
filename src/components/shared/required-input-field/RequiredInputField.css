@@ -1,0 +1,14 @@
+.required-field::after {
+    content: '*';
+    margin-left: 1px;
+    color: inherit;
+}
+
+.error-field {
+    color: red;
+}
+
+.error-field::after {
+    color: red;
+}
+  

@@ -1,0 +1,53 @@
+.character-image {
+    margin-top: 8px;
+	width: 20rem;
+	height: 20rem;
+	cursor: pointer;
+	overflow: hidden;
+	object-fit: cover;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+	@apply rounded-box bg-base-200 text-base-content;
+}
+
+.character-image-default {
+    margin-top: 8px;
+	height: 20rem;
+	cursor: pointer;
+	overflow: hidden;
+	display: flex;
+  	align-items: center;
+  	justify-content: center;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+	@apply rounded-box bg-base-200 text-base-content;
+}
+
+.background-image-default {
+    margin-top: 8px;
+    width: auto;
+    height: 120px;
+    aspect-ratio: 2/1;
+    padding: 8px;
+	cursor: pointer;
+	border-radius: 12px;
+	overflow: hidden;
+	display: flex;
+  	align-items: center;
+  	justify-content: center;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+    @apply mx-auto bg-base-200 text-base-content;
+}
+
+.background-image {
+    margin-top: 8px;
+    aspect-ratio: 2/1;
+    width: auto;
+    height: 120px;
+    padding: 8px;
+	cursor: pointer;
+	border-radius: 12px;
+	overflow: hidden;
+	display: flex;
+  	align-items: center;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+    @apply mx-auto bg-base-200 text-base-content;
+}

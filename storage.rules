@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Match any file in the profile-pictures folder
+    match /pfp/{allPaths=**} {
+      // Allow read access to all users (authenticated or not)
+      allow read;
+      // Allow write access only to authenticated users
+      allow write: if request.auth != null;
+    }
+
+    // Match any other file and folder in your storage
+    // Here, you can define other rules for the rest of your storage
+    match /{allPaths=**} {
+      // For example, restrict both read and write access to only authenticated users
+      // Modify this according to your app's requirements
+      allow read, write: if request.auth != null;
+    }
+  }
+}

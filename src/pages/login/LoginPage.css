@@ -1,0 +1,36 @@
+.login-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: max-content;
+    height: max-content;
+    background-color: none;
+    border-radius: 10px;
+    margin: auto;
+    @apply bg-opacity-50 backdrop-blur-xl p-4;
+}
+
+.login-box{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: max-content;
+    height: max-content;
+    margin: 0 auto;
+}
+
+.login-username-field{
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.login-button{
+    border-radius: 10px;
+    padding: 5px;
+    margin-top: 10px;
+    width: 90%;
+    align-self: center;
+    @apply bg-opacity-50 backdrop-blur-xl;
+}
