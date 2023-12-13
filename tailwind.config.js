@@ -265,6 +265,9 @@ module.exports = withMT({
       {
         night: {
           ...require("daisyui/src/theming/themes")["night"],
+          accent: "#4c22c4",
+          warning: "#d22a3a",
+          neutral: "#b080f7",
         }
       }
     ],
