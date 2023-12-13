@@ -6,34 +6,15 @@ import { useEffect, useState } from "react";
 import { getCurrentEngine, setNewLogicEngine } from "../../../helpers";
 import { logicEngines } from "../../../helpers/constants";
 import { emitLogicEngineChange, useLogicEngineChangeListener } from '../../../helpers/events';
-import { hasBetaAccess } from '../../../firebase_api/userAPI';
-import { set } from 'firebase/database';
-
 interface ChatSettingsProps {
-    auth: Auth;
-    logout: () => void;
-    isProduction: boolean;
     theme: any;
     setTheme: (theme: any) => void;
 }
 
 const ChatSettings = (props: ChatSettingsProps) => {
-    const { auth, logout, isProduction, theme, setTheme } = props;
+    const { theme, setTheme } = props;
     const [logicEngine, setLogicEngine] = useState<string>('mythomax');
-    const [betaAccess, setBetaAccess] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-
-    useEffect(() => {
-        if(auth?.currentUser?.uid) {
-            hasBetaAccess().then((hasBeta) => {
-                if(!hasBeta) return;
-                setBetaAccess(hasBeta);
-                setLoading(false);
-            }).catch((err) => {
-                console.log(err);
-            });
-        }
-    }, [auth]);
 
     useEffect(() => {
         getCurrentEngine().then((engine) => {
@@ -55,7 +36,7 @@ const ChatSettings = (props: ChatSettingsProps) => {
         const selectedEngine = e.currentTarget.value;
         const selectedEngineTier = logicEngines.find(engine => engine.value === selectedEngine)?.tier;
     
-        if (selectedEngineTier !== 'free' && !betaAccess) {
+        if (selectedEngineTier !== 'free') {
             alert("This engine requires beta access. Please select a different engine.");
             e.currentTarget.value = logicEngine; // Reverting to the previous value
         } else {
@@ -111,11 +92,7 @@ const ChatSettings = (props: ChatSettingsProps) => {
                     onChange={handleLogicEngineChange}
                 >
                     {Array.isArray(logicEngines) && logicEngines.map((engine, index) => {
-                        // Render free tier always and other tiers if beta access is available
-                        if (engine.tier === 'free' || betaAccess) {
-                            return <option key={index} value={engine.value}>{engine.label}</option>;
-                        }
-                        return null;
+                        return <option key={index} value={engine.value}>{engine.label}</option>;
                     })}
                 </select>
             </div>

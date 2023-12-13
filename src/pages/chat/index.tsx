@@ -9,7 +9,6 @@ import ChatWindow from "./chat-window";
 import UserPersonaWindow from "./user-persona";
 import ChatSettings from "./chat-settings";
 import ContactsBox from "./contacts-box";
-import { getCharacter } from "../../firebase_api/characterAPI";
 import { StoredChatLog } from "../../global_classes/StoredChatLog";
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import { useWindowSize } from "../../helpers/character-card";
@@ -17,23 +16,8 @@ import CharacterPopup from "../../components/shared/character-popup";
 import ChatLogs from './chat-logs';
 import { useCloseSidesListener } from '../../helpers/events';
 
-interface ChatPageProps {
-    auth: Auth;
-    logout: () => void;
-    isProduction: boolean;
-}
-
-const ChatPage = (props: ChatPageProps) => {
-    const { auth, logout, isProduction } = props;
+const ChatPage = () => {
     const navigate = useNavigate();
-
-    useEffect(() => {
-        auth.authStateReady().then(() => {
-            if(auth.currentUser === null){
-                navigate('/login?location=chat');
-            }
-        });
-    }, [auth, navigate]);
 
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
     const [selectedChat, setSelectedChat] = useState<StoredChatLog | null>(null);
@@ -57,17 +41,16 @@ const ChatPage = (props: ChatPageProps) => {
     const toggleRightDrawer = () => setIsRightDrawerOpen(!isRightDrawerOpen);
     
     useEffect(() => {
-        if(characterID === null) return;
-        const retrieveCharacter = async () => {
-            const character = await getCharacter(characterID).then((character) => {
-                return character;
-            });
-            if(!character) return;
-            if((character.verification_info?.status !== 'approved') && (character.creator !== auth?.currentUser?.uid)) return;
-            setSelectedCharacter(character)
-        }
-        retrieveCharacter();
-    }, [characterID, auth]);
+        // if(characterID === null) return;
+        // const retrieveCharacter = async () => {
+        //     const character = await getCharacter(characterID).then((character) => {
+        //         return character;
+        //     });
+        //     if(!character) return;
+        //     setSelectedCharacter(character)
+        // }
+        // retrieveCharacter();
+    }, [characterID]);
     
     const handleCharacterSelect = (character: Character) => {
         setSelectedCharacter(character);
@@ -105,7 +88,7 @@ const ChatPage = (props: ChatPageProps) => {
                                 </button>
                             </div>
                         </h3>
-                        <ContactsBox auth={auth} logout={logout} isProduction={isProduction} character={selectedCharacter} setCharacter={handleCharacterSelect} showCharacterPopup={handleCharacterPopupToggle}/>
+                        <ContactsBox character={selectedCharacter} setCharacter={handleCharacterSelect} showCharacterPopup={handleCharacterPopupToggle}/>
                         <h3 className="font-bold justify-between flex flex-row">
                             You
                             <div className="flex gap-1">
@@ -117,7 +100,7 @@ const ChatPage = (props: ChatPageProps) => {
                                 </button>
                             </div>
                         </h3>
-                        <UserPersonaWindow auth={auth} logout={logout} isProduction={isProduction} persona={null} setPersona={() => {}}/>
+                        <UserPersonaWindow persona={null} setPersona={() => {}}/>
                     </div>
                 </>
             ) : (
@@ -142,7 +125,7 @@ const ChatPage = (props: ChatPageProps) => {
                                 </button>
                             </div>
                         </h3>
-                        <ContactsBox auth={auth} logout={logout} isProduction={isProduction} character={selectedCharacter} setCharacter={handleCharacterSelect} showCharacterPopup={handleCharacterPopupToggle}/>
+                        <ContactsBox character={selectedCharacter} setCharacter={handleCharacterSelect} showCharacterPopup={handleCharacterPopupToggle}/>
                         <h3 className="font-bold justify-between flex flex-row">
                             You
                             <div className="flex gap-1">
@@ -154,7 +137,7 @@ const ChatPage = (props: ChatPageProps) => {
                                 </button>
                             </div>
                         </h3>
-                        <UserPersonaWindow auth={auth} logout={logout} isProduction={isProduction} persona={null} setPersona={() => {}}/>
+                        <UserPersonaWindow persona={null} setPersona={() => {}}/>
                         <button className="dy-btn dy-btn-error dy-btn-outline dy-btn-sm md:hidden" onClick={toggleLeftDrawer}>
                             <ArrowRight/>
                         </button>
@@ -162,7 +145,7 @@ const ChatPage = (props: ChatPageProps) => {
                 </SwipeableDrawer>
             )}
             </>
-            <ChatWindow auth={auth} character={selectedCharacter} logout={logout} isProduction={isProduction} persona={null} theme={null} toggleLeftDrawer={toggleLeftDrawer} toggleRightDrawer={toggleRightDrawer} showCharacterPopup={handleCharacterPopupToggle}/>
+            <ChatWindow character={selectedCharacter} persona={null} theme={null} toggleLeftDrawer={toggleLeftDrawer} toggleRightDrawer={toggleRightDrawer} showCharacterPopup={handleCharacterPopupToggle}/>
             {isDesktop ? (
                 <div className="col-span-2 shadow-xl md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 text-right p-2 max-h-[90vh]">
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
@@ -176,7 +159,7 @@ const ChatPage = (props: ChatPageProps) => {
                             </button>
                         </div>
                     </h3>
-                    <ChatSettings auth={auth} logout={logout} isProduction={isProduction} theme={null} setTheme={() => {}}/>
+                    <ChatSettings theme={null} setTheme={() => {}}/>
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                         Chats
                         <div className="flex gap-1">
@@ -189,7 +172,7 @@ const ChatPage = (props: ChatPageProps) => {
                         </div>
                     </h3>
                     <div className="flex flex-col gap-2 rounded-box bg-base-100 h-full">
-                        <ChatLogs auth={auth} logout={logout} isProduction={isProduction} character={selectedCharacter} showCharacterPopup={handleCharacterPopupToggle}/>
+                        <ChatLogs character={selectedCharacter} showCharacterPopup={handleCharacterPopupToggle}/>
                     </div>
                 </div>
             ) : (
@@ -214,7 +197,7 @@ const ChatPage = (props: ChatPageProps) => {
                                 </button>
                             </div>
                         </h3>
-                        <ChatSettings auth={auth} logout={logout} isProduction={isProduction} theme={null} setTheme={() => {}}/>
+                        <ChatSettings theme={null} setTheme={() => {}}/>
                         <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                             Chats
                             <div className="flex gap-1">
@@ -227,7 +210,7 @@ const ChatPage = (props: ChatPageProps) => {
                             </div>
                         </h3>
                         <div className="flex flex-col gap-2 rounded-box bg-base-100 h-full">
-                            <ChatLogs auth={auth} logout={logout} isProduction={isProduction} character={selectedCharacter} showCharacterPopup={handleCharacterPopupToggle}/>
+                            <ChatLogs character={selectedCharacter} showCharacterPopup={handleCharacterPopupToggle}/>
                         </div>
                         <button className="dy-btn dy-btn-error dy-btn-outline dy-btn-sm md:hidden" onClick={toggleRightDrawer}>
                             <ArrowLeft/>

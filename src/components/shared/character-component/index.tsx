@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
 import './CharacterComponent.css';
-import { getAuth } from "firebase/auth";
-import { firebaseApp } from "../../../firebase-config";
-import { deleteCharacter } from "../../../firebase_api/characterAPI";
 import { Edit, Info, MessageCircle, Trash } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Character } from "../../../global_classes/Character";
@@ -18,7 +15,6 @@ const CharacterComponent = (props: CharacterComponentProps) => {
     const defaultPhotoURL = 'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/imagegenexample.png?alt=media&token=6d5a83d2-0824-40eb-9b0d-7a2fa861c035';
     const [photoURL, setPhotoURL] = useState(character?.avatar || defaultPhotoURL);
     const [displayName, setDisplayName] = useState(character?.name || 'Guest');
-    const auth = getAuth(firebaseApp);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -30,8 +26,9 @@ const CharacterComponent = (props: CharacterComponentProps) => {
 
     const deleteSelf = async () => {
         if (character) {
-            if(await confirmModal('Are you sure you want to delete this character?'))
-            await deleteCharacter(character);
+            if(await confirmModal('Are you sure you want to delete this character?')){
+                // await deleteCharacter(character);
+            }
         }
     }
 
@@ -67,7 +64,7 @@ const CharacterComponent = (props: CharacterComponentProps) => {
             <div className="flex flex-col gap-1 col-span-2">
                 <div className="flex flex-row justify-between">
                     <h4 className="text-left text-ellipsis line-clamp-1 text-lg">Description</h4>
-                    <div className={"flex flex-row gap-1 " + (auth.currentUser?.uid === character?.creator ? '' : 'hidden')}>
+                    <div className={"flex flex-row gap-1 "}>
                         <NavLink className="dy-btn dy-btn-xs dy-btn-info dy-btn-outline" title="Edit" to={`/characters/${character?._id}`}>
                             <Edit />
                         </NavLink>

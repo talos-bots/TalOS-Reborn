@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Auth } from "firebase/auth";
 import { Character } from "../../../global_classes/Character";
 import React, { useEffect, useState } from "react";
 import { StoredChatLog } from "../../../global_classes/StoredChatLog";
@@ -8,51 +7,34 @@ import { deleteStoredChatLog, getAllStoredChatLogs, getAllStoredChatLogsWithChar
 import { emitCloseSides, emitNewChatLog, emitSelectedChatLogChanged, useChatLogChangedListener } from "../../../helpers/events";
 import { Check, CloudOff, Trash, UploadCloud } from "lucide-react";
 import { confirmModal } from "../../../components/shared/confirm-modal";
-import { getChatsWithCharacter, hasBetaAccess } from "../../../firebase_api/userAPI";
 
 interface ChatLogsProps {
-    auth: Auth;
-    logout: () => void;
-    isProduction: boolean;
     character: Character | null;
     showCharacterPopup: (character?: Character) => void;
 }
 
 const ChatLogs = (props: ChatLogsProps) => {
-    const { auth, logout, isProduction, character } = props;
+    const { character, showCharacterPopup } = props;
     const [chatLogs, setChatLogs] = useState<StoredChatLog[]>([]);
-    const [hasAccess, setHasAccess] = useState<boolean>(false);
-
-    useEffect(() => {
-        hasBetaAccess().then((hasAccess) => {
-            if(hasAccess){
-                setHasAccess(hasAccess);
-            }else{
-                setHasAccess(false);
-            }
-        }).catch((err) => {
-            console.log(err);
-        });
-    }, []);
 
     const init = async () => {
-        if(character === null) return;
-        const finalLogs: StoredChatLog[] = [];
-        const chatLogs = await getAllStoredChatLogsWithCharacter(character?._id);
-        const cloudChatLogs = await getChatsWithCharacter(character?._id);
-        cloudChatLogs.forEach((cloudChatLog) => {
-            const chatLog = chatLogs.find((chatLog) => chatLog._id === cloudChatLog._id);
-            if(chatLog) {
-                chatLog.messages = cloudChatLog.messages;
-                chatLog.name = cloudChatLog.name;
-                chatLog.lastMessageDate = cloudChatLog.lastMessageDate;
-                chatLog.characters = cloudChatLog.characters;
-                finalLogs.push(chatLog);
-            } else {
-                finalLogs.push(cloudChatLog);
-            }
-        });
-        setChatLogs(finalLogs);
+        // if(character === null) return;
+        // const finalLogs: StoredChatLog[] = [];
+        // const chatLogs = await getAllStoredChatLogsWithCharacter(character?._id);
+        // const cloudChatLogs = await getChatsWithCharacter(character?._id);
+        // cloudChatLogs.forEach((cloudChatLog) => {
+        //     const chatLog = chatLogs.find((chatLog) => chatLog._id === cloudChatLog._id);
+        //     if(chatLog) {
+        //         chatLog.messages = cloudChatLog.messages;
+        //         chatLog.name = cloudChatLog.name;
+        //         chatLog.lastMessageDate = cloudChatLog.lastMessageDate;
+        //         chatLog.characters = cloudChatLog.characters;
+        //         finalLogs.push(chatLog);
+        //     } else {
+        //         finalLogs.push(cloudChatLog);
+        //     }
+        // });
+        // setChatLogs(finalLogs);
     }
 
     const updateLogs = async () => {
@@ -84,21 +66,6 @@ const ChatLogs = (props: ChatLogsProps) => {
         });
     }
 
-    const handleCloudSyncClick = async (chatLog: StoredChatLog) => {
-        const newChat = chatLog;
-        if(!hasAccess) return alert("You do not have access to this feature.");
-        if(newChat.syncToCloud && await confirmModal("Are you sure you want to disable cloud sync for this chat log?")){ 
-            newChat.disableSyncToCloud();
-            newChat.saveToDB();
-            updateLogs()
-            return;
-        }
-        if(!await confirmModal("Are you sure you want to sync this chat log to the cloud?")) return;
-        newChat.enableSyncToCloud()
-        newChat.saveToCloud();
-        updateLogs()
-    }
-
     return (
         <div className="flex flex-col h-full w-full overflow-y-scroll gap-2 p-2">
             {character?.name && (
@@ -125,9 +92,6 @@ const ChatLogs = (props: ChatLogsProps) => {
                         <div className="flex flex-col w-fit h-full items-center gap-1 flex-grow justify-center">
                             <button className="dy-btn dy-btn-accent dy-btn-sm" onClick={() => handleChatLogClick(chatLog)}><Check/></button>
                             <button className="dy-btn dy-btn-error dy-btn-sm" onClick={() => handleDeleteChatLog(chatLog)}><Trash/></button>
-                            {hasAccess && (
-                                <button className="dy-btn bg-gradient-to-tr from-primary to-accent text-black hover:from-error hover:to-secondary dy-btn-sm" onClick={() => handleCloudSyncClick(chatLog)} title={chatLog.syncToCloud ? 'Disable Cloud Sync' : 'Enable Cloud Sync'}>{chatLog.syncToCloud ? <CloudOff/> : <UploadCloud/>}</button>
-                            )}
                         </div>
                     </div>
                 )

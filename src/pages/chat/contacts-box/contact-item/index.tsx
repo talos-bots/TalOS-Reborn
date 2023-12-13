@@ -6,16 +6,13 @@ import { Character } from "../../../../global_classes/Character";
 import { Check, Info } from "lucide-react";
 
 interface ContactItemProps {
-    auth: Auth;
-    logout: () => void;
-    isProduction: boolean;
     character: Character | null;
     setCharacter: (character: Character) => void;
     showCharacterPopup: (character?: Character) => void;
 }
 
 const ContactItem = (props: ContactItemProps) => {
-    const { auth, logout, isProduction, character, setCharacter } = props;
+    const { character, setCharacter } = props;
 
     const handleCharacterClick = () => {
         if(character === null) return;

@@ -7,33 +7,17 @@ import { UserPersona } from "../../../global_classes/Character";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface UserPersonaProps {
-    auth: Auth;
-    logout: () => void;
-    isProduction: boolean;
     persona: UserPersona | null;
     setPersona: (persona: UserPersona) => void;
 }
 
 const UserPersonaWindow = (props: UserPersonaProps) => {
-    const { auth, logout, isProduction, persona, setPersona } = props;
+    const { persona, setPersona } = props;
     const [selectedPersona, setSelectedPersona] = useState<string>('display-info');
-    const [name, setName] = useState<string>(auth.currentUser?.displayName ?? '');
+    const [name, setName] = useState<string>('User');
     const [description, setDescription] = useState<string>('');
     const [importance, setImportance] = useState<string>('');
-    const [avatar, setAvatar] = useState<string>(auth.currentUser?.photoURL ?? ''); 
-
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-            if(user === null) return;
-            if(selectedPersona === 'display-info') {
-                setName(user.displayName ?? '');
-                setDescription('');
-                setImportance('very');
-                setAvatar(user.photoURL ?? '');
-            }
-        });
-        return unsubscribe;
-    }, [auth]);
+    const [avatar, setAvatar] = useState<string>('User'); 
 
     useEffect(() => {
         if(selectedPersona === 'new') {
@@ -41,11 +25,10 @@ const UserPersonaWindow = (props: UserPersonaProps) => {
             setDescription('');
             setImportance('');
         }else{
-            if(auth.currentUser === null) return;
-            setName(auth.currentUser.displayName ?? '');
+            setName('');
             setDescription('');
             setImportance('very');
-            setAvatar(auth.currentUser.photoURL ?? '');
+            setAvatar('');
         }
     }, [selectedPersona]);
     

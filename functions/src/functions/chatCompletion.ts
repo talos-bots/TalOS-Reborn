@@ -1,13 +1,6 @@
-import * as functions from "firebase-functions";
-import cors from "cors";
-import * as admin from "firebase-admin";
 import { CompletionRequest, InstructMode, Message, UserPersona } from "../data-classes/CompletionRequest.js";
 import { Character, getCharacter, getCharacterPromptFromConstruct } from "../data-classes/Character.js";
 import llamaTokenizer from "../helpers.js/llama-tokenizer-modified.js";
-import { checkIfAdmin } from "./createNewBetaKey.js";
-import { userHasKey } from "./validateBetaKey.js";
-
-const corsHandler = cors({origin: true});
 
 export const chatCompletion = functions.https.onRequest((request, response) => {
     corsHandler(request, response, async () => {
@@ -18,31 +11,7 @@ export const chatCompletion = functions.https.onRequest((request, response) => {
         if (!request.body.data) {
             return response.status(400).send("Bad Request");
         }
-        if (!request.headers.authorization || !request.headers.authorization.startsWith("Bearer ")) {
-            return response.status(403).send("Unauthorized");
-        }
-        let idToken;
-        if (request.headers.authorization && request.headers.authorization.startsWith("Bearer ")) {
-            idToken = request.headers.authorization.split("Bearer ")[1];
-        } 
-        else {
-            return response.status(403).send("Unauthorized");
-        }
-        let userRecord: null | admin.auth.UserRecord;
-        try {
-            const decodedIdToken = await admin.auth().verifyIdToken(idToken);
-            userRecord = await admin.auth().getUser(decodedIdToken.uid);
-            console.log("ID Token correctly decoded", decodedIdToken);
-        } catch (error) {
-            console.error("Error while verifying Firebase ID token:", error);
-            return response.status(403).send("Unauthorized");
-        }
         let data = request.body.data;
-        const isAdmin = await checkIfAdmin(userRecord.uid);
-        const isBetaTester = await userHasKey(userRecord.uid);
-        if((!isAdmin && !isBetaTester)){
-            return response.status(403).send("Unauthorized");
-        }
         if(!data.model){
             return response.status(400).send("Bad Request");
         }

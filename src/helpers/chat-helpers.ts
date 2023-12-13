@@ -1,35 +1,31 @@
-import { getAuth } from "firebase/auth";
-import { sendCompletionRequest } from "../firebase_api/llmAPI";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Character } from "../global_classes/Character";
 import { Message } from "../global_classes/CompletionRequest";
-import { firebaseApp } from "../firebase-config";
 
 export async function continueConversation(messages: Message[], character: Character){
-    const model = localStorage.getItem('modelid') || 'mythomax';
-    const preset = localStorage.getItem('preset') || 'storywriter';
-    const auth = getAuth(firebaseApp);
-    const currentUser = auth.currentUser;
-    const unparsedResponse = await sendCompletionRequest(model, messages, character, preset, 'lorebookid').then((response) => {
-        console.log(response);
-        return response;
-    }).catch((error) => {
-        console.log(error);
-    });
-    if(unparsedResponse === null){
-        return null;
-    }
-    const value = unparsedResponse?.completion?.choices[0]?.text.trim();
-    console.log(value);
-    const refinedResponse = breakUpCommands(character.name, value, currentUser.displayName, null, false);
-    const assistantResponse: Message = {
-        userId: character._id,
-        fallbackName: character.name,
-        swipes: [refinedResponse],
-        currentIndex: 0,
-        role: 'Assistant',
-        thought: false,
-    };
-    return assistantResponse;
+    // const model = localStorage.getItem('modelid') || 'mythomax';
+    // const preset = localStorage.getItem('preset') || 'storywriter';
+    // const unparsedResponse = await sendCompletionRequest(model, messages, character, preset, 'lorebookid').then((response) => {
+    //     console.log(response);
+    //     return response;
+    // }).catch((error) => {
+    //     console.log(error);
+    // });
+    // if(unparsedResponse === null){
+    //     return null;
+    // }
+    // const value = unparsedResponse?.completion?.choices[0]?.text.trim();
+    // console.log(value);
+    // const refinedResponse = breakUpCommands(character.name, value, 'Test User', null, false);
+    // const assistantResponse: Message = {
+    //     userId: character._id,
+    //     fallbackName: character.name,
+    //     swipes: [refinedResponse],
+    //     currentIndex: 0,
+    //     role: 'Assistant',
+    //     thought: false,
+    // };
+    // return assistantResponse;
 }
 
 export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = false): string {
@@ -89,4 +85,8 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     
     const final = formattedCommands.join('\n');
     return final.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '');
+}
+
+function sendCompletionRequest(model: string, messages: Message[], character: Character, preset: string, arg4: string) {
+    throw new Error("Function not implemented.");
 }

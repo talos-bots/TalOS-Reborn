@@ -4,24 +4,11 @@ import { Auth, User } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import CharacterPopup from '../../components/shared/character-popup';
 import { Character } from '../../global_classes/Character';
-import { ResponsiveType } from 'react-multi-carousel';
-import { collection, getFirestore, onSnapshot, query, where } from 'firebase/firestore';
-import { firestoreDocToCharacter } from '../../helpers';
-import { firebaseApp } from '../../firebase-config';
 import CharacterComponent from '../../components/shared/character-component';
-import { getCharactersByBatch } from '../../firebase_api/characterAPI';
 import { Info, MessageCircle } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
-interface CharactersPageProps {
-    isProduction: boolean;
-    user?: User | null;
-    logout: () => void;
-    auth: Auth;
-}
-
-const CharactersPage = (props: CharactersPageProps) => {
-    const { auth, logout, isProduction, user } = props;
+const CharactersPage = () => {
     const [profilePopupOpen, setProfilePopupOpen] = useState<boolean>(false);
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
     const [publicCharacters, setPublicCharacters] = useState<Character[]>([]);
@@ -29,12 +16,12 @@ const CharactersPage = (props: CharactersPageProps) => {
     const [loading, setLoading] = useState<boolean>(true);
 
     const getMoreCharacters = async () => {
-        const lastCharacterID = publicCharacters[publicCharacters.length - 1]?._id ?? null;
-        const newCharacters = await getCharactersByBatch(lastCharacterID).then((characters) => {
-            return characters;
-        });
-        setPublicCharacters([...publicCharacters, ...newCharacters]);
-        setLoading(false);
+        // const lastCharacterID = publicCharacters[publicCharacters.length - 1]?._id ?? null;
+        // const newCharacters = await getCharactersByBatch(lastCharacterID).then((characters) => {
+        //     return characters;
+        // });
+        // setPublicCharacters([...publicCharacters, ...newCharacters]);
+        // setLoading(false);
     }
 
     useEffect(() => {

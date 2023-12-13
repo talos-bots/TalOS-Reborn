@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { User } from "firebase/auth";
 import React from "react";
-interface HomePageProps {
-    isProduction: boolean;
-    user?: User | null;
-    logout: () => void;
-}
-const HomePage = (props: HomePageProps) => {
-    const { isProduction, user, logout } = props;
+
+const HomePage = () => {
     
     return (
         <div className="m-auto flex flex-col bg-base-100 w-full min-h-screen p-2 md:p-4 gap-4 text-base-content">

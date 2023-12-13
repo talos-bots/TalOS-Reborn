@@ -1,13 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { getAuth } from "firebase/auth";
-import { sendCompletionRequest } from "../firebase_api/llmAPI";
 import { Character, UserPersona } from "./Character";
 import { CompletionRequest, Message, Role } from "./CompletionRequest";
-import { firebaseApp } from "../firebase-config";
 import { breakUpCommands } from "../helpers/chat-helpers";
 import { addStoredChatLog } from "../api/chatLogDB";
-import { addStoredChatLogToCloud, hasBetaAccess } from "../firebase_api/userAPI";
 
 export class StoredChatLog {
     _id: string = new Date().getTime().toString();
@@ -17,9 +14,8 @@ export class StoredChatLog {
     lastMessageDate: number = new Date().getTime();
     name: string = `${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
     userID: string = '';
-    syncToCloud: boolean = true;
 
-    constructor(_id?: string, messages?: StoredChatMessage[], characters?: string[], firstMessageDate?: number, lastMessageDate?: number, name?: string, userID?: string, syncToCloud?: boolean) {
+    constructor(_id?: string, messages?: StoredChatMessage[], characters?: string[], firstMessageDate?: number, lastMessageDate?: number, name?: string, userID?: string) {
         this._id = _id || new Date().getTime().toString();
         this.messages = messages || [];
         this.characters = characters || [];
@@ -27,7 +23,6 @@ export class StoredChatLog {
         this.lastMessageDate = lastMessageDate || new Date().getTime();
         this.name = name || `${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
         this.userID = userID || '';
-        this.syncToCloud = syncToCloud || true;
     }
 
     addMessage(message: StoredChatMessage): void {
@@ -105,49 +100,35 @@ export class StoredChatLog {
     }
 
     async continueChatLogFromNewMessage(persona: UserPersona, message: string, character: Character){
-        if(!this.characters.includes(character._id)){
-            this.addCharacter(character._id);
-        }
-        let model = localStorage.getItem('modelid') || 'mytholite';
-        const preset = localStorage.getItem('preset') || 'storywriter';
-        const auth = getAuth(firebaseApp);
-        if (auth.currentUser === null && persona === null) {
-            throw new Error("User is not logged in");
-        }
-        if(model !== 'mytholite'){
-            await hasBetaAccess().then((response) => {
-                if(!response){
-                    model = 'mytholite';
-                }
-            }).catch((error) => {
-                throw new Error("User does not have access to this feature");
-            });
-        }
-        const newUserMessage = StoredChatMessage.fromUserPersonaAndString(persona, message);
-        this.addMessage(newUserMessage);
-        const unparsedResponse = await sendCompletionRequest(model, this.messages, character, preset, 'lorebookid').then((response) => {
-            console.log(response);
-            return response;
-        }).catch((error) => {
-            console.log(error);
-        });
-        if(unparsedResponse === null){
-            return null;
-        }
-        const value = unparsedResponse?.completion?.choices[0]?.text.trim();
-        console.log(value);
-        const refinedResponse = breakUpCommands(character.name, value, persona?.name ?? auth.currentUser?.displayName, null, false);
-        const assistantResponse: Message = {
-            userId: character._id,
-            fallbackName: character.name,
-            swipes: [refinedResponse],
-            currentIndex: 0,
-            role: 'Assistant',
-            thought: false,
-        };
-        const storedAssistantResponse = StoredChatMessage.fromMessage(assistantResponse);
-        this.addMessage(storedAssistantResponse);
-        return this.toStoredChatLog();
+        // if(!this.characters.includes(character._id)){
+        //     this.addCharacter(character._id);
+        // }
+        // const preset = localStorage.getItem('preset') || 'storywriter';
+        // const newUserMessage = StoredChatMessage.fromUserPersonaAndString(persona, message);
+        // this.addMessage(newUserMessage);
+        // const unparsedResponse = await sendCompletionRequest(model, this.messages, character, preset, 'lorebookid').then((response) => {
+        //     console.log(response);
+        //     return response;
+        // }).catch((error) => {
+        //     console.log(error);
+        // });
+        // if(unparsedResponse === null){
+        //     return null;
+        // }
+        // const value = unparsedResponse?.completion?.choices[0]?.text.trim();
+        // console.log(value);
+        // const refinedResponse = breakUpCommands(character.name, value, persona?.name ?? auth.currentUser?.displayName, null, false);
+        // const assistantResponse: Message = {
+        //     userId: character._id,
+        //     fallbackName: character.name,
+        //     swipes: [refinedResponse],
+        //     currentIndex: 0,
+        //     role: 'Assistant',
+        //     thought: false,
+        // };
+        // const storedAssistantResponse = StoredChatMessage.fromMessage(assistantResponse);
+        // this.addMessage(storedAssistantResponse);
+        // return this.toStoredChatLog();
     }
 
     public addSwipeByIndex(index: number, swipe: string): void {
@@ -155,38 +136,38 @@ export class StoredChatLog {
     }
 
     public async generateNewSwipe(persona: UserPersona, character: Character) {
-        const model = localStorage.getItem('modelid') || 'mythomax';
-        const preset = localStorage.getItem('preset') || 'storywriter';
+        // const model = localStorage.getItem('modelid') || 'mythomax';
+        // const preset = localStorage.getItem('preset') || 'storywriter';
         
-        // Reverse a copy of the array to search from the end
-        const reversedMessages = [...this.messages].reverse();
-        const reversedIndex = reversedMessages.findIndex((message) => message.role === 'Assistant' && message.userId === character._id);
+        // // Reverse a copy of the array to search from the end
+        // const reversedMessages = [...this.messages].reverse();
+        // const reversedIndex = reversedMessages.findIndex((message) => message.role === 'Assistant' && message.userId === character._id);
         
-        // Adjust the index to map to the original array
-        const lastAssistantMessageIndex = reversedIndex !== -1 ? this.messages.length - 1 - reversedIndex : -1;
+        // // Adjust the index to map to the original array
+        // const lastAssistantMessageIndex = reversedIndex !== -1 ? this.messages.length - 1 - reversedIndex : -1;
     
-        if (lastAssistantMessageIndex === -1) {
-            // Handle the case where no matching message is found
-            return null;
-        }
+        // if (lastAssistantMessageIndex === -1) {
+        //     // Handle the case where no matching message is found
+        //     return null;
+        // }
     
-        const messagesBeforeAssistant = this.messages.slice(0, lastAssistantMessageIndex + 1);
-        const unparsedResponse = await sendCompletionRequest(model, messagesBeforeAssistant, character, preset, 'lorebookid').then((response) => {
-            console.log(response);
-            return response;
-        }).catch((error) => {
-            console.log(error);
-        });
+        // const messagesBeforeAssistant = this.messages.slice(0, lastAssistantMessageIndex + 1);
+        // const unparsedResponse = await sendCompletionRequest(model, messagesBeforeAssistant, character, preset, 'lorebookid').then((response) => {
+        //     console.log(response);
+        //     return response;
+        // }).catch((error) => {
+        //     console.log(error);
+        // });
     
-        if (unparsedResponse === null) {
-            return null;
-        }
+        // if (unparsedResponse === null) {
+        //     return null;
+        // }
     
-        const value = unparsedResponse?.completion?.choices[0]?.text.trim();
-        console.log(value);
-        const refinedResponse = breakUpCommands(character.name, value, persona.name, null, false);
-        this.addSwipeByIndex(lastAssistantMessageIndex, refinedResponse);
-        return this.toStoredChatLog();
+        // const value = unparsedResponse?.completion?.choices[0]?.text.trim();
+        // console.log(value);
+        // const refinedResponse = breakUpCommands(character.name, value, persona.name, null, false);
+        // this.addSwipeByIndex(lastAssistantMessageIndex, refinedResponse);
+        // return this.toStoredChatLog();
     }    
 
     public toStoredChatLog(): StoredChatLog {
@@ -203,37 +184,12 @@ export class StoredChatLog {
         }
     }
 
-    enableSyncToCloud(): void {
-        this.syncToCloud = true;
-    }
-
-    disableSyncToCloud(): void {
-        this.syncToCloud = false;
-        this.saveToCloud(true);
-    }
-
     async saveToDB(): Promise<void> {
         try {
             await addStoredChatLog(this);
             console.log('ChatLog saved to the database successfully.');
-            if(this.syncToCloud){
-                await this.saveToCloud();
-            }
         } catch (error) {
             console.error('Error saving ChatLog to the database:', error);
-        }
-    }
-
-    async saveToCloud(turnOff?: boolean): Promise<void> {
-        try {
-            this.syncToCloud = true;
-            if(turnOff){
-                this.syncToCloud = false;
-            }
-            await addStoredChatLogToCloud(this);
-            console.log('ChatLog saved to Firestore successfully.');
-        } catch (error) {
-            console.error('Error saving ChatLog to Firestore:', error);
         }
     }
 
@@ -305,12 +261,8 @@ export class StoredChatMessage implements Message{
     }
 
     public static fromUserPersonaAndString(persona: UserPersona | null, message: string, thought: boolean = false): StoredChatMessage {
-        const auth = getAuth(firebaseApp);
-        if (auth.currentUser === null && persona === null) {
-            throw new Error("User is not logged in");
-        }
         if(!persona?._id){
-            return new StoredChatMessage('display-name', auth.currentUser.displayName, [message], 0, 'User', thought);
+            return new StoredChatMessage('display-name', 'Test User', [message], 0, 'User', thought);
         }else{
             return new StoredChatMessage(persona._id, persona.name, [message], 0, 'User', thought);
         }

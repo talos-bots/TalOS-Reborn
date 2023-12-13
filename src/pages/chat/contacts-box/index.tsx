@@ -5,34 +5,20 @@ import { Auth } from "firebase/auth";
 import { Character } from "../../../global_classes/Character";
 import ContactItem from "./contact-item";
 import { useEffect, useState } from "react";
-import { getCharactersByCreator } from "../../../firebase_api/characterAPI";
 import { useLocation, useNavigate } from "react-router-dom";
 import { emitCloseSides } from '../../../helpers/events';
 
 interface ContactsBoxProps {
-    auth: Auth;
-    logout: () => void;
-    isProduction: boolean;
     character: Character | null;
     setCharacter: (character: Character) => void;
     showCharacterPopup: (character?: Character) => void;
 }
 
 const ContactsBox = (props: ContactsBoxProps) => {
-    const { auth, logout, isProduction, character, setCharacter } = props;
+    const { character, setCharacter } = props;
     const [contacts, setContacts] = useState<Character[]>([]);
 
     const [loading, setLoading] = useState<boolean>(true);
-
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-            if(user === null) return;
-            const newContacts = await getCharactersByCreator(user.uid);
-            setContacts(newContacts);
-            setLoading(false);
-        });
-        return unsubscribe;
-    }, [auth]);
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -61,16 +47,13 @@ const ContactsBox = (props: ContactsBoxProps) => {
                 return (
                     <ContactItem
                         key={contact._id}
-                        auth={auth}
-                        logout={logout}
-                        isProduction={isProduction}
                         character={contact}
                         setCharacter={handleCharacterClick}
                         showCharacterPopup={props.showCharacterPopup}
                     />
                 )
             })}
-            {loading && 
+            {loading &&
                 <div className="rounded-box bg-base-200 h-[6rem] w-full animate-pulse self-center flex-row flex items-center p-6">
                     <h2 className="text-lg font-bold">Loading...</h2>
                 </div>

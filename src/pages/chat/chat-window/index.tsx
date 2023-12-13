@@ -16,9 +16,6 @@ import { useNewChatLogListener, useSelectedChatLogChangedListener } from '../../
 import { TEAlert } from 'tw-elements-react';
 
 interface ChatWindowProps {
-    auth: Auth;
-    logout: () => void;
-    isProduction: boolean;
     character: Character | null;
     persona: UserPersona | null;
     toggleLeftDrawer: () => void;
@@ -28,7 +25,7 @@ interface ChatWindowProps {
 }
 
 const chatWindow = (props: ChatWindowProps) => {
-    const { auth, logout, isProduction, character, persona, theme } = props;
+    const { character, persona, theme } = props;
     const [chatLog, setChatLog] = useState<StoredChatLog | null>(null);
     const [chatMessages, setChatMessages] = useState<StoredChatMessage[]>([]);
     const [messageText, setMessageText] = useState<string>('');
@@ -102,7 +99,7 @@ const chatWindow = (props: ChatWindowProps) => {
         setChatMessages([]);
         const newChat = new StoredChatLog();
         if(character.hasGreetings()){
-            newChat.addMessage(character.createGreetingStoredMessage().replacePlaceholders(persona?.name ?? auth.currentUser?.displayName ?? 'You'));
+            newChat.addMessage(character.createGreetingStoredMessage().replacePlaceholders(persona?.name ?? 'You'));
         }
         setMessageText('');
         setShowError(false);
@@ -116,11 +113,11 @@ const chatWindow = (props: ChatWindowProps) => {
         if(!character) return;
         if(currentLog.messages.length === 0){
             if(character.hasGreetings()){
-                currentLog.addMessage(character.createGreetingStoredMessage().replacePlaceholders(persona?.name ?? auth.currentUser?.displayName ?? 'You'));
+                currentLog.addMessage(character.createGreetingStoredMessage().replacePlaceholders(persona?.name ?? 'You'));
             }
         }
         setChatLog(currentLog);
-    }, [character, auth?.currentUser?.displayName]);
+    }, [character]);
 
     const chatContainerStyle = isKeyboardVisible ? { maxHeight: '40vh', overflow: 'scroll' } : null;
 
@@ -168,7 +165,7 @@ const chatWindow = (props: ChatWindowProps) => {
                     return (
                         <div key={message.timestamp} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
                             <div className="dy-chat-header">
-                                {message.role !== 'User' ? (character?.name? character?.name : 'none') : persona?.name ?? auth.currentUser?.displayName ?? 'You'}
+                                {message.role !== 'User' ? (character?.name? character?.name : 'none') : persona?.name ?? 'You'}
                             </div>
                             <div className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
                                 <ReactMarkdown 
