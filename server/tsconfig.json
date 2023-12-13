@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "importHelpers": true,
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
