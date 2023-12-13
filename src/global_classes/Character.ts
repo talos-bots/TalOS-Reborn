@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { addCharacter } from "../api/characterDB";
 import { StoredChatMessage } from "./StoredChatLog";
-import { VerificationInformation } from "./VerificationStatus";
 
 export type Origin = 'Koios' | 'WyvernChat' | 'Discord';
 
@@ -24,6 +24,7 @@ export class Character{
         public alternate_greetings: string[] = [],
         public scenario: string = '',
     ){}
+
     toCharacter(): Character {
         return this;
     }
@@ -140,10 +141,29 @@ export class Character{
         this.scenario = scenario;
     }
 
-    async save(): Promise<boolean> {
-        // const character = this.toCharacter();
-        // const isUpdate = await updateCharacter(character);
-        return true;
+    async save(){
+        addCharacter(this);
+    }
+
+    public static fromJSON(json: any): Character {
+        return new Character(
+            json._id,
+            json.name,
+            json.avatar,
+            json.description,
+            json.personality,
+            json.mes_example,
+            json.creator_notes,
+            json.system_prompt,
+            json.post_history_instructions,
+            json.tags,
+            json.creator,
+            json.visual_description,
+            json.thought_pattern,
+            json.first_mes,
+            json.alternate_greetings,
+            json.scenario
+        );
     }
 }
 

@@ -7,6 +7,7 @@ import { Character } from '../../global_classes/Character';
 import CharacterComponent from '../../components/shared/character-component';
 import { Info, MessageCircle } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { getAllCharacters } from '../../api/characterDB';
 
 const CharactersPage = () => {
     const [profilePopupOpen, setProfilePopupOpen] = useState<boolean>(false);
@@ -16,17 +17,16 @@ const CharactersPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const getMoreCharacters = async () => {
-        // const lastCharacterID = publicCharacters[publicCharacters.length - 1]?._id ?? null;
-        // const newCharacters = await getCharactersByBatch(lastCharacterID).then((characters) => {
-        //     return characters;
-        // });
-        // setPublicCharacters([...publicCharacters, ...newCharacters]);
-        // setLoading(false);
+        const newCharacters = await getAllCharacters().then((characters) => {
+            return characters;
+        });
+        setPublicCharacters([...publicCharacters, ...newCharacters]);
+        setLoading(false);
     }
 
     useEffect(() => {
         getMoreCharacters();
-    }, [getMoreCharacters]);
+    }, []);
 
     const activateProfilePopup = (character: Character) => {
         if(character === null) return;

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { QueryDocumentSnapshot } from "firebase/firestore";
 import { Character } from "../global_classes/Character";
-import { BetaKey } from "../global_classes/BetaKey";
 import { StoredChatLog, StoredChatMessage } from "../global_classes/StoredChatLog";
 
 export function resizeImage(file: File) {
@@ -130,18 +129,6 @@ export function determineModel(model: string){
                 'token_limit': 4096,
             }
     }
-}
-
-export function firestoreDocToBetaKey(doc: QueryDocumentSnapshot) {
-    const data = doc.data();
-    const retrievedBetaKey = new BetaKey(
-        data.key,
-        data.creator,
-        data.created,
-        data.registeredUser,
-        data.requests,
-    );
-    return retrievedBetaKey;
 }
 
 export function firestoreDocToChat(doc: QueryDocumentSnapshot) {

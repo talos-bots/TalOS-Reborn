@@ -20,3 +20,7 @@ export const { useSelectedChatLogChangedListener, emitSelectedChatLogChanged } =
 export const { useCloseSidesListener, emitCloseSides } = createEvent('closeSides')(
     { crossTab: true }
 )
+
+export const { useCharacterUpdatedListener, emitCharacterUpdated } = createEvent('characterUpdated')(
+    { crossTab: true }
+)

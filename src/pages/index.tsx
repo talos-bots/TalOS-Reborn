@@ -5,7 +5,7 @@ import React from "react";
 const HomePage = () => {
     
     return (
-        <div className="m-auto flex flex-col bg-base-100 w-full min-h-screen p-2 md:p-4 gap-4 text-base-content">
+        <div className="m-auto flex flex-col bg-base-100 w-full min-h-[90vh] p-2 md:p-4 gap-4 text-base-content">
             <div className="w-full h-96 flex flex-col md:flex-row gap-4">
                 <div className="w-full h-full rounded-box bg-base-300 p-4">
                     <h2 className="text-2xl">Announcements</h2>

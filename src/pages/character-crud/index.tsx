@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, MessageCircle, PanelLeft, Save, User } from 'lucide-react';
@@ -9,13 +10,14 @@ import { Character, Origin } from '../../global_classes/Character';
 import StringArrayEditorCards from '../../components/shared/string-array-editor-cards';
 import TokenTextarea from '../../components/shared/token-textarea';
 import ImgRefresh from '../../components/shared/img-refresh';
-import { Alert, initTE} from "tw-elements";
+import { Alert, initTE } from "tw-elements";
 import { TEAlert } from 'tw-elements-react';
 import { continueConversation } from '../../helpers/chat-helpers';
 import { Message } from '../../global_classes/CompletionRequest';
 import { importTavernCharacter, useWindowSize } from '../../helpers/character-card';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import ReactMarkdown from 'react-markdown';
+import { getCharacter } from '../../api/characterDB';
 
 initTE({ Alert });
 
@@ -73,7 +75,7 @@ const CharacterCRUD = () => {
         try {
             const newCharacter = await importTavernCharacter(file);
             if(!newCharacter) return;
-            // characterToForm(newCharacter, downloadURL);
+            characterToForm(newCharacter, downloadURL);
         } catch (error) {
             console.error("Error resizing image: ", error);
             // Handle the error appropriately
@@ -81,38 +83,38 @@ const CharacterCRUD = () => {
         setWaitingForImage(false);
     };
 
-    // const characterToForm = (character: Character, avatarURL?: string) => {
-    //     if(character !== null){
-    //         setName(character?.name);
-    //         setAvatar(avatarURL ?? character?.avatar);
-    //         setDescription(character?.description);
-    //         setPersonality(character?.personality);
-    //         setMesExample(character?.mes_example);
-    //         setCreatorNotes(character?.creator_notes);
-    //         setSystemPrompt(character?.system_prompt);
-    //         setPostHistoryInstructions(character?.post_history_instructions);
-    //         setTags(character?.tags);
-    //         setCreator(character?.creator);
-    //         setVisualDescription(character?.visual_description);
-    //         setThoughtPattern(character?.thought_pattern);
-    //         setFirstMes(character?.first_mes);
-    //         setAlternateGreetings(character?.alternate_greetings);
-    //         setScenario(character?.scenario);
-    //     }
-    // }
+    const characterToForm = (character: Character, avatarURL?: string) => {
+        if(character !== null){
+            setName(character?.name);
+            setAvatar(avatarURL ?? character?.avatar);
+            setDescription(character?.description);
+            setPersonality(character?.personality);
+            setMesExample(character?.mes_example);
+            setCreatorNotes(character?.creator_notes);
+            setSystemPrompt(character?.system_prompt);
+            setPostHistoryInstructions(character?.post_history_instructions);
+            setTags(character?.tags);
+            setCreator(character?.creator);
+            setVisualDescription(character?.visual_description);
+            setThoughtPattern(character?.thought_pattern);
+            setFirstMes(character?.first_mes);
+            setAlternateGreetings(character?.alternate_greetings);
+            setScenario(character?.scenario);
+        }
+    }
 
-    // useEffect(() => {
-    //     if(id?.trim() !== '' && id !== undefined && id !== null && id?.trim() !== 'create'){
-    //         getCharacter(id).then((character) => {
-    //             characterToForm(character);
-    //         }).catch((error) => {
-    //             console.log(error);
-    //         });
-    //         setLoading(false);
-    //     }else{
-    //         setLoading(false);
-    //     }
-    // }, [id]);
+    useEffect(() => {
+        if(id?.trim() !== '' && id !== undefined && id !== null && id?.trim() !== 'create'){
+            getCharacter(id).then((character) => {
+                characterToForm(character);
+            }).catch((error) => {
+                console.log(error);
+            });
+            setLoading(false);
+        }else{
+            setLoading(false);
+        }
+    }, [id]);
 
     // State variables to control drawer open/close
     const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
@@ -143,8 +145,7 @@ const CharacterCRUD = () => {
         newCharacter.setFirstMes(first_mes);
         newCharacter.setAlternateGreetings(alternate_greetings);
         newCharacter.setScenario(scenario);
-        newCharacter.save().then((result) => {
-            setIsSuccessful(result);
+        newCharacter.save().then(() => {
             navigate('/characters');
         }).catch((error) => {
             console.log(error);
@@ -249,7 +250,7 @@ const CharacterCRUD = () => {
     }
 
     return (
-        <div className='w-full h-[95vh] md:p-4 flex flex-col text-base-content'>
+        <div className='w-full h-[92.5vh] md:p-4 flex flex-col text-base-content'>
             {loading && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
                     <div className="bg-base-300 rounded-box p-2 md:p-6">

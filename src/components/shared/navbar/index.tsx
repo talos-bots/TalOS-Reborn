@@ -1,15 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import { User } from "firebase/auth";
-import WayWyIcon from "../WayWyIcon";
 import { Cookie, Gamepad2, Home, MessageCircle, Paintbrush, Star, UsersRound } from "lucide-react";
-import { QuestionMark } from "@mui/icons-material";
-import { NavLink } from "react-router-dom";
-import { logicEngines } from "../../../helpers/constants";
 import { useEffect, useRef, useState } from "react";
 import { getCurrentEngine, setNewLogicEngine } from "../../../helpers";
 import { emitLogicEngineChange, useLogicEngineChangeListener } from '../../../helpers/events';
-import TalOS from '../TalosIcon';
+import { NavLink } from 'react-router-dom';
 
 const NavBar = () => {
     const [logicEngine, setLogicEngine] = useState<string>('mythomax');

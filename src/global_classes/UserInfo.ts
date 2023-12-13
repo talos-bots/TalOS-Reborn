@@ -1,7 +1,4 @@
-import { getAuth } from "firebase/auth";
 import { UserPersona } from "./Character";
-import { firebaseApp } from "../firebase-config";
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class UserInfo {
     defaultPersona: UserPersona | null = null;
@@ -13,15 +10,7 @@ export class UserInfo {
         public infractions: number = 0,
         public lastLogin: Date = new Date(),
         public dateCreated: Date = new Date(),
-    ){
-        const auth = getAuth(firebaseApp);
-        this.defaultPersona = new UserPersona(
-            auth.currentUser?.displayName || "You",
-            auth.currentUser?.photoURL || "",
-            '',
-            "low"
-        );
-    }
+    ){}
         
     public static fromFirebaseUser(user: any) {
         return new UserInfo(
