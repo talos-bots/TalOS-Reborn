@@ -13,7 +13,7 @@ const CharactersPage = () => {
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
     const [publicCharacters, setPublicCharacters] = useState<Character[]>([]);
 
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const getMoreCharacters = async () => {
         // const lastCharacterID = publicCharacters[publicCharacters.length - 1]?._id ?? null;

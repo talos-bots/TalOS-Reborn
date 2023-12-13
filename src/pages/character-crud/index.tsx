@@ -31,7 +31,7 @@ const CharacterCRUD = () => {
 
     const endOfChatRef = React.useRef<HTMLDivElement>(null);
 
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [width] = useWindowSize();
 
@@ -365,7 +365,7 @@ const CharacterCRUD = () => {
                         </div>
                     </div>
                     <h3 className="text-xl">Prompt Information*</h3>
-                    <p className='dy-textarea'>Information within this category, is the only information put inside of the prompt sent to the AI, minus the name. All other information is made optional for usage inside of the Text RPG modes. Our backend prompts are identical to the community chat format for each model. If you want more information on how to create and format a character, consult the Guides page under 'Character Creation'.</p>
+                    <p className='dy-textarea'>Information within this category, is the only information put inside of the prompt sent to the AI, minus the name. All other information is made optional.</p>
                     <div className='flex flex-col w-full gap-4'>
                         <TokenTextarea
                             disabled={notAuthorized}

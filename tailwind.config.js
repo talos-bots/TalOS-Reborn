@@ -263,11 +263,8 @@ module.exports = withMT({
   daisyui: {
     themes: [
       {
-        dim: {
-          ...require("daisyui/src/theming/themes")["dim"],
-          primary: "#e64919",
-          secondary: "#e6af19",
-          accent: "#19b6e6",
+        night: {
+          ...require("daisyui/src/theming/themes")["night"],
         }
       }
     ],

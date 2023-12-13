@@ -1,5 +1,5 @@
 import { CompletionRequest, InstructMode, Message, UserPersona } from "../data-classes/CompletionRequest.js";
-import { Character, getCharacter, getCharacterPromptFromConstruct } from "../data-classes/Character.js";
+import { Character, getCharacterPromptFromConstruct } from "../data-classes/Character.js";
 import llamaTokenizer from "../helpers.js/llama-tokenizer-modified.js";
 
 export const chatCompletion = functions.https.onRequest((request, response) => {
@@ -15,9 +15,6 @@ export const chatCompletion = functions.https.onRequest((request, response) => {
         if(!data.model){
             return response.status(400).send("Bad Request");
         }
-        if(data.model === 'goliath-120b' || data.model === 'synthia-70b'){
-            data.model = 'mythomanx';
-        }
         if(!data.messages){
             return response.status(400).send("Bad Request");
         }
@@ -27,15 +24,8 @@ export const chatCompletion = functions.https.onRequest((request, response) => {
         if(!data.character.name){
             return response.status(400).send("Bad Request");
         }
-        try {
-            const decodedIdToken = await admin.auth().verifyIdToken(idToken);
-            console.log("ID Token correctly decoded", decodedIdToken);
-        } catch (error) {
-            console.error("Error while verifying Firebase ID token:", error);
-            return response.status(403).send("Unauthorized");
-        }
         console.log(request.body);
-        getCompletion(data).then((completion) => {
+        getMancerCompletion(data).then((completion) => {
             response.status(200).send({
                 data: {
                     completion,
@@ -378,7 +368,7 @@ function getStopSequences(messages: Message[]){
     return stopSequences;
 }
 
-async function getCompletion(request: CompletionRequest){
+async function getMancerCompletion(request: CompletionRequest){
     const prompt = await formatCompletionRequest(request);
     const stopSequences = getStopSequences(request.messages);
     if(request.model === "weaver-alpha" || request.model === "mythomax"){
