@@ -15,6 +15,7 @@ import { useWindowSize } from "../../helpers/character-card";
 import CharacterPopup from "../../components/shared/character-popup";
 import ChatLogs from './chat-logs';
 import { useCloseSidesListener } from '../../helpers/events';
+import { getCharacter } from '../../api/characterDB';
 
 const ChatPage = () => {
     const navigate = useNavigate();
@@ -41,15 +42,15 @@ const ChatPage = () => {
     const toggleRightDrawer = () => setIsRightDrawerOpen(!isRightDrawerOpen);
     
     useEffect(() => {
-        // if(characterID === null) return;
-        // const retrieveCharacter = async () => {
-        //     const character = await getCharacter(characterID).then((character) => {
-        //         return character;
-        //     });
-        //     if(!character) return;
-        //     setSelectedCharacter(character)
-        // }
-        // retrieveCharacter();
+        if(characterID === null) return;
+        const retrieveCharacter = async () => {
+            const character = await getCharacter(characterID).then((character) => {
+                return character;
+            });
+            if(!character) return;
+            setSelectedCharacter(character)
+        }
+        retrieveCharacter();
     }, [characterID]);
     
     const handleCharacterSelect = (character: Character) => {

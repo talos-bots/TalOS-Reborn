@@ -14,7 +14,7 @@ const CharacterPopup = (props: CharacterPopupProps) => {
 	const [creatorName, setCreatorName] = useState<string>('');
 	const modalContentRef = useRef(null); // Ref for modal content
 
-	const [loading, setLoading] = useState<boolean>(true);
+	const [loading, setLoading] = useState<boolean>(false);
 
 	useEffect(() => {
         if (isOpen) {
@@ -31,10 +31,6 @@ const CharacterPopup = (props: CharacterPopupProps) => {
 			document.body.classList.remove('no-scroll');
 		}
 	}, [character, isOpen]);
-
-	useEffect(() => {
-		setLoading(true);
-	}, [character])
 	
 	const handleClickOutside = (event) => {
 		if (modalContentRef.current && !modalContentRef.current.contains(event.target)) {

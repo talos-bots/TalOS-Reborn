@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import express from 'express';
 import cors from 'cors';
 import { createServer } from "node:http";
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import multer from 'multer';
 import bodyParser from 'body-parser';
 import fs from 'fs';
@@ -30,6 +31,19 @@ const server = createServer(expressApp);
 export const expressAppIO = new Server(server, {
   cors: corsOptions
 });
+
+// Graceful shutdown function
+function gracefulShutdown() {
+  console.log('Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+}
+
+// Handle termination signals
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
 
 //enable * on CORS for socket.io
 expressAppIO.sockets.on('connection', (socket) => {
@@ -64,5 +78,4 @@ expressApp.post('/files/upload', upload.single('image'), (req, res) => {
 });
 
 expressApp.post('/v1/completions', (req, res) => {
-  
 });

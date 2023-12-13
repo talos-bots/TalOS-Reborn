@@ -1,6 +1,6 @@
 import { CompletionRequest, InstructMode, Message, UserPersona } from "../data-classes/CompletionRequest.js";
 import { Character, getCharacterPromptFromConstruct } from "../data-classes/Character.js";
-import llamaTokenizer from "../helpers.js/llama-tokenizer-modified.js";
+import llamaTokenizer from "../helpers/llama-tokenizer-modified.js";
 
 export const chatCompletion = functions.https.onRequest((request, response) => {
     corsHandler(request, response, async () => {

@@ -18,6 +18,7 @@ import { importTavernCharacter, useWindowSize } from '../../helpers/character-ca
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import ReactMarkdown from 'react-markdown';
 import { getCharacter } from '../../api/characterDB';
+import { uploadFile } from '../../api/fileServer';
 
 initTE({ Alert });
 
@@ -74,8 +75,9 @@ const CharacterCRUD = () => {
 
         try {
             const newCharacter = await importTavernCharacter(file);
+            const fileName = await uploadFile(file);
             if(!newCharacter) return;
-            characterToForm(newCharacter, downloadURL);
+            characterToForm(newCharacter, fileName);
         } catch (error) {
             console.error("Error resizing image: ", error);
             // Handle the error appropriately
@@ -374,7 +376,7 @@ const CharacterCRUD = () => {
                             placeholder="{{char}} is a wizard, and is a private investigator. {{char}} wants to help {{user}} with their problem."
                             value={description}
                             onChange={(e) => setDescription(e)}
-                            required={true}
+                            required={false}
                             className={"w-full h-full"}
                         />
                         <TokenTextarea

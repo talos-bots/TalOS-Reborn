@@ -7,6 +7,7 @@ import ContactItem from "./contact-item";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { emitCloseSides } from '../../../helpers/events';
+import { getAllCharacters } from '../../../api/characterDB';
 
 interface ContactsBoxProps {
     character: Character | null;
@@ -17,6 +18,17 @@ interface ContactsBoxProps {
 const ContactsBox = (props: ContactsBoxProps) => {
     const { character, setCharacter } = props;
     const [contacts, setContacts] = useState<Character[]>([]);
+
+    useEffect(() => {
+        const getContacts = async () => {
+            const newCharacters = await getAllCharacters().then((characters) => {
+                return characters;
+            });
+            setContacts(newCharacters);
+            setLoading(false);
+        }
+        getContacts();
+    }, []);
 
     const [loading, setLoading] = useState<boolean>(true);
     
