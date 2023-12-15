@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import { Cookie, Gamepad2, Home, MessageCircle, Paintbrush, Star, UsersRound } from "lucide-react";
+import { Cog, Cookie, Gamepad2, Home, MessageCircle, Paintbrush, Star, UsersRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getCurrentEngine, setNewLogicEngine } from "../../../helpers";
 import { emitLogicEngineChange, useLogicEngineChangeListener } from '../../../helpers/events';
@@ -64,6 +64,9 @@ const NavBar = () => {
                     <NavLink className="dy-btn dy-btn-ghost" title="Chat" to="/chat">
                         <MessageCircle />
                     </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost" title="Settings" to="/settings">
+                        <Cog />
+                    </NavLink>
                     {/* <NavLink className="dy-btn dy-btn-ghost" title="Games" to="/games">
                         <Gamepad2 />
                     </NavLink>
@@ -83,6 +86,9 @@ const NavBar = () => {
                     </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Chat" to="/chat">
                         <MessageCircle/>
+                    </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Settings" to="/settings">
+                        <Cog />
                     </NavLink>
                     {/* <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Games" to="/games">
                         <Gamepad2/>

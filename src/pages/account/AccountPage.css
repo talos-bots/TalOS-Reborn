@@ -1,0 +1,49 @@
+.avatar{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    position: relative;
+    display: inline-block;
+}
+
+.avatar:hover {
+    cursor: pointer;
+    @apply bg-opacity-50 backdrop-blur-xl;
+}
+
+.icon-overlay {
+    @apply absolute rounded-[50%] inset-0 bg-black bg-opacity-50;
+}
+
+.avatar:hover .icon-overlay {
+    display: block;
+    @apply bg-opacity-50 backdrop-blur-xl;
+}
+
+/* Style for the hover effect on the image container */
+.avatar:hover .hover-effect {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+/* Style for the hover effect content */
+.hover-effect {
+    display: none;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+/* Style for the camera icon to make it more visible on hover */
+.avatar:hover .camera-icon {
+    display: block;
+}
+/* Camera icon style */
+.camera-icon {
+    display: none;
+    color: white;
+    font-size: 1.75rem;
+}
+.avatar.loading .spinner {
+    display: block;
+}

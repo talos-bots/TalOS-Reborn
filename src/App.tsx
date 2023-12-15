@@ -7,6 +7,7 @@ import NavBar from "./components/shared/navbar";
 import CharactersPage from "./pages/characters";
 import CharacterCRUD from "./pages/character-crud";
 import ChatPage from "./pages/chat";
+import SettingsPage from './pages/settings';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -50,6 +51,7 @@ export default function App() {
 					<Route path='/chat' element={<ChatPage/>} />
 					<Route path='/characters/:id' element={<CharacterCRUD/>} />
 					<Route path='/characters' element={<CharactersPage/>} />
+					<Route path='/settings' element={<SettingsPage/>} />
 					</Routes>
 				</div>
 			</Router>

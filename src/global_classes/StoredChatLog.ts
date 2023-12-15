@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { getAuth } from "firebase/auth";
 import { Character, UserPersona } from "./Character";
 import { CompletionRequest, Message, Role } from "./CompletionRequest";
-import { breakUpCommands } from "../helpers/chat-helpers";
 import { addStoredChatLog } from "../api/chatLogDB";
 
 export class StoredChatLog {

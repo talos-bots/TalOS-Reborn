@@ -4,6 +4,7 @@ import { Edit, Info, MessageCircle, Trash } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Character } from "../../../global_classes/Character";
 import { confirmModal } from "../confirm-modal";
+import { deleteCharacter } from "../../../api/characterDB";
 
 interface CharacterComponentProps {
     character: Character | null;
@@ -27,7 +28,7 @@ const CharacterComponent = (props: CharacterComponentProps) => {
     const deleteSelf = async () => {
         if (character) {
             if(await confirmModal('Are you sure you want to delete this character?')){
-                // await deleteCharacter(character);
+                await deleteCharacter(character._id);
             }
         }
     }
