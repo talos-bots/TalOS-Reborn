@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { createServer } from "node:http";
 import { Server } from 'socket.io';
@@ -8,6 +9,10 @@ import multer from 'multer';
 import bodyParser from 'body-parser';
 import fs from "fs";
 import path from "path";
+import db from './database.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 
 const uploadsPath = './uploads';
 export const dataPath = './data';
@@ -25,6 +30,25 @@ export const conversationsPath = `${dataPath}/conversations`;
 
 export const expressApp = express();
 const port = 3003;
+
+const JWT_SECRET = process.env.JWT_SECRET
+
+if(!JWT_SECRET) {
+    const fs = require('fs');
+    const crypto = require('crypto');
+
+    const generateSecret = () => crypto.randomBytes(64).toString('hex');
+    const secret = `JWT_SECRET=${generateSecret()}\n`;
+
+    fs.appendFile('.env', secret, (err: any) => {
+        if (err) throw err;
+        console.log('.env file created with JWT_SECRET');
+    });
+    
+    //restart the server
+    console.log('Generated new JWT_SECRET... application will restart');
+    process.exit(1);
+}
 
 fs.mkdirSync(uploadsPath, { recursive: true });
 fs.mkdirSync(dataPath, { recursive: true });
@@ -51,6 +75,7 @@ const corsOptions = {
 	credentials: true
 };
 
+expressApp.use(cookieParser());
 expressApp.use(cors(corsOptions));
 expressApp.use('/images', express.static(uploadsPath));
 
@@ -67,6 +92,18 @@ function gracefulShutdown() {
 		process.exit(0);
 	});
 }
+
+const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies['talosAuthToken'];
+    if (token == null) return res.status(401).send('Access denied');
+
+    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+        if (err) return res.status(403).send('Invalid token');
+        //@ts-expect-error - user is a property of the verify function
+        req.user = user; // Ensure the type of user is defined and added to Request interface
+        next();
+    });
+};
 
 // Handle termination signals
 process.on('SIGTERM', gracefulShutdown);
@@ -97,11 +134,80 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-expressApp.post('/files/upload', upload.single('image'), (req, res) => {
+expressApp.post('/files/upload', authenticateToken, upload.single('image'), (req, res) => {
 	if (!req.file) {
 		return res.status(400).send('No file uploaded.');
 	}
 	res.send(`File uploaded: ${req.file.originalname}`);
+});
+
+expressApp.post('/register', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+
+    // Check if username already exists
+    const checkUserQuery = `SELECT username FROM users WHERE username = ?`;
+    db.get(checkUserQuery, [username], async (checkErr: any, row: any) => {
+        if (checkErr) {
+            res.status(500).json({ error: checkErr.message });
+            return;
+        }
+        if (row) {
+            res.status(409).json({ error: 'Username already taken' });
+            return;
+        }
+
+        // Proceed with registration
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const insertQuery = `INSERT INTO users (username, hashed_password) VALUES (?, ?)`;
+
+        db.run(insertQuery, [username, hashedPassword], function(err: any) {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            //@ts-expect-error - lastID is a property of the run function
+            res.json({ message: 'User registered successfully', id: this.lastID });
+        });
+    });
+});
+
+expressApp.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+    const query = `SELECT * FROM users WHERE username = ?`;
+
+    db.get(query, [username], async (err: any, user: any) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        if (user && await bcrypt.compare(password, user.hashed_password)) {
+            const token = jwt.sign({ userId: user.id }, JWT_SECRET ?? '', { expiresIn: '24h' });
+
+            // Set cookie with the token
+            res.cookie('talosAuthToken', token, {
+                httpOnly: true, // Makes the cookie inaccessible to client-side JavaScript
+                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            });
+
+            res.json({ message: 'Login successful' });
+        } else {
+            res.status(401).json({ message: 'Invalid credentials' });
+        }
+    });
+});
+
+expressApp.post('/logout', (req, res) => {
+    res.cookie('talosAuthToken', '', { expires: new Date(0) });
+    res.json({ message: 'Logged out successfully' });
 });
 
 export type CharacterInterface = {
@@ -149,7 +255,7 @@ function saveCharacter(character: CharacterInterface) {
     fs.writeFileSync(filePath, characterJson, "utf-8");
 }
 
-expressApp.post('/save/character', (req, res) => {
+expressApp.post('/save/character', authenticateToken, (req, res) => {
     const character = req.body;
     saveCharacter(character);
     res.send({ message: "Character saved successfully!" });
@@ -188,7 +294,7 @@ function removeCharacterById(id: string) {
     }
 }
 
-expressApp.delete('/character/:id', (req, res) => {
+expressApp.delete('/character/:id', authenticateToken, (req, res) => {
     const id = req.params.id;
     removeCharacterById(id);
     res.send({ message: "Character removed successfully!" });
