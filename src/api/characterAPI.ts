@@ -61,6 +61,26 @@ export async function deleteCharacterById(id: string): Promise<void> {
     emitCharacterUpdated();
 }
 
+export async function getCharactersByUserID(id: string): Promise<Character[]> {
+    const response = await fetch(`/api/characters/creator`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            creator: id,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+    }
+
+    const data = await response.json()
+    console.log(data);
+    return data.map((character: any) => Character.fromJSON(character));
+}
+
 export async function getUserdataByID(id: string): Promise<any> {
     const response = await fetch(`/api/profile/${id}`);
 

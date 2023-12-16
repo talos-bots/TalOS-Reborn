@@ -127,3 +127,5 @@ dist
 .pnp.*
 server/uploads/*
 server/data/*
+*.db
+server/auth.db

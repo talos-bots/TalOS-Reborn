@@ -122,6 +122,10 @@ const CharacterPopup = (props: CharacterPopupProps) => {
 								<label className='text-left font-semibold'>Scenario</label>
 								<p className='text-left dy-textarea h-fit min-h-[2.5rem] line-clamp-4 overflow-y-scroll'>{character?.scenario}</p>
 							</div>
+							<div className={'text-left flex flex-col w-full md:w-1/4 '  + (character?.system_prompt?.trim().length < 1 ? 'hidden' : '')}>
+								<label className='text-left font-semibold'>System Prompt</label>
+								<p className='text-left dy-textarea h-fit min-h-[2.5rem] line-clamp-4 overflow-y-scroll'>{character?.system_prompt}</p>
+							</div>
 							<h3 className='text-left font-semibold'>Character Summary</h3>
 							<div className={'text-left flex flex-col w-full md:w-1/4 '  + (character?.creator_notes?.trim().length < 1 ? 'hidden' : '')}>
 								<label className='text-left font-semibold'>Creator Notes</label>

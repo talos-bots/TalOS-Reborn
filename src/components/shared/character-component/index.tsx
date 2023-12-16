@@ -4,7 +4,7 @@ import { Edit, Info, MessageCircle, Trash } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Character } from "../../../global_classes/Character";
 import { confirmModal } from "../confirm-modal";
-import { deleteCharacterById } from "../../../api/characterAPI";
+import { deleteCharacterById, getUserdataByID } from "../../../api/characterAPI";
 
 interface CharacterComponentProps {
     character: Character | null;
@@ -16,6 +16,22 @@ const CharacterComponent = (props: CharacterComponentProps) => {
     const defaultPhotoURL = 'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/imagegenexample.png?alt=media&token=6d5a83d2-0824-40eb-9b0d-7a2fa861c035';
     const [photoURL, setPhotoURL] = useState(character?.avatar || defaultPhotoURL);
     const [displayName, setDisplayName] = useState(character?.name || 'Guest');
+
+    const [creatorName, setCreatorName] = useState<string>('');
+	const [creatorProfilePic, setCreatorProfilePic] = useState<string>('');
+
+    useEffect(() => {
+		if (character) {
+			console.log('Getting creator data');
+			getUserdataByID(character.creator).then((user) => {
+				console.log(user);
+				setCreatorName(user?.display_name || '');
+				setCreatorProfilePic(user?.profile_pic || '');
+			}).catch((err) => {
+				console.error(err);
+			});
+		}
+	}, [character]);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -62,9 +78,9 @@ const CharacterComponent = (props: CharacterComponentProps) => {
                     <button className="dy-btn dy-btn-sm dy-btn-info" onClick={(e) => {e.preventDefault(); changeCharacterID()}}><MessageCircle/></button>
                 </div>
             </div>
-            <div className="flex flex-col gap-1 col-span-2">
+            <div className="flex flex-col gap-1 col-span-2 justify-between">
                 <div className="flex flex-row justify-between">
-                    <h4 className="text-left text-ellipsis line-clamp-1 text-lg">Description</h4>
+                    <h4 className="text-left text-ellipsis line-clamp-1 text-xl flex-grow">{character?.description.length > 1 ? 'Description' : 'Personality'}</h4>
                     <div className={"flex flex-row gap-1 "}>
                         <NavLink className="dy-btn dy-btn-xs dy-btn-info dy-btn-outline" title="Edit" to={`/characters/${character?._id}`}>
                             <Edit />
@@ -77,7 +93,8 @@ const CharacterComponent = (props: CharacterComponentProps) => {
                         </button>
                     </div>
                 </div>
-                <p className="text-left line-clamp-4 overflow-y-scroll text-clip dy-textarea">{character?.description}</p>
+                <p className="text-left line-clamp-4 overflow-y-scroll text-clip dy-textarea flex-grow">{character?.description.length > 1 ? character?.description : character?.personality}</p>
+                <span className="text-left text-ellipsis line-clamp-1 flex flex-row gap-1 items-center justify-end">{creatorName} <img className="rounded-full h-8 w-8" src={creatorProfilePic} alt="creator"/></span>
             </div>
         </div>
     );

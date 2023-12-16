@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import { Auth } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { UserPersona } from "../../../global_classes/Character";
+import { useUser } from '../../../components/shared/auth-provider';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface UserPersonaProps {
@@ -12,6 +12,7 @@ interface UserPersonaProps {
 }
 
 const UserPersonaWindow = (props: UserPersonaProps) => {
+    const { user } = useUser();
     const { persona, setPersona } = props;
     const [selectedPersona, setSelectedPersona] = useState<string>('display-info');
     const [name, setName] = useState<string>('User');
@@ -20,15 +21,22 @@ const UserPersonaWindow = (props: UserPersonaProps) => {
     const [avatar, setAvatar] = useState<string>('User'); 
 
     useEffect(() => {
+        if(persona) {
+            setName(persona.name);
+            setDescription(persona.description);
+            setImportance(persona.importance);
+            setAvatar(persona.avatar);
+        }
+    }, [persona]);
+
+    useEffect(() => {
         if(selectedPersona === 'new') {
             setName('');
             setDescription('');
             setImportance('');
-        }else{
-            setName('');
-            setDescription('');
-            setImportance('very');
-            setAvatar('');
+        }else if(selectedPersona === 'display-info') {
+            setName(user?.displayName || 'User');
+            setAvatar(user?.profilePic || '');
         }
     }, [selectedPersona]);
     

@@ -37,7 +37,7 @@ const ContactItem = (props: ContactItemProps) => {
                     <div className="flex flex-col w-full">
                         <p className="text-lg font-bold">{character?.name}</p>
                         <p className="dy-textarea w-full dy-textarea-bordered dy-textarea-xs line-clamp-2 overflow-y-auto">
-                            {character?.description}
+                            {character?.description.length > 1 ? character?.description : character?.personality}
                         </p>
                     </div>
                 </div>

@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { emitCloseSides } from '../../../helpers/events';
 import { getAllCharacters } from '../../../api/characterDB';
+import { getCharactersByUserID } from '../../../api/characterAPI';
+import { useUser } from '../../../components/shared/auth-provider';
 
 interface ContactsBoxProps {
     character: Character | null;
@@ -16,19 +18,20 @@ interface ContactsBoxProps {
 }
 
 const ContactsBox = (props: ContactsBoxProps) => {
+    const { user } = useUser();
     const { character, setCharacter } = props;
     const [contacts, setContacts] = useState<Character[]>([]);
 
     useEffect(() => {
         const getContacts = async () => {
-            const newCharacters = await getAllCharacters().then((characters) => {
+            const newCharacters = await getCharactersByUserID(user?.id).then((characters) => {
                 return characters;
             });
             setContacts(newCharacters);
             setLoading(false);
         }
         getContacts();
-    }, []);
+    }, [user]);
 
     const [loading, setLoading] = useState<boolean>(true);
     
