@@ -64,14 +64,14 @@ export const RequiredSelectField = ({ label, required, className, ...props}) => 
 
   return (
     <div className={'flex flex-col gap-2 ' + className}>
-      <label className={`${required ? 'required-field' : ''} ${isError() ? 'error-field' : ''} font-bold w-full`}>
+      <label className={`${required ? 'required-field ' : ''} ${isError() ? ' error-field ' : ''} font-bold w-full`}>
         {label}
       </label>
       <select
         {...props}
         required={required}
         onBlur={() => setTouched(true)}
-        className={(isError() ? 'error-field' : '') + 'dy-input dy-input-bordered ' + className}
+        className={(isError() ? 'error-field ' : '') + ' dy-input dy-input-bordered ' + className}
       >
         {props.children}
       </select>

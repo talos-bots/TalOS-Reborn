@@ -7,8 +7,8 @@ import { Character } from '../../global_classes/Character';
 import CharacterComponent from '../../components/shared/character-component';
 import { Info, MessageCircle } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { getAllCharacters } from '../../api/characterDB';
 import { useCharacterUpdatedListener } from '../../helpers/events';
+import { fetchAllCharacters } from '../../api/characterAPI';
 
 const CharactersPage = () => {
     const [profilePopupOpen, setProfilePopupOpen] = useState<boolean>(false);
@@ -18,7 +18,7 @@ const CharactersPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const getMoreCharacters = async () => {
-        const newCharacters = await getAllCharacters().then((characters) => {
+        const newCharacters = await fetchAllCharacters().then((characters) => {
             return characters;
         });
         setPublicCharacters([...newCharacters]);

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { addCharacter } from "../api/characterDB";
+import { saveCharacterToLocal } from "../api/characterAPI";
 import { StoredChatMessage } from "./StoredChatLog";
 
 export type Origin = 'Koios' | 'WyvernChat' | 'Discord';
@@ -142,7 +142,7 @@ export class Character{
     }
 
     async save(){
-        addCharacter(this);
+        saveCharacterToLocal(this);
     }
 
     public static fromJSON(json: any): Character {

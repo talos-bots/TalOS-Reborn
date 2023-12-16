@@ -4,7 +4,7 @@ import { Edit, Info, MessageCircle, Trash } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Character } from "../../../global_classes/Character";
 import { confirmModal } from "../confirm-modal";
-import { deleteCharacter } from "../../../api/characterDB";
+import { deleteCharacterById } from "../../../api/characterAPI";
 
 interface CharacterComponentProps {
     character: Character | null;
@@ -28,7 +28,7 @@ const CharacterComponent = (props: CharacterComponentProps) => {
     const deleteSelf = async () => {
         if (character) {
             if(await confirmModal('Are you sure you want to delete this character?')){
-                await deleteCharacter(character._id);
+                await deleteCharacterById(character._id);
             }
         }
     }
@@ -78,15 +78,6 @@ const CharacterComponent = (props: CharacterComponentProps) => {
                     </div>
                 </div>
                 <p className="text-left line-clamp-4 overflow-y-scroll text-clip dy-textarea">{character?.description}</p>
-                <label className="text-left text-ellipsis line-clamp-1 text-lg">Tags</label>
-                <div className="flex flex-row gap-1 w-full">
-                    {character?.tags?.map((tag, index) => {
-                        return (
-                            <div key={index} className="dy-badge dy-badge-info">{tag}</div>
-                        )
-                    })}
-                    {character?.tags?.length === 0 && <p className="dy-badge dy-badge-warning">None</p>}
-                </div>
             </div>
         </div>
     );

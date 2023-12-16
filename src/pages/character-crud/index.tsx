@@ -19,6 +19,7 @@ import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import ReactMarkdown from 'react-markdown';
 import { getCharacter } from '../../api/characterDB';
 import { uploadFile } from '../../api/fileServer';
+import { fetchCharacterById } from '../../api/characterAPI';
 
 initTE({ Alert });
 
@@ -107,7 +108,7 @@ const CharacterCRUD = () => {
 
     useEffect(() => {
         if(id?.trim() !== '' && id !== undefined && id !== null && id?.trim() !== 'create'){
-            getCharacter(id).then((character) => {
+            fetchCharacterById(id).then((character) => {
                 characterToForm(character);
             }).catch((error) => {
                 console.log(error);
