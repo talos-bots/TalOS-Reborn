@@ -8,10 +8,10 @@ import { resizeImage } from "../../helpers";
 import { confirmModal } from "../../components/shared/confirm-modal";
 import RequiredInputField from "../../components/shared/required-input-field";
 import { useUser } from '../../components/shared/auth-provider';
-import { uploadProfilePicture } from '../../api/fileServer';
+import { uploadFile, uploadProfilePicture } from '../../api/fileServer';
 
 const AccountPage = () => {
-    const { user, logout, changeDisplayName, changePassword, changeProfilePicture } = useUser();
+    const { user, logout, changeDisplayName, changePassword, changeProfilePicture, changeProfileBackground, changeProfileTagline } = useUser();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -21,6 +21,8 @@ const AccountPage = () => {
             setUsername(user.username || '');
             setDisplayName(user.displayName || '');
             setProfilePicture(user.profilePic || '');
+            setProfileBackground(user.backgroundPic || '');
+            setProfileTagline(user.tagline || '');
         }
     }, [user, navigate]);
 
@@ -32,6 +34,9 @@ const AccountPage = () => {
     const [profilePicture, setProfilePicture] = useState<string>('');
     const [uploadingProfileImage, setUploadingProfileImage] = useState<boolean>(false);
     const [doChangePassword, setDoChangePassword] = useState<boolean>(false);
+    const [profileBackground, setProfileBackground] = useState<string>('');
+    const [profileTagline, setProfileTagline] = useState<string>('');
+
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleProfilePictureChange = async (files: FileList | null) => {
@@ -50,6 +55,23 @@ const AccountPage = () => {
         }
         setUploadingProfileImage(false);
     };
+
+    const handleProfileBackgroundChange = async (files: FileList | null) => {
+        if (files === null) return;
+        setUploadingProfileImage(true);
+    
+        const file = files[0];
+    
+        try {
+            const profilePicUrl = await uploadFile(file);
+            setProfileBackground(profilePicUrl);
+            await changeProfileBackground(profilePicUrl);
+        } catch (error) {
+            console.error("Error resizing image: ", error);
+            // Handle the error appropriately
+        }
+        setUploadingProfileImage(false);
+    }
 
     const toggleLoading = async (value: boolean) => {
         if(!value){
@@ -78,6 +100,19 @@ const AccountPage = () => {
         await changePassword(oldPassword, newPassword);
         toggleLoading(false);
     };
+
+    const doLogout = async () => {
+        const isConfirm = await confirmModal('Logout', 'Are you sure you want to logout?')
+        if(!isConfirm) return;
+        await logout();
+        navigate('/login');
+    };
+
+    const saveTagline = async () => {
+        toggleLoading(true);
+        await changeProfileTagline(profileTagline);
+        toggleLoading(false);
+    }
 
     return (
         <div className="md:grid md:grid-cols-6 min-h-[90vh] p-2 md:p-4 gap-2 flex flex-col">
@@ -148,7 +183,36 @@ const AccountPage = () => {
                     )}
                 </div>
             </div>
-            <div className="col-span-3 h-full bg-base-300 rounded-box text-base-content p-2 md:p-6 overflow-x-clip">
+            <div className="col-span-3 h-full bg-base-300 rounded-box text-base-content p-2 md:p-6 overflow-x-clip flex flex-col gap-2">
+                <h3>Profile Settings</h3>
+                <div className="flex flex-col items-left gap-2 text-left">
+                    <label className=" font-bold">Profile Background</label>
+                    <label className={`${uploadingProfileImage ? 'loading' : ''}`} htmlFor="profile-background-input">
+                        {profileBackground !== null && profileBackground.length > 1 ? (
+                            <img src={profileBackground} className="max-w-[280px] rounded-box"/>
+                        ) : (
+                            <img src={'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/imagegenexample.png?alt=media&token=6d5a83d2-0824-40eb-9b0d-7a2fa861c035'} className="max-w-[280px] rounded-box"/>
+                        )}
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/png, application/json"
+                        id="profile-background-input"
+                        onChange={(e) => handleProfileBackgroundChange(e.target.files)}
+                        style={{ display: 'none' }}
+                        multiple={true}
+                    />
+                </div>
+                <div className="flex flex-col items-left gap-2 text-left">
+                    <label className=" font-bold">Profile Tagline</label>
+                    <textarea className="dy-textarea" value={profileTagline} onChange={(e) => setProfileTagline(e.target.value)}/>
+                </div>
+                <button 
+                    className="dy-btn mt-4 dy-btn-outline"
+                    onClick={() => {saveTagline()}}
+                >
+                    Save
+                </button>
             </div>
         </div>
     );

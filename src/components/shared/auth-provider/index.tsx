@@ -7,6 +7,9 @@ interface User {
     username: string;
     profilePic: string;
     displayName: string;
+    tagline?: string;
+    bio?: string;
+    backgroundPic?: string;
 }
 
 interface UserContextValue {
@@ -18,6 +21,9 @@ interface UserContextValue {
     changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
     changeDisplayName: (displayName: string) => Promise<void>;
     changeProfilePicture: (profilePicture: string) => Promise<void>;
+    changeProfileBio: (profileBio: string) => Promise<void>;
+    changeProfileTagline: (tagline: string) => Promise<void>;
+    changeProfileBackground: (profileBackground: string) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
@@ -44,6 +50,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 username: response.username,
                 profilePic: response.profile_pic,
                 displayName: response.display_name,
+                tagline: response.tagline,
+                bio: response.bio,
+                backgroundPic: response.background_pic,
             };
             setUser(newUser);
         } catch (error) {
@@ -114,6 +123,32 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         fetchUserData();
     }
 
+    const changeProfileBio = async (profileBio: string) => {
+        try {
+            await axios.post('/api/changeProfileBio', { bio: profileBio });
+        } catch (error) {
+            console.error('Change profile bio error:', error);
+        }
+        fetchUserData();
+    }
+
+    const changeProfileTagline = async (tagline: string) => {
+        try {
+            await axios.post('/api/changeTagline', { tagline: tagline });
+        } catch (error) {
+            console.error('Change profile bio error:', error);
+        }
+        fetchUserData();
+    }
+
+    const changeProfileBackground = async (profileBackground: string) => {
+        try {
+            await axios.post('/api/changeProfileBackground', { backgroundPic: profileBackground });
+        } catch (error) {
+            console.error('Change profile background error:', error);
+        }
+        fetchUserData();
+    }
     useEffect(() => {
         const interval = setInterval(validateToken, 10 * 60 * 1000); // every 10 minutes
         return () => clearInterval(interval);
@@ -124,7 +159,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }, []);
 
     return (
-        <UserContext.Provider value={{ user, login, logout, fetchUserData, signUp, changePassword, changeDisplayName, changeProfilePicture }}>
+        <UserContext.Provider value={{ user, login, logout, fetchUserData, signUp, changePassword, changeDisplayName, changeProfilePicture, changeProfileBackground, changeProfileTagline, changeProfileBio }}>
             {children}
         </UserContext.Provider>
     );

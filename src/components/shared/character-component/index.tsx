@@ -5,6 +5,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Character } from "../../../global_classes/Character";
 import { confirmModal } from "../confirm-modal";
 import { deleteCharacterById, getUserdataByID } from "../../../api/characterAPI";
+import { useUser } from "../auth-provider";
 
 interface CharacterComponentProps {
     character: Character | null;
@@ -13,25 +14,30 @@ interface CharacterComponentProps {
 
 const CharacterComponent = (props: CharacterComponentProps) => {
     const { character } = props;
+    const { user } = useUser();
+
     const defaultPhotoURL = 'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/imagegenexample.png?alt=media&token=6d5a83d2-0824-40eb-9b0d-7a2fa861c035';
     const [photoURL, setPhotoURL] = useState(character?.avatar || defaultPhotoURL);
     const [displayName, setDisplayName] = useState(character?.name || 'Guest');
 
     const [creatorName, setCreatorName] = useState<string>('');
 	const [creatorProfilePic, setCreatorProfilePic] = useState<string>('');
+    const [isAuthor, setIsAuthor] = useState<boolean>(false);
 
     useEffect(() => {
 		if (character) {
 			console.log('Getting creator data');
-			getUserdataByID(character.creator).then((user) => {
-				console.log(user);
-				setCreatorName(user?.display_name || '');
-				setCreatorProfilePic(user?.profile_pic || '');
+			getUserdataByID(character.creator).then((newUser) => {
+				setCreatorName(newUser?.display_name || '');
+				setCreatorProfilePic(newUser?.profile_pic || '');
+                if(newUser?.id === user?.id) {
+                    setIsAuthor(true);
+                }
 			}).catch((err) => {
 				console.error(err);
 			});
 		}
-	}, [character]);
+	}, [character, user]);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -81,7 +87,7 @@ const CharacterComponent = (props: CharacterComponentProps) => {
             <div className="flex flex-col gap-1 col-span-2 justify-between">
                 <div className="flex flex-row justify-between">
                     <h4 className="text-left text-ellipsis line-clamp-1 text-xl flex-grow">{character?.description.length > 1 ? 'Description' : 'Personality'}</h4>
-                    <div className={"flex flex-row gap-1 "}>
+                    <div className={"flex flex-row gap-1 " + (!isAuthor && 'hidden')}>
                         <NavLink className="dy-btn dy-btn-xs dy-btn-info dy-btn-outline" title="Edit" to={`/characters/${character?._id}`}>
                             <Edit />
                         </NavLink>

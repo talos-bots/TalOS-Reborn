@@ -83,6 +83,9 @@ expressApp.use('/images', express.static(uploadsPath));
 expressApp.use('/pfp', express.static(profilePicturesPath));
 
 const server = createServer(expressApp);
+
+const userConnections = new Map<string, string>();
+
 export const expressAppIO = new Server(server, {
 	cors: corsOptions
 });
@@ -108,6 +111,21 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
+const authenticateTokenSocket = (token: string) => {
+    if (token == null) return false;
+
+    try {
+        let userid = null;
+        jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+            if (err) return false;
+            userid = user.userId;
+        });
+        return userid;
+    } catch (err) {
+        return false;
+    }
+};
+
 // Handle termination signals
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
@@ -120,6 +138,26 @@ expressAppIO.sockets.on('connection', (socket) => {
 	socket.onAny((eventName, ...args) => {
 		console.log(`event: ${eventName}`, args);
 	});
+
+    socket.on('authenticate', (token: string) => {
+        // Implement your authentication logic here
+        const userId = authenticateTokenSocket(token); // Replace with your auth logic
+        if (userId) {
+            userConnections.set(userId, socket.id);
+            console.log(`User ${userId} connected with socket ${socket.id}`);
+        }
+    });
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        userConnections.forEach((socketId, userId) => {
+            if (socketId === socket.id) {
+                userConnections.delete(userId);
+                console.log(`User ${userId} disconnected`);
+            }
+        });
+    });
+
 });
 
 server.listen(port, () => {
@@ -231,7 +269,7 @@ expressApp.post('/logout', (req, res) => {
 });
 
 expressApp.get('/me', authenticateToken, (req, res) => {
-    const query = `SELECT id, username, profile_pic, display_name FROM users WHERE id = ?`;
+    const query = `SELECT id, username, profile_pic, display_name, bio, background_pic, tagline FROM users WHERE id = ?`;
     //@ts-expect-error - user is a property of the Request interface
     db.get(query, [req.user.userId], (err: any, user: any) => {
         if (err) {
@@ -317,10 +355,67 @@ expressApp.post('/changeDisplayName', authenticateToken, async (req, res) => {
     });
 });
 
+// allow a user to change their display name
+expressApp.post('/changeProfileBackground', authenticateToken, async (req, res) => {
+    const { backgroundPic } = req.body;
+    if (!backgroundPic) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+
+    const updateQuery = `UPDATE users SET background_pic = ? WHERE id = ?`;
+    //@ts-expect-error - user is a property of the Request interface
+    db.run(updateQuery, [backgroundPic, req.user.userId], function(err: any) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Display name changed successfully' });
+    });
+});
+
+// allow a user to change their tagline
+expressApp.post('/changeTagline', authenticateToken, async (req, res) => {
+    const { tagline } = req.body;
+    if (!tagline) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+
+    const updateQuery = `UPDATE users SET tagline = ? WHERE id = ?`;
+    //@ts-expect-error - user is a property of the Request interface
+    db.run(updateQuery, [tagline, req.user.userId], function(err: any) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Display name changed successfully' });
+    });
+});
+
+// allow a user to change their tagline
+expressApp.post('/changeBio', authenticateToken, async (req, res) => {
+    const { bio } = req.body;
+    if (!bio) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+
+    const updateQuery = `UPDATE users SET bio = ? WHERE id = ?`;
+    //@ts-expect-error - user is a property of the Request interface
+    db.run(updateQuery, [bio, req.user.userId], function(err: any) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Display name changed successfully' });
+    });
+});
+
 // allow unauthenticated users to view a user's profile
 expressApp.get('/profile/:id', (req, res) => {
     const id = req.params.id;
-    const query = `SELECT id, username, profile_pic, display_name FROM users WHERE id = ?`;
+    const query = `SELECT id, username, profile_pic, display_name, bio, background_pic, tagline FROM users WHERE id = ?`;
 
     db.get(query, [id], (err: any, user: any) => {
         if (err) {

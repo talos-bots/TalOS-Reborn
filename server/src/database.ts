@@ -15,6 +15,9 @@ db.serialize(() => {
         hashed_password TEXT,
         profile_pic TEXT,
         display_name TEXT,
+        tagline TEXT,
+        bio TEXT,
+        background_pic TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
