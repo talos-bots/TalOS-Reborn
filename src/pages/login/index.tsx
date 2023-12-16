@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect } from 'react'
 import './LoginPage.css'
-import { Auth, GoogleAuthProvider, getAuth, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, validatePassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import { confirmModal } from '../../components/shared/confirm-modal';
 import { TEAlert } from 'tw-elements-react';
+import { useUser } from '../../components/shared/auth-provider';
 
 const LoginPage = () => {
+    const { user, login } = useUser();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(location.search);
     const locationRedirect = queryParams.get('location');
 
-    const [email, setEmail] = React.useState('');
+    const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [emailError, setEmailError] = React.useState('');
     const [passwordError, setPasswordError] = React.useState('');
@@ -21,24 +22,28 @@ const LoginPage = () => {
 
     useEffect(() => {
         if(localStorage.getItem('rememberMe')) {
-            setEmail(localStorage.getItem('email') || '');
+            setUsername(localStorage.getItem('username') || '');
             setPassword(localStorage.getItem('password') || '');
             setDoRemember(true);
         }
     }, [])
 
-    const login = () => {
+    const doLogin = () => {
         if (!validate()) return;
+        localStorage.setItem('rememberMe', doRemember ? 'true' : 'false');
+        localStorage.setItem('username', username);
+        login(username, password).then(() => {
+            navigate(locationRedirect || '/home');
+        }).catch((err) => {
+            setError(true);
+        });
     }
 
     const validate = async () => {
         let isValid = true;
         // Email validation
-        if (!email) {
-            setEmailError('Email is required');
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setEmailError('Invalid email format');
+        if (!username) {
+            setEmailError('Userame is required');
             isValid = false;
         } else {
             setEmailError('');
@@ -60,7 +65,7 @@ const LoginPage = () => {
 
     const rememberMe = () => {
         localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem('email', email);
+        localStorage.setItem('username', username);
         localStorage.setItem('password', password);
     }
 
@@ -68,7 +73,7 @@ const LoginPage = () => {
         if(e.target.checked) rememberMe();
         else {
             localStorage.removeItem('rememberMe');
-            localStorage.removeItem('email');
+            localStorage.removeItem('username');
             localStorage.removeItem('password');
         }
         setDoRemember(e.target.checked);
@@ -85,7 +90,7 @@ const LoginPage = () => {
             >
                 <strong>Error Signing In!</strong>
                 <span className="ml-1">
-                Check your email and password and try again.
+                Check your username and password and try again.
                 </span>
             </TEAlert>
             <div className="w-full mx-auto my-auto sm:max-w-lg xl:p-0 bg-base-200 rounded-box text-base-content">
@@ -93,13 +98,13 @@ const LoginPage = () => {
                     <h1 className="text-xl font-bold leading-tight tracking-tight sm:text-2xl">
                         Welcome back!
                     </h1>
-                    <form className="space-y-4 lg:space-y-6" onSubmit={(e) => { e.preventDefault(); login(); }}>
+                    <form className="space-y-4 lg:space-y-6" onSubmit={(e) => { e.preventDefault(); doLogin(); }}>
                         <div>
-                            <label htmlFor="email" className="block mb-2 text-sm font-medium ">Email</label>
+                            <label htmlFor="username" className="block mb-2 text-sm font-medium ">Email</label>
                             <input
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                type="email" name="email" id="email" className="dy-input w-full" placeholder="Enter your email" required={true}/>
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                type="username" name="username" id="username" className="dy-input w-full" placeholder="Enter your username" required={true}/>
                             {emailError && <div className="text-red-500 text-sm">{emailError}</div>}
                         </div>
                         <div>

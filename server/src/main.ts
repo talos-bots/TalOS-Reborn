@@ -13,9 +13,13 @@ import db from './database.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const uploadsPath = './uploads';
 export const dataPath = './data';
+const profilePicturesPath = `${dataPath}/profile_pictures`;
 export const charactersPath = `${dataPath}/characters`;
 export const settingsPath = `${dataPath}/settings`;
 export const connectionsPath = `${dataPath}/connections`;
@@ -34,9 +38,6 @@ const port = 3003;
 const JWT_SECRET = process.env.JWT_SECRET
 
 if(!JWT_SECRET) {
-    const fs = require('fs');
-    const crypto = require('crypto');
-
     const generateSecret = () => crypto.randomBytes(64).toString('hex');
     const secret = `JWT_SECRET=${generateSecret()}\n`;
 
@@ -51,6 +52,7 @@ if(!JWT_SECRET) {
 }
 
 fs.mkdirSync(uploadsPath, { recursive: true });
+fs.mkdirSync(profilePicturesPath, { recursive: true });
 fs.mkdirSync(dataPath, { recursive: true });
 fs.mkdirSync(charactersPath, { recursive: true });
 fs.mkdirSync(settingsPath, { recursive: true });
@@ -78,6 +80,7 @@ const corsOptions = {
 expressApp.use(cookieParser());
 expressApp.use(cors(corsOptions));
 expressApp.use('/images', express.static(uploadsPath));
+expressApp.use('/pfp', express.static(profilePicturesPath));
 
 const server = createServer(expressApp);
 export const expressAppIO = new Server(server, {
@@ -141,9 +144,27 @@ expressApp.post('/files/upload', authenticateToken, upload.single('image'), (req
 	res.send(`File uploaded: ${req.file.originalname}`);
 });
 
+const profilePicStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, profilePicturesPath)
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname)
+    }
+});
+
+const uploadPfp = multer({ storage: profilePicStorage });
+
+expressApp.post('/pfp/upload', authenticateToken, uploadPfp.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+    res.send(`File uploaded: ${req.file.originalname}`);
+});
+
 expressApp.post('/register', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const { username, password, display_name } = req.body;
+    if (!username || !password || !display_name) {
         res.status(400).json({ error: 'Missing required parameters' });
         return;
     }
@@ -162,14 +183,13 @@ expressApp.post('/register', async (req, res) => {
 
         // Proceed with registration
         const hashedPassword = await bcrypt.hash(password, 10);
-        const insertQuery = `INSERT INTO users (username, hashed_password) VALUES (?, ?)`;
+        const insertQuery = `INSERT INTO users (username, hashed_password, display_name ) VALUES (?, ?, ?)`;
 
-        db.run(insertQuery, [username, hashedPassword], function(err: any) {
+        db.run(insertQuery, [username, hashedPassword, display_name], function(err: any) {
             if (err) {
                 res.status(500).json({ error: err.message });
                 return;
             }
-            //@ts-expect-error - lastID is a property of the run function
             res.json({ message: 'User registered successfully', id: this.lastID });
         });
     });
@@ -208,6 +228,107 @@ expressApp.post('/login', async (req, res) => {
 expressApp.post('/logout', (req, res) => {
     res.cookie('talosAuthToken', '', { expires: new Date(0) });
     res.json({ message: 'Logged out successfully' });
+});
+
+expressApp.get('/me', authenticateToken, (req, res) => {
+    const query = `SELECT id, username, profile_pic, display_name FROM users WHERE id = ?`;
+    //@ts-expect-error - user is a property of the Request interface
+    db.get(query, [req.user.userId], (err: any, user: any) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        res.json(user);
+    });
+});
+
+// check if a user is logged in
+expressApp.get('/isLoggedIn', authenticateToken, (req, res) => {
+    res.json({ message: 'Logged in' });
+});
+
+// allow a user to change their password
+expressApp.post('/changePassword', authenticateToken, async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+
+    const query = `SELECT * FROM users WHERE id = ?`;
+    //@ts-expect-error - user is a property of the Request interface
+    db.get(query, [req.user.userId], async (err: any, user: any) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        if (user && await bcrypt.compare(oldPassword, user.hashed_password)) {
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const updateQuery = `UPDATE users SET hashed_password = ? WHERE id = ?`;
+            //@ts-expect-error - user is a property of the Request interface
+            db.run(updateQuery, [hashedPassword, req.user.userId], function(err: any) {
+                if (err) {
+                    res.status(500).json({ error: err.message });
+                    return;
+                }
+                res.json({ message: 'Password changed successfully' });
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid credentials' });
+        }
+    });
+});
+
+// allow a user to change their profile picture
+expressApp.post('/changeProfilePicture', authenticateToken, async (req, res) => {
+    const { profilePicture } = req.body;
+    if (!profilePicture) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+
+    const updateQuery = `UPDATE users SET profile_pic = ? WHERE id = ?`;
+    //@ts-expect-error - user is a property of the Request interface
+    db.run(updateQuery, [profilePicture, req.user.userId], function(err: any) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Profile picture changed successfully' });
+    });
+});
+
+// allow a user to change their display name
+expressApp.post('/changeDisplayName', authenticateToken, async (req, res) => {
+    const { displayName } = req.body;
+    if (!displayName) {
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+    }
+
+    const updateQuery = `UPDATE users SET display_name = ? WHERE id = ?`;
+    //@ts-expect-error - user is a property of the Request interface
+    db.run(updateQuery, [displayName, req.user.userId], function(err: any) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ message: 'Display name changed successfully' });
+    });
+});
+
+// allow unauthenticated users to view a user's profile
+expressApp.get('/profile/:id', (req, res) => {
+    const id = req.params.id;
+    const query = `SELECT id, username, profile_pic, display_name FROM users WHERE id = ?`;
+
+    db.get(query, [id], (err: any, user: any) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        res.json(user);
+    });
 });
 
 export type CharacterInterface = {

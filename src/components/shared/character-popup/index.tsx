@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Character } from '../../../global_classes/Character';
+import { getUserdataByID } from '../../../api/characterAPI';
 
 interface CharacterPopupProps {
 	isOpen: boolean;
@@ -12,9 +13,26 @@ interface CharacterPopupProps {
 const CharacterPopup = (props: CharacterPopupProps) => {
 	const { isOpen, toggleModal, character } = props;
 	const [creatorName, setCreatorName] = useState<string>('');
+	const [creatorProfilePic, setCreatorProfilePic] = useState<string>('');
 	const modalContentRef = useRef(null); // Ref for modal content
 
 	const [loading, setLoading] = useState<boolean>(false);
+
+	useEffect(() => {
+		if (character) {
+			console.log('Getting creator data');
+			setLoading(true);
+			getUserdataByID(character.creator).then((user) => {
+				console.log(user);
+				setCreatorName(user?.display_name || '');
+				setCreatorProfilePic(user?.profile_pic || '');
+				setLoading(false);
+			}).catch((err) => {
+				console.error(err);
+				setLoading(false);
+			});
+		}
+	}, [character]);
 
 	useEffect(() => {
         if (isOpen) {
@@ -114,6 +132,7 @@ const CharacterPopup = (props: CharacterPopupProps) => {
 								<div className='flex flex-row gap-2 items-center'>
 									<h4 className='text-left font-semibold'>Authored by: </h4>
 									<h4 className='text-left dy-textarea w-full'>{creatorName}</h4>
+									<img className='aspect-auto max-w-[3rem] object-cover rounded-full' src={creatorProfilePic}/>
 								</div>
 							</div>
 						</div>

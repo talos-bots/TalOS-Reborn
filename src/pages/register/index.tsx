@@ -1,19 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../../components/shared/auth-provider";
 
 const RegisterPage = () => {
+    const { user, signUp } = useUser();
     const navigate = useNavigate();
 
-    const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const [emailError, setEmailError] = React.useState('');
     const [passwordError, setPasswordError] = React.useState('');
     const [confirmPassword, setConfirmPassword] = React.useState('');
     const [confirmPasswordError, setConfirmPasswordError] = React.useState('');
     const [displayName, setDisplayName] = React.useState('');
     const [displayNameError, setDisplayNameError] = React.useState('');
-    
+    const [username, setUsername] = React.useState('');
+    const [usernameError, setUsernameError] = React.useState('');
+
+    const [loading, setLoading] = React.useState(false);
+
     const validate = async () => {
         let isValid = true;
         // Email validation
@@ -21,15 +25,6 @@ const RegisterPage = () => {
             setDisplayNameError('Display name is required');
         }else {
             setDisplayNameError('');
-        }
-        if (!email) {
-            setEmailError('Email is required');
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setEmailError('Invalid email format');
-            isValid = false;
-        } else {
-            setEmailError('');
         }
         // Password validation
         if (!password) {
@@ -53,6 +48,14 @@ const RegisterPage = () => {
 
     const register = async () => {
         if (!validate()) return;
+        setLoading(true);
+        await signUp(username, password, displayName).then(() => {
+            setLoading(false);
+            navigate('/home');
+        }).catch((err) => {
+            setLoading(false);
+            alert(err.message);
+        });
     };
 
     return (
@@ -64,20 +67,20 @@ const RegisterPage = () => {
                 </h1>
                     <form className="space-y-4 lg:space-y-6" onSubmit={(e) => {e.preventDefault(); register();}}>
                         <div>
+                            <label htmlFor="username" className="block mb-2 text-sm font-medium">Username</label>
+                            <input
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                type="text" name="username" id="username"  placeholder="Enter your name" required={true} className="dy-input w-full"/>
+                            {usernameError && <div className="text-red-500 text-sm">{usernameError}</div>}
+                        </div>
+                        <div>
                             <label htmlFor="name" className="block mb-2 text-sm font-medium">Display Name</label>
                             <input
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
                                 type="text" name="name" id="name"  placeholder="Enter your name" required={true} className="dy-input w-full"/>
                             {displayNameError && <div className="text-red-500 text-sm">{displayNameError}</div>}
-                        </div>
-                        <div>
-                            <label htmlFor="email" className="block mb-2 text-sm font-medium ">Email</label>
-                            <input
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                type="email" name="email" id="email" placeholder="Enter your email" required={true} className="dy-input w-full"/>
-                            {emailError && <div className="text-red-500 text-sm">{emailError}</div>}
                         </div>
                         <div>
                             <label htmlFor="password" className="block mb-2 text-sm font-medium ">Password</label>
@@ -94,14 +97,6 @@ const RegisterPage = () => {
                                 onChange={(e) => setConfirmPassword(e.target.value)} 
                                 type="password" name="confirm-password" id="confirm-password" placeholder="••••••••" required={true} className="dy-input w-full"/>
                             {confirmPasswordError && <div className="text-red-500 text-sm">{confirmPasswordError}</div>}
-                        </div>
-                        <div className="flex items-start">
-                            <div className="flex items-center h-5">
-                                <input id="terms" aria-describedby="terms" type="checkbox" className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800" required={true}/>
-                            </div>
-                            <div className="ml-3 text-sm">
-                                <label htmlFor="terms">By signing up, you are creating a WelcomeAI account, and you agree to WelcomeAI's <a className="font-medium text-primary-600 dark:text-primary-500 hover:underline" href="/terms">Terms of Use</a> and <a className="font-medium text-primary-600 dark:text-primary-500 hover:underline" href="/privacy">Privacy Policy</a>.</label>
-                            </div>
                         </div>
                         <button type="submit" className="dy-btn hover:dy-btn-primary dy-btn-outline w-full">Create an account</button>
                         <p className="text-sm">

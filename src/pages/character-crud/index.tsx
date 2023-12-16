@@ -20,6 +20,7 @@ import ReactMarkdown from 'react-markdown';
 import { getCharacter } from '../../api/characterDB';
 import { uploadFile } from '../../api/fileServer';
 import { fetchCharacterById } from '../../api/characterAPI';
+import { useUser } from '../../components/shared/auth-provider';
 
 initTE({ Alert });
 
@@ -31,7 +32,14 @@ const modelMap = {
 }
 
 const CharacterCRUD = () => {
+    const { user } = useUser();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if(!user){
+            navigate('/login');
+        }
+    }, [user, navigate]);
 
     const endOfChatRef = React.useRef<HTMLDivElement>(null);
 
@@ -103,6 +111,11 @@ const CharacterCRUD = () => {
             setFirstMes(character?.first_mes);
             setAlternateGreetings(character?.alternate_greetings);
             setScenario(character?.scenario);
+            if(character?.creator !== user?.id){
+                setNotAuthorized(true);
+            }else{
+                setNotAuthorized(false);
+            }
         }
     }
 
@@ -133,6 +146,11 @@ const CharacterCRUD = () => {
         if(id !== undefined && id !== null && id !== '' && id !== 'create'){
             newCharacter._id = id;
         }
+        if(creator === ''){
+            newCharacter.setCreator(user?.id ?? '');
+        }else{
+            newCharacter.setCreator(creator)
+        }
         newCharacter.setName(name);
         newCharacter.setAvatar(avatar);
         newCharacter.setDescription(description);
@@ -142,7 +160,6 @@ const CharacterCRUD = () => {
         newCharacter.setSystemPrompt(system_prompt);
         newCharacter.setPostHistoryInstructions(post_history_instructions);
         newCharacter.setTags(tags);
-        newCharacter.setCreator(creator);
         newCharacter.setVisualDescription(visual_description);
         newCharacter.setThoughtPattern(thought_pattern);
         newCharacter.setFirstMes(first_mes);

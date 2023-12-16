@@ -7,16 +7,31 @@ import { useNavigate } from "react-router-dom";
 import { resizeImage } from "../../helpers";
 import { confirmModal } from "../../components/shared/confirm-modal";
 import RequiredInputField from "../../components/shared/required-input-field";
+import { useUser } from '../../components/shared/auth-provider';
+import { uploadProfilePicture } from '../../api/fileServer';
 
 const AccountPage = () => {
+    const { user, logout, changeDisplayName, changePassword, changeProfilePicture } = useUser();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if(!user){
+            navigate('/login');
+        }else{
+            setUsername(user.username || '');
+            setDisplayName(user.displayName || '');
+            setProfilePicture(user.profilePic || '');
+        }
+    }, [user, navigate]);
+
+    const [username, setUsername] = useState<string>('');
+    const [displayName, setDisplayName] = useState<string>('');
     const [oldPassword, setOldPassword] = useState<string>('');
     const [newPassword, setNewPassword] = useState<string>('');
     const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
     const [profilePicture, setProfilePicture] = useState<string>('');
     const [uploadingProfileImage, setUploadingProfileImage] = useState<boolean>(false);
-    const [changePassword, setChangePassword] = useState<boolean>(false);
+    const [doChangePassword, setDoChangePassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleProfilePictureChange = async (files: FileList | null) => {
@@ -26,7 +41,9 @@ const AccountPage = () => {
         const file = files[0];
     
         try {
-            const resizedFile = await resizeImage(file);
+            const profilePicUrl = await uploadProfilePicture(file);
+            setProfilePicture(profilePicUrl);
+            await changeProfilePicture(profilePicUrl);
         } catch (error) {
             console.error("Error resizing image: ", error);
             // Handle the error appropriately
@@ -44,6 +61,24 @@ const AccountPage = () => {
         }
     };
 
+    const changeFirebaseUserInfo = async () => {
+        toggleLoading(true);
+        await changeDisplayName(displayName);
+        toggleLoading(false);
+    };
+
+    const changeFirebaseUserEmail = async () => {
+        toggleLoading(true);
+        await changeDisplayName(displayName);
+        toggleLoading(false);
+    };
+
+    const changeFirebaseUserPassword = async () => {
+        toggleLoading(true);
+        await changePassword(oldPassword, newPassword);
+        toggleLoading(false);
+    };
+
     return (
         <div className="md:grid md:grid-cols-6 min-h-[90vh] p-2 md:p-4 gap-2 flex flex-col">
             {isLoading && (
@@ -58,9 +93,9 @@ const AccountPage = () => {
                 </div>
             )}
             <div className="col-span-3 h-full bg-base-300 rounded-box text-base-content p-2 md:p-6">
-                <h2 className="font-extrabold">Account Information</h2>
+                <h3>Account Information</h3>
                 <div className="flex flex-col items-left gap-2 text-left">
-                    <label className=" font-bold">Profile Picture:</label>
+                    <label className=" font-bold">Profile Picture</label>
                     <label className={`avatar ${uploadingProfileImage ? 'loading' : ''}`} htmlFor="character-image-input">
                         {profilePicture !== null && profilePicture.length > 1 ? (
                             <img src={profilePicture} className="avatar"/>
@@ -86,6 +121,31 @@ const AccountPage = () => {
                     />
                 </div>
                 <div className="flex flex-col items-left gap-2 text-left">
+                    <div className="flex flex-col">
+                        <RequiredInputField label={'Display Name'} required={true} name="displayName" id="displayName"  className={''} type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}/>
+                        <button className="dy-btn dy-btn-outline" onClick={() => {changeFirebaseUserInfo()}}>Change</button>
+                    </div>
+                    <div className="flex flex-col">
+                        <RequiredInputField label={'Username'} required={true} name="username" id="username" className={''} type="email" value={username} onChange={(e) => setUsername(e.target.value)}/>
+                        <button className="dy-btn dy-btn-outline" onClick={() => {changeFirebaseUserEmail()}}>Change</button>
+                    </div>
+                    {!doChangePassword && (
+                        <button className="dy-btn mt-4 dy-btn-outline" onClick={() => {setDoChangePassword(true)}}>Change Password</button>
+                    )}
+                    {doChangePassword && (
+                        <div className={"flex flex-col gap-4"}>
+                            <label className=" font-bold">Old Password:</label>
+                            <input type="password" className="dy-input" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)}/>
+                            <label className=" font-bold">New Password:</label>
+                            <input type="password" className="dy-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}/>
+                            <label className=" font-bold">Confirm New Password:</label>
+                            <input type="password" className="dy-input" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)}/>
+                            <div className="flex flex-row gap-4 w-full justify-center">
+                                <button className="dy-btn hover:dy-btn-warning dy-btn-outline" onClick={() => {setDoChangePassword(false)}}>Cancel</button>
+                                <button className="dy-btn hover:dy-btn-primary dy-btn-outline" onClick={() => {changeFirebaseUserPassword}}>Change</button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="col-span-3 h-full bg-base-300 rounded-box text-base-content p-2 md:p-6 overflow-x-clip">

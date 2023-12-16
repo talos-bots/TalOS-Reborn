@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Character } from '../global_classes/Character';
+import { emitCharacterUpdated } from '../helpers/events';
 
 export async function saveCharacterToLocal(character: Character): Promise<void> {
     const response = await fetch('/api/save/character', {
@@ -16,6 +17,7 @@ export async function saveCharacterToLocal(character: Character): Promise<void> 
     }
 
     console.log('Character saved successfully!');
+    emitCharacterUpdated();
 }
 
 export async function fetchCharacterById(id: string): Promise<Character | null> {
@@ -56,4 +58,17 @@ export async function deleteCharacterById(id: string): Promise<void> {
     }
 
     console.log('Character deleted successfully!');
+    emitCharacterUpdated();
+}
+
+export async function getUserdataByID(id: string): Promise<any> {
+    const response = await fetch(`/api/profile/${id}`);
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+    }
+
+    const data = await response.json()
+    console.log(data);
+    return data;
 }

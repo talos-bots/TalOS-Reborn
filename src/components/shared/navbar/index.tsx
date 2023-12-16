@@ -5,11 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { getCurrentEngine, setNewLogicEngine } from "../../../helpers";
 import { emitLogicEngineChange, useLogicEngineChangeListener } from '../../../helpers/events';
 import { NavLink } from 'react-router-dom';
+import { useUser } from '../auth-provider';
+import { QuestionMark } from "@mui/icons-material";
 
 const NavBar = () => {
     const [logicEngine, setLogicEngine] = useState<string>('mythomax');
     const dropdownRef = useRef(null);
 
+    const { user, logout } = useUser();
+    
     useEffect(() => {
         getCurrentEngine().then((engine) => {
             setLogicEngine(engine);
@@ -98,6 +102,54 @@ const NavBar = () => {
                     </NavLink> */}
                 </div>
             </div>
+            {user?.id ? (
+                <div className="dy-dropdown dy-dropdown-end" id={'account-dropdown'}>
+                    <div tabIndex={0} role="button" className="dy-btn dy-btn-ghost dy-btn-circle dy-avatar items-center justify-center flex flex-col" onClick={handleDropdownToggle}>
+                        <div className="rounded-full">
+                            {user?.profilePic && <img alt="Avatar" src={user?.profilePic} />}
+                            {!user?.profilePic && <QuestionMark/>}
+                        </div>
+                    </div>
+                    <ul className="mt-3 z-[100] p-2 shadow dy-menu dy-menu-sm dy-dropdown-content bg-base-200 rounded-box w-52">
+                        {user?.id && 
+                        <li>
+                            <NavLink to="/account" className="justify-between" onTouchStart={(e)=>{
+                                e.currentTarget.click();
+                            }}>
+                                Account
+                            </NavLink>
+                        </li>}
+                        {user?.id && 
+                        <li>
+                            <NavLink to="/settings" onTouchStart={(e)=>{
+                                e.currentTarget.click();
+                            }}>
+                                Settings
+                            </NavLink>
+                        </li>}
+                        {/* {isAdmin && <li><NavLink to="/admin" onTouchStart={(e)=>{
+                            e.currentTarget.click();
+                        }}>Admin</NavLink></li>} */}
+                        {user?.id && 
+                        <li>
+                            <button className={'hover:bg-red-500'} onClick={logout} onTouchStart={(e)=>{
+                                e.currentTarget.click();
+                            }}>
+                                Logout
+                            </button>
+                        </li>}
+                    </ul>
+                </div>
+            ) : (
+                <div className="dy-btn-group gap-1 flex-row flex">
+                    <NavLink className="dy-btn bg-gradient-to-r to-secondary from-primary text-primary-content hover:dy-btn-primary dy-btn-sm md:dy-btn-md" title="Login" to="/login">
+                        Login
+                    </NavLink>
+                    <NavLink className="dy-btn bg-gradient-to-r to-secondary from-accent text-primary-content hover:dy-btn-primary dy-btn-sm md:dy-btn-md" title="Register" to="/register">
+                        Sign Up
+                    </NavLink>
+                </div>
+            )}
         </div>
     )
 }

@@ -8,6 +8,9 @@ import CharactersPage from "./pages/characters";
 import CharacterCRUD from "./pages/character-crud";
 import ChatPage from "./pages/chat";
 import SettingsPage from './pages/settings';
+import LoginPage from './pages/login';
+import RegisterPage from './pages/register';
+import AccountPage from './pages/account';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -52,6 +55,9 @@ export default function App() {
 					<Route path='/characters/:id' element={<CharacterCRUD/>} />
 					<Route path='/characters' element={<CharactersPage/>} />
 					<Route path='/settings' element={<SettingsPage/>} />
+					<Route path='/account' element={<AccountPage/>} />
+					<Route path='/register' element={<RegisterPage/>} />
+					<Route path='/login' element={<LoginPage/>} />
 					</Routes>
 				</div>
 			</Router>
