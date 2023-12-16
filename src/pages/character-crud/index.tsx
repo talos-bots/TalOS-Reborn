@@ -137,8 +137,15 @@ const CharacterCRUD = () => {
     const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
 
     // Handlers to toggle drawers
-    const toggleLeftDrawer = () => setIsLeftDrawerOpen(!isLeftDrawerOpen);
-    const toggleRightDrawer = () => setIsRightDrawerOpen(!isRightDrawerOpen);
+    const toggleLeftDrawer = (e) => {
+        e.preventDefault();
+        setIsLeftDrawerOpen(!isLeftDrawerOpen)
+    };
+    
+    const toggleRightDrawer = (e) => {
+        e.preventDefault();
+        setIsRightDrawerOpen(!isRightDrawerOpen)
+    };
 
     const handleSubmit = async () => {
         if((await confirmModal('Are you sure you want to submit this character?', 'This character will only be visible from within your private chats until it is approved and vetted by a curator.')) === false) return;

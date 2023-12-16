@@ -63,8 +63,12 @@ const RegisterPage = () => {
             <div className="w-full mx-auto my-auto sm:max-w-lg xl:p-0 bg-base-200 rounded-box text-base-content">
             <div className="p-2 md:p-6 space-y-4 lg:space-y-6 sm:p-8">
                 <h1 className="text-xl font-bold leading-tight tracking-tight  sm:text-2xl ">
-                    Create your Free Account
+                    Create your local TalOS - Reborn account
                 </h1>
+                <p className="text-base-content bg-base-100 rounded-box w-full h-fit p-4">
+                    This is a local account, meaning that your data is stored on the device of whoever is hosting this instance. 
+                    If you want to access your account on another instance, you will need to create a new account on that device, and export your data from this device.
+                </p>
                     <form className="space-y-4 lg:space-y-6" onSubmit={(e) => {e.preventDefault(); register();}}>
                         <div>
                             <label htmlFor="username" className="block mb-2 text-sm font-medium">Username</label>

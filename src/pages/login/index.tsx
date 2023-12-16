@@ -100,7 +100,7 @@ const LoginPage = () => {
                     </h1>
                     <form className="space-y-4 lg:space-y-6" onSubmit={(e) => { e.preventDefault(); doLogin(); }}>
                         <div>
-                            <label htmlFor="username" className="block mb-2 text-sm font-medium ">Email</label>
+                            <label htmlFor="username" className="block mb-2 text-sm font-medium ">Username</label>
                             <input
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}

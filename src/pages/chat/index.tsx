@@ -16,10 +16,16 @@ import CharacterPopup from "../../components/shared/character-popup";
 import ChatLogs from './chat-logs';
 import { useCloseSidesListener } from '../../helpers/events';
 import { getCharacter } from '../../api/characterDB';
+import { useUser } from '../../components/shared/auth-provider';
 
 const ChatPage = () => {
+    const { user } = useUser();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if(!user?.id) navigate('/login');
+    }, [user, navigate]);
+    
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
     const [selectedChat, setSelectedChat] = useState<StoredChatLog | null>(null);
     const [showCharacterPopup, setShowCharacterPopup] = useState<boolean>(false);
