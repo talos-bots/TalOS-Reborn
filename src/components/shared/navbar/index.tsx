@@ -7,8 +7,19 @@ import { emitLogicEngineChange, useLogicEngineChangeListener } from '../../../he
 import { NavLink } from 'react-router-dom';
 import { useUser } from '../auth-provider';
 import { QuestionMark } from "@mui/icons-material";
+import { themes } from '../../../App';
+import { themeOptions} from '../../../helpers/constants';
+interface NavBarProps {
+    theme: themes;
+    setTheme: (theme: themes) => void;
+}
 
-const NavBar = () => {
+function capitilzeFirstLetter(string: string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+const NavBar = (props: NavBarProps) => {
+    const { theme, setTheme } = props;
     const [logicEngine, setLogicEngine] = useState<string>('mythomax');
     const dropdownRef = useRef(null);
 
@@ -56,6 +67,13 @@ const NavBar = () => {
                 <span className="dy-badge dy-badge-lg bg-gradient-to-br from-primary to-accent font-semibold text-white text-shadow-lg">Reborn</span>
             </div>
 
+            <div className="dy-dropdown">
+                <select className="dy-select" value={theme} onChange={(e) => setTheme(e.target.value as themes)}>
+                    {themeOptions.map((theme) => (
+                        <option key={theme} value={theme}>{capitilzeFirstLetter(theme)}</option>
+                    ))}
+                </select>
+            </div>
             {/* Mobile Navigation Icons */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 bg-base-300 shadow-xl py-2 w-full mobile-nav">
                 <div className="flex justify-around w-full">

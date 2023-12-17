@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createEvent } from "react-event-hook";
 import { StoredChatLog } from "../global_classes/StoredChatLog";
+import { themes } from "../App";
 export interface websocketNotification {
     title: string;
     body: string;
@@ -33,3 +34,7 @@ export const { useCharacterUpdatedListener, emitCharacterUpdated } = createEvent
 export const { useWebsocketNotificationListener, emitWebsocketNotification } = createEvent('websocketNotification')<websocketNotification>({
     crossTab: true
 });
+
+export const { useThemeSwapListener, emitThemeSwap } = createEvent('themeSwap')<themes>(
+    { crossTab: true }
+)

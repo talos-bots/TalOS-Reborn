@@ -12,7 +12,7 @@ import SettingsPage from './pages/settings';
 import LoginPage from './pages/login';
 import RegisterPage from './pages/register';
 import AccountPage from './pages/account';
-import { useWebsocketNotificationListener, websocketNotification } from './helpers/events';
+import { useThemeSwapListener, useWebsocketNotificationListener, websocketNotification } from './helpers/events';
 import { TEAlert } from 'tw-elements-react';
 
 function ScrollToTop() {
@@ -24,15 +24,26 @@ function ScrollToTop() {
   
 	return null; // this component does not render anything
 }
-  
+
+export type themes = "dim"|"night"|"light"|"dark"|"cupcake"|"bumblebee"|"emerald"|"corporate"|"synthwave"|"retro"|"cyberpunk"|"valentine"|"halloween"|"garden"|"forest"|"aqua"|"lofi"|"pastel"|"fantasy"|"wireframe"|"black"|"luxury"|"dracula"|"cmyk"|"autumn"|"business"|"acid"|"lemonade"|"coffee"|"winter"|"nord"| "sunset"
+
 export default function App() {
 	const [loading, setLoading] = useState(false);
+	const [theme, setTheme] = useState<themes>(localStorage.getItem('theme') as themes || 'night');
 	const [showNotification, setShowNotification] = useState(false);
 	const [notifcationTitle, setNotificationTitle] = useState('');
 	const [notificationBody, setNotificationBody] = useState('');
 	const isProduction = process.env.NODE_ENV === 'production';
-
 	const notificationSound = new Audio('../assets/notification.mp3');
+
+	useEffect(() => {
+		document.querySelector('html').setAttribute('data-theme', theme);
+		localStorage.setItem('theme', theme);
+	}, [theme]);
+
+	useThemeSwapListener((newTheme: themes) => {
+		setTheme(newTheme);
+	});
 
 	useWebsocketNotificationListener((data: websocketNotification) => {
 		setNotificationTitle(data.title);
@@ -59,7 +70,7 @@ export default function App() {
 		<div id='App'>
 			<Router>
 				<ScrollToTop />
-				<NavBar/>
+				<NavBar theme={theme} setTheme={setTheme}/>
 				<div className='main-content'>
 					<TEAlert dismiss delay={5000} open={showNotification} autohide onClose={
 						() => {
