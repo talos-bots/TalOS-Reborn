@@ -150,6 +150,14 @@ const ConnectionPanel = () => {
                     <p className="text-sm dy-label">URL Valid: {urlValid ? 'True' : 'False'}</p>
                 </div>
             </div>
+            <RequiredInputField
+                type="password"
+                label="Connection Password"
+                value={connectionPassword}
+                onChange={(e)=> setConnectionPassword(e.target.value)}
+                required={false}
+                className={''}
+            />
             <button className="dy-btn dy-btn-primary" onClick={handleTestConnection}>Test Connection</button>
             <div className="flex flex-col gap-2">
                 <p className="bg-base-200 rounded-box p-4 w-full flex flex-row justify-between">
