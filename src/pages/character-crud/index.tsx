@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, MessageCircle, PanelLeft, Save, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, MessageCircle, PanelLeft, Save, User } from 'lucide-react';
 import './CharacterCRUD.css';
 import RequiredInputField, { RequiredSelectField, RequiredTextAreaField } from '../../components/shared/required-input-field';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -21,6 +21,7 @@ import { getCharacter } from '../../api/characterDB';
 import { uploadFile } from '../../api/fileServer';
 import { fetchCharacterById } from '../../api/characterAPI';
 import { useUser } from '../../components/shared/auth-provider';
+import SpriteManager from '../../components/character/SpriteManager';
 
 initTE({ Alert });
 
@@ -31,24 +32,11 @@ const modelMap = {
     'hyperrealistic': 'protogen-3.4'
 }
 
+type slides = 'chat' | 'sprite';
+
 const CharacterCRUD = () => {
     const { user } = useUser();
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if(!user){
-            navigate('/login');
-        }
-    }, [user, navigate]);
-
-    const endOfChatRef = React.useRef<HTMLDivElement>(null);
-
-    const [loading, setLoading] = useState<boolean>(false);
-
-    const [width] = useWindowSize();
-
-    const isDesktop = width >= 1024;
-
     const { id } = useParams<{id: string}>();
     const [avatar, setAvatar] = React.useState('');
     const [name, setName] = React.useState('');
@@ -70,6 +58,21 @@ const CharacterCRUD = () => {
     const [scenario, setScenario] = useState<string>('');
     const [isSuccessful, setIsSuccessful] = useState<boolean>(false);
     const [imageGenerationError, setImageGenerationError] = useState<boolean>(false);
+    const [currentSlide, setCurrentSlide] = useState<slides>('chat');
+
+    useEffect(() => {
+        if(!user){
+            navigate(`/login?redirect=characters/${id}`);
+        }
+    }, [user, navigate, id]);
+
+    const endOfChatRef = React.useRef<HTMLDivElement>(null);
+
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const [width] = useWindowSize();
+
+    const isDesktop = width >= 1024;
 
     const [testMessages, setTestMessages] = useState<Message[]>([]);
     const [testMessage, setTestMessage] = useState<string>('');
@@ -111,11 +114,6 @@ const CharacterCRUD = () => {
             setFirstMes(character?.first_mes);
             setAlternateGreetings(character?.alternate_greetings);
             setScenario(character?.scenario);
-            if(character?.creator !== user?.id && character?.creator !== ''){
-                setNotAuthorized(true);
-            }else{
-                setNotAuthorized(false);
-            }
         }
     }
 
@@ -191,6 +189,13 @@ const CharacterCRUD = () => {
         }
     }, [testMessages]);
 
+    const handleNextSlide = () => {
+        if(currentSlide === 'chat'){
+            setCurrentSlide('sprite');
+        }else{
+            setCurrentSlide('chat');
+        }
+    }
 
     const clearForm = () => {
         setName('');
@@ -275,6 +280,17 @@ const CharacterCRUD = () => {
             setTestMessages([...newMessages, reply]);
         }
     }
+
+    useEffect(() => {
+        if(creator !== '' && creator !== user?.id.toString()){
+            console.log('not authorized');
+            console.log(creator);
+            console.log(user?.id);
+            setNotAuthorized(true);
+        }else{
+            setNotAuthorized(false);
+        }
+    }, [creator, user]);
 
     return (
         <div className='w-full h-[92.5vh] md:p-4 flex flex-col text-base-content'>
@@ -528,107 +544,29 @@ const CharacterCRUD = () => {
                 )}
                 </>
 
-                {/* Mobile Responsive */}
-                <>
-                {isDesktop ? (
+                {currentSlide === 'chat' ? (
                     <>
-                    <div className='w-full rounded-box bg-base-300 p-4 flex-col h-full gap-4 flex'>
-                        <h2 className='flex flex-row justify-between flex-grow text-2xl'>Chat <span className='text-sm italic'>{testMessages.length} of 15 Test Chats</span></h2>
-                        <div className='flex-grow bg-base-100 rounded-box h-[90%] max-h-[90%] overflow-y-auto'>
-                            <div className="dy-chat dy-chat-start">
-                                <div className="dy-chat-header">
-                                    {name !== '' ? name : 'Harry Dresden'}
-                                </div>
-                                <div className="dy-chat-bubble dy-chat-bubble-secondary">
-                                    <ReactMarkdown 
-                                        components={{
-                                            em: ({ node, ...props }) => <i {...props} />,
-                                            b: ({ node, ...props }) => <b {...props} />,
-                                            code: ({ node, ...props }) => <code {...props} />,
-                                        }}
+                    {isDesktop ? (
+                        <>
+                        <div className='w-full rounded-box bg-base-300 p-4 flex-col h-full gap-4 flex'>
+                            <h2 className='flex flex-row justify-between flex-grow text-2xl'>                            
+                                <div className="flex gap-1">
+                                    <button
+                                        type='button'
+                                        className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                        onClick={handleNextSlide}
                                     >
-                                        {first_mes !== '' ? first_mes.replaceAll('{{user}}', 'Test User').replaceAll('{{char}}', name) : 'Fuego!'}
-                                    </ReactMarkdown>
+                                        <ArrowLeft/>
+                                    </button>
+                                    <button
+                                        type='button'
+                                        className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                        onClick={handleNextSlide}
+                                    >
+                                        <ArrowRight/>
+                                    </button>
                                 </div>
-                            </div>
-                            {testMessages.map((message, index) => {
-                                return (
-                                    <div className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
-                                        <div className="dy-chat-header">
-                                            {message.role !== 'User' ? (name? name : 'Harry Dresden') : 'Test User'}
-                                        </div>
-                                        <div className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
-                                            <ReactMarkdown 
-                                                components={{
-                                                    em: ({ node, ...props }) => <i {...props} />,
-                                                    b: ({ node, ...props }) => <b {...props} />,
-                                                    code: ({ node, ...props }) => <code {...props} />,
-                                                }}
-                                            >
-                                                {message.swipes[message.currentIndex]}
-                                            </ReactMarkdown>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                            <div className="dy-chat dy-chat-end" ref={endOfChatRef}></div>
-                        </div>
-                        <div className='flex flex-row justify-between flex-grow gap-2'>
-                            <textarea 
-                                className='w-full h-full dy-input' 
-                                placeholder='Type a message...'
-                                value={testMessage}
-                                onChange={(e) => setTestMessage(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if(e.key === 'Enter'){
-                                        e.preventDefault();
-                                        if(testMessage.trim() === '') return;
-                                        handleResponse({
-                                            swipes: [testMessage],
-                                            currentIndex: 0,
-                                            thought: false,
-                                            role: 'User',
-                                            userId: 'test',
-                                            fallbackName: 'Test User',
-                                        });
-                                        setTestMessage('');
-                                    }
-                                }}
-                            />
-                            <button 
-                            role='button'
-                            className='dy-btn dy-btn-accent h-full' onClick={(e) => {
-                                e.preventDefault();
-                                if(testMessage.trim() === '') return;
-                                handleResponse({
-                                    swipes: [testMessage],
-                                    currentIndex: 0,
-                                    thought: false,
-                                    role: 'User',
-                                    userId: 'test',
-                                    fallbackName: 'Test User',
-                                });
-                                setTestMessage('');
-                            }}>Send</button>
-                        </div>
-                    </div>
-                    </>
-                ):(
-                    <>
-                    <SwipeableDrawer
-                        anchor="right"
-                        open={isRightDrawerOpen}
-                        onClose={toggleRightDrawer}
-                        onOpen={toggleRightDrawer}
-                        variant="temporary"
-                        SlideProps={{ 
-                            direction: 'left',
-                        }}
-                        transitionDuration={250}
-                        className="bg-transparent"
-                    >
-                        <div className='w-full bg-base-300 p-2 flex-col h-full gap-4 flex'>
-                            <h2 className='flex flex-row justify-between flex-grow text-2xl'>Chat <span className='text-sm italic'>{testMessages.length} of 15 Test Chats</span></h2>
+                                Chat <span className='text-sm italic'>{testMessages.length} of 15 Test Chats</span></h2>
                             <div className='flex-grow bg-base-100 rounded-box h-[90%] max-h-[90%] overflow-y-auto'>
                                 <div className="dy-chat dy-chat-start">
                                     <div className="dy-chat-header">
@@ -683,7 +621,7 @@ const CharacterCRUD = () => {
                                                 currentIndex: 0,
                                                 thought: false,
                                                 role: 'User',
-                                                userId: 'Test User',
+                                                userId: 'test',
                                                 fallbackName: 'Test User',
                                             });
                                             setTestMessage('');
@@ -700,18 +638,197 @@ const CharacterCRUD = () => {
                                         currentIndex: 0,
                                         thought: false,
                                         role: 'User',
-                                        userId: 'Test User',
+                                        userId: 'test',
                                         fallbackName: 'Test User',
                                     });
                                     setTestMessage('');
                                 }}>Send</button>
                             </div>
                         </div>
-                    </SwipeableDrawer>
+                        </>
+                    ):(
+                        <SwipeableDrawer
+                            anchor="right"
+                            open={isRightDrawerOpen}
+                            onClose={toggleRightDrawer}
+                            onOpen={toggleRightDrawer}
+                            variant="temporary"
+                            SlideProps={{ 
+                                direction: 'left',
+                            }}
+                            transitionDuration={250}
+                            className="bg-transparent"
+                        >
+                            <div className='w-full bg-base-300 p-2 flex-col h-full gap-4 flex'>
+                                <h2 className='flex flex-row justify-between flex-grow text-2xl'>
+                                    <div className="flex gap-1">
+                                        <button
+                                            type='button'
+                                            className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                            onClick={handleNextSlide}
+                                        >
+                                            <ArrowLeft/>
+                                        </button>
+                                        <button
+                                            type='button'
+                                            className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                            onClick={handleNextSlide}
+                                        >
+                                            <ArrowRight/>
+                                        </button>
+                                    </div>
+                                    Chat
+                                    <span className='text-sm italic'>{testMessages.length} of 15 Test Chats</span>
+                                </h2>
+                                <div className='flex-grow bg-base-100 rounded-box h-[90%] max-h-[90%] overflow-y-auto'>
+                                    <div className="dy-chat dy-chat-start">
+                                        <div className="dy-chat-header">
+                                            {name !== '' ? name : 'Harry Dresden'}
+                                        </div>
+                                        <div className="dy-chat-bubble dy-chat-bubble-secondary">
+                                            <ReactMarkdown 
+                                                components={{
+                                                    em: ({ node, ...props }) => <i {...props} />,
+                                                    b: ({ node, ...props }) => <b {...props} />,
+                                                    code: ({ node, ...props }) => <code {...props} />,
+                                                }}
+                                            >
+                                                {first_mes !== '' ? first_mes.replaceAll('{{user}}', 'Test User').replaceAll('{{char}}', name) : 'Fuego!'}
+                                            </ReactMarkdown>
+                                        </div>
+                                    </div>
+                                    {testMessages.map((message, index) => {
+                                        return (
+                                            <div className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
+                                                <div className="dy-chat-header">
+                                                    {message.role !== 'User' ? (name? name : 'Harry Dresden') : 'Test User'}
+                                                </div>
+                                                <div className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
+                                                    <ReactMarkdown 
+                                                        components={{
+                                                            em: ({ node, ...props }) => <i {...props} />,
+                                                            b: ({ node, ...props }) => <b {...props} />,
+                                                            code: ({ node, ...props }) => <code {...props} />,
+                                                        }}
+                                                    >
+                                                        {message.swipes[message.currentIndex]}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                    <div className="dy-chat dy-chat-end" ref={endOfChatRef}></div>
+                                </div>
+                                <div className='flex flex-row justify-between flex-grow gap-2'>
+                                    <textarea 
+                                        className='w-full h-full dy-input' 
+                                        placeholder='Type a message...'
+                                        value={testMessage}
+                                        onChange={(e) => setTestMessage(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if(e.key === 'Enter'){
+                                                e.preventDefault();
+                                                if(testMessage.trim() === '') return;
+                                                handleResponse({
+                                                    swipes: [testMessage],
+                                                    currentIndex: 0,
+                                                    thought: false,
+                                                    role: 'User',
+                                                    userId: 'Test User',
+                                                    fallbackName: 'Test User',
+                                                });
+                                                setTestMessage('');
+                                            }
+                                        }}
+                                    />
+                                    <button 
+                                    role='button'
+                                    className='dy-btn dy-btn-accent h-full' onClick={(e) => {
+                                        e.preventDefault();
+                                        if(testMessage.trim() === '') return;
+                                        handleResponse({
+                                            swipes: [testMessage],
+                                            currentIndex: 0,
+                                            thought: false,
+                                            role: 'User',
+                                            userId: 'Test User',
+                                            fallbackName: 'Test User',
+                                        });
+                                        setTestMessage('');
+                                    }}>Send</button>
+                                </div>
+                            </div>
+                        </SwipeableDrawer>
+                    )}
+                    </>
+                ) : (
+                    <>
+                    {isDesktop ? (
+                        <div className='w-full rounded-box bg-base-300 p-4 flex-col h-full flex gap-4'>
+                            <h2 className='flex flex-row justify-between text-2xl h-fit'>                            
+                                <div className="flex gap-1">
+                                    <button
+                                        type='button'
+                                        className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                        onClick={handleNextSlide}
+                                    >
+                                        <ArrowLeft/>
+                                    </button>
+                                    <button
+                                        type='button'
+                                        className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                        onClick={handleNextSlide}
+                                    >
+                                        <ArrowRight/>
+                                    </button>
+                                </div>
+                                Sprite Manager
+                            </h2>
+                            <div className='flex flex-col flex-grow'>
+                                <SpriteManager characterid={id} />
+                            </div>
+                        </div>
+                    ) : (
+                        <SwipeableDrawer
+                            anchor="right"
+                            open={isRightDrawerOpen}
+                            onClose={toggleRightDrawer}
+                            onOpen={toggleRightDrawer}
+                            variant="temporary"
+                            SlideProps={{ 
+                                direction: 'left',
+                            }}
+                            transitionDuration={250}
+                            className="bg-transparent"
+                        >
+                            <div className='w-full bg-base-300 p-2 flex-col h-full flex gap-4'>
+                                <h2 className='flex flex-row justify-between text-2xl h-fit'>                            
+                                    <div className="flex gap-1">
+                                        <button
+                                            type='button'
+                                            className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                            onClick={handleNextSlide}
+                                        >
+                                            <ArrowLeft/>
+                                        </button>
+                                        <button
+                                            type='button'
+                                            className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm"
+                                            onClick={handleNextSlide}
+                                        >
+                                            <ArrowRight/>
+                                        </button>
+                                    </div>
+                                    Sprite Manager
+                                </h2>
+                                <div className='flex flex-col flex-grow'>
+                                    <SpriteManager characterid={id} />
+                                </div>
+                            </div>
+                        </SwipeableDrawer>
+                    )}
                     </>
                 )}
-                </>
-                
             </form>
         </div>
     );

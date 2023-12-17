@@ -43,7 +43,7 @@ const TokenTextarea = (props: TokenTextareaProps) => {
         <div className="flex flex-col w-full h-full gap-1">
             <label className={`${props.required ? 'required-field' : ''} ${isError() ? 'error-field' : ''} font-bold w-full `}>{props.label}</label>
             <textarea
-                className={'dy-textarea dy-textarea-bordered flex-grow h-full ' + className}
+                className={'dy-textarea flex-grow h-full ' + className}
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => {onChange(e.target.value); setNumTokens(getTokens(e.target.value));}}

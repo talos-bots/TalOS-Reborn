@@ -23,10 +23,14 @@ import { Helmet } from 'react-helmet-async';
 const ChatPage = () => {
     const { user } = useUser();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const queryParams = new URLSearchParams(location.search);
+    const characterID = queryParams.get('characterID');
 
     useEffect(() => {
-        if(!user?.id) navigate('/login?redirect=chat');
-    }, [user, navigate]);
+        if(!user?.id) navigate(`/login?redirect=chat?characterID=${characterID}`);
+    }, [user, navigate, location, characterID]);
     
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
     const [selectedChat, setSelectedChat] = useState<StoredChatLog | null>(null);
@@ -35,13 +39,9 @@ const ChatPage = () => {
     const [theaterMode, setTheaterMode] = useState<boolean>(true);
     const [background, setBackground] = useState<string | null>(null);
 
-    const location = useLocation();
     const [width] = useWindowSize();
 
     const isDesktop = width >= 1024;
-    
-    const queryParams = new URLSearchParams(location.search);
-    const characterID = queryParams.get('characterID');
 
     // State variables to control drawer open/close
     const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);

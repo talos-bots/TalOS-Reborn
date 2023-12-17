@@ -16,6 +16,7 @@ import { useNewChatLogListener, useSelectedChatLogChangedListener } from '../../
 import { TEAlert } from 'tw-elements-react';
 import './chat-window.scss';
 import Sprite from '../../../components/shared/sprite';
+import { Emotion } from '../../../helpers/constants';
 interface ChatWindowProps {
     character: Character | null;
     persona: UserPersona | null;
@@ -36,7 +37,10 @@ const chatWindow = (props: ChatWindowProps) => {
     const [messageText, setMessageText] = useState<string>('');
     const [showTypingIndicator, setShowTypingIndicator] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
-    
+
+    const [currentEmotion, setCurrentEmotion] = useState<Emotion>('neutral');
+    const [currentPosition, setCurrentPosition] = useState<'left' | 'right' | 'center'>('center');
+
     const endOfChatRef = React.useRef<HTMLDivElement>(null);
 
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -172,7 +176,7 @@ const chatWindow = (props: ChatWindowProps) => {
                 className={'w-full border-4 border-base-200 inset-4 bg-base-100 rounded-box overflow-y-scroll flex flex-col items-end justify-center flex-grow theater-window ' + (!theaterMode && 'hidden')}
                 style={{ backgroundImage: `url(./backgrounds/${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
-                <Sprite character={character?._id} emotion={'joy'} position={'right'}/>
+                <Sprite character={character?._id} emotion={currentEmotion} position={currentPosition}/>
             </div>
             <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 " + (theaterMode ? 'max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]' : 'max-h-[calc(90vh-180px)] min-h-[calc(90vh-180px)]')}>
                 {chatMessages.map((message, index) => {

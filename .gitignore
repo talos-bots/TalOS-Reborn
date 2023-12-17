@@ -133,3 +133,4 @@ server/data/profile_pictures/*
 *.db
 server/auth.db
 server/models/*
+server/data/sprites/*

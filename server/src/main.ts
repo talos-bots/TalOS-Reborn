@@ -97,6 +97,7 @@ expressApp.use('/images', express.static(uploadsPath));
 expressApp.use('/pfp', express.static(profilePicturesPath));
 expressApp.use('/backgrounds', express.static(backgroundsPath));
 expressApp.use('/sprites', express.static(spritesPath));
+
 const server = createServer(expressApp);
 
 const userConnections = new Map<string, string>();
@@ -275,6 +276,29 @@ expressApp.post('/pfp/upload', authenticateToken, uploadPfp.single('image'), (re
     }
     res.send(`File uploaded: ${req.file.originalname}`);
 });
+
+expressApp.post('/upload/sprite', authenticateToken, upload.single('sprite'), (req, res) => {
+    if (!req.file) {
+        console.log('No file uploaded');
+        return res.status(400).send('No file uploaded');
+    }
+    try {
+        const { emotion, characterid } = req.body;
+        const filename = `${emotion}.png`;
+        const oldPath = req.file.path;
+        const newPath = `${spritesPath}/${characterid}/${filename}`;
+
+        fs.mkdirSync(`${spritesPath}/${characterid}`, { recursive: true });
+        fs.renameSync(oldPath, newPath);
+        
+        console.log(`File uploaded: ${filename}`);
+        res.send(`File uploaded: ${filename}`);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error uploading file');
+    }
+});
+
 
 async function fetchUserByID(id: string): Promise<any> {
     return new Promise((resolve, reject) => {
