@@ -152,7 +152,7 @@ export async function sendCompletionRequest(messages: Message[], character: Char
             return data.data;
         }
     } catch (error) {
-        console.error('Error in sendMancerCompletionRequest:', error);
+        console.error('Error in sendCompletionRequest:', error);
         return null;
     }
 }

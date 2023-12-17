@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels } from "../../api/connectionAPI";
+import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
 const ConnectionPanel = () => {
     const connectionTypes: EndpointType[] = ['Kobold', 'OAI-Compliant-API', 'OAI', 'Horde', 'P-Claude', 'P-AWS-Claude', 'PaLM', 'Mancer']
@@ -18,6 +19,12 @@ const ConnectionPanel = () => {
     const [connectionModelList, setConnectionModelList] = useState<string[]>([] as string[])
 
     const [urlValid, setURLValid] = useState<boolean>(false)
+
+    useEffect(() => {
+        getAppSettingsConnection().then((settings) => {
+            setConnectionID(settings)
+        })
+    }, [])
 
     const handleLoadConnections = () => {
         fetchAllConnections().then((connections) => {
@@ -90,8 +97,13 @@ const ConnectionPanel = () => {
         }
     }
 
+    const setDefaultConnection = async () => {
+        await setAppSettingsConnection(connectionID)
+    }
+
     const handleTestConnection = () => {
         if(connectionType === 'Mancer'){
+            setConnectionStatus('Connecting...')
             fetchMancerModels(connectionPassword).then((models) => {
                 if(models === null) return
                 setConnectionStatus('Connection Successful!')
@@ -100,6 +112,7 @@ const ConnectionPanel = () => {
                 setConnectionStatus('Connection Failed')
             })
         }else {
+            setConnectionStatus('Connecting...')
             fetchConnectionModels(connectionURL).then((models) => {
                 if(models === null) return
                 setConnectionStatus('Connection Successful!')
@@ -187,6 +200,9 @@ const ConnectionPanel = () => {
                         <option key={index} value={connectionOption}>{connectionOption}</option>
                     ))}
                 </RequiredSelectField>
+            </div>
+            <div className="flex flex-row gap-2 w-full items-center justify-center">
+                <button className="dy-btn dy-btn-primary" onClick={setDefaultConnection}>Set as Default</button>
             </div>
         </div>
     );

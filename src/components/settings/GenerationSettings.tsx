@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import { SettingsInterface } from "../../types";
-import { deleteSettingById, fetchAllSettings, saveSettingToLocal } from "../../api/settingsAPI";
+import { deleteSettingById, fetchAllSettings, getAppSettingsSettings, saveSettingToLocal, setAppSettingsSettings } from "../../api/settingsAPI";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 
 export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme";
@@ -145,6 +145,16 @@ const GenerationSettings = () => {
         handleLoadConnection()
     }, [presetID])
 
+    useEffect(() => {
+        getAppSettingsSettings().then((settings) => {
+            setPresetID(settings)
+        })
+    }, [])
+    
+    const setPresetDefault = async () => {
+        await setAppSettingsSettings(presetID)
+    }
+
     return (
         <div className="text-base-content flex flex-col gap-2">
             <div className="flex flex-row gap-2 w-full items-center justify-center">
@@ -182,6 +192,9 @@ const GenerationSettings = () => {
                     <option key={index} value={connectionOption}>{connectionOption}</option>
                 ))}
             </RequiredSelectField>
+            <div className="flex flex-row gap-2 w-full items-center justify-center">
+                <button className="dy-btn dy-btn-primary" onClick={setPresetDefault}>Set As Default</button>
+            </div>
             <div className="flex flex-col w-full overflow-y-auto text-left themed-box max-h-[600px]">
                 <div className="flex flex-col ">
                     <span className=" font-semibold">Max Context Length</span>

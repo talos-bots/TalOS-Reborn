@@ -2,7 +2,7 @@
 //@ts-expect-error - this is a hack to get around the fact that the server and client share the same codebase
 import llamaTokenizer from './helpers/llama-tokenizer-modified.js';
 import { CharacterInterface, fetchCharacterById } from './characters.js';
-import { CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, Message, SettingsInterface, UserPersona, fetchConnectionById } from './connections.js';
+import { CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, Message, SettingsInterface, SettingsInterfaceToMancerSettings, UserPersona, fetchConnectionById } from './connections.js';
 import { fetchAllAppSettings, fetchSettingById } from './settings.js';
 import express from 'express';
 import { authenticateToken } from './authenticate-token.js';
@@ -265,6 +265,7 @@ async function formatCompletionRequest(request: CompletionRequest){
     }
     let prompt = characterPrompt;
     const characterPromptTokens = getTokens(characterPrompt);
+    //@ts-expect-error - fuck off
     const settingsInfo = fetchSettingById(request.settingsid) as SettingsInterface;
     if((request?.persona) && (request?.persona?.description) && (request?.persona?.description.trim() !== "") && (request?.persona?.importance === 'low')){
         prompt += `[${request.persona.description.trim()}]`;
@@ -305,6 +306,14 @@ async function getMancerCompletion(request: CompletionRequest){
         connectionid = fetchAllAppSettings()?.defaultConnection ?? "";
     }
     const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = fetchAllAppSettings()?.defaultSettings ?? "";
+    }
+    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    if(!settingsInfo){
+        return null;
+    }
     if(!modelInfo){
         return null;
     }
@@ -319,22 +328,29 @@ async function getMancerCompletion(request: CompletionRequest){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
     }
+    const settingsProper = SettingsInterfaceToMancerSettings(settingsInfo);
     const body = {
         'model': modelInfo.model,
         'prompt': prompt,
         'stop': stopSequences,
+        ...settingsProper,
     }
     console.log(body);
-    const response = await fetch(`https://neuro.mancer.tech/oai/v1/completions`, {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${modelInfo.key?.trim()}`,
-        },
-    });
-    const json = await response.json();
-    return json;
+    try {
+        const response = await fetch(`https://neuro.mancer.tech/oai/v1/completions`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${modelInfo.key?.trim()}`,
+            },
+        });
+        const json = await response.json();
+        return json;
+    } catch (error) {
+        console.error('Error in getMancerCompletion:', error);
+        return null;
+    }
 }
 
 llmsRouter.post('/completions/mancer', authenticateToken, async (req, res) => {
@@ -347,4 +363,20 @@ async function handleCompletionRequest(request: CompletionRequest){
     if(!request.connectionid){
         request.connectionid = fetchAllAppSettings()?.defaultConnection ?? "";
     }
+    const connection = fetchConnectionById(request.connectionid);
+    if(!connection){
+        return null;
+    }
+    switch(connection.type){
+        case 'Mancer':
+            return await getMancerCompletion(request);
+        default:
+            return null;
+    }
 }
+
+llmsRouter.post('/completions', authenticateToken, async (req, res) => {
+    const request = req.body as CompletionRequest;
+    const response = await handleCompletionRequest(request);
+    res.send(response);
+});

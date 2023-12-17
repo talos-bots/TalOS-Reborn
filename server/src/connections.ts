@@ -97,6 +97,46 @@ export type SettingsInterface = {
     instruct_mode: InstructMode;
 }
 
+export type MancerSettingsInterface = {
+    max_tokens: number;
+    min_tokens: number;
+    stream: boolean;
+    temperature: number;
+    top_p: number;
+    top_k: number;
+    top_a: number;
+    typical_p: number;
+    tff: number;
+    repetition_penalty: number;
+    ban_eos_token: boolean;
+    frequency_penalty: number;
+    presence_penalty: number;
+    mirostat_mode: number;
+    mirostat_tau: number;
+    mirostat_eta: number;
+}
+
+export function SettingsInterfaceToMancerSettings(settings: SettingsInterface): MancerSettingsInterface {
+    return {
+        max_tokens: settings.max_tokens,
+        min_tokens: settings.min_tokens,
+        stream: false,
+        temperature: settings.temperature,
+        top_p: settings.top_p,
+        top_k: settings.top_k,
+        top_a: settings.top_a,
+        typical_p: settings.typical,
+        tff: settings.tfs,
+        repetition_penalty: settings.rep_pen,
+        ban_eos_token: false,
+        frequency_penalty: settings.frequency_penalty,
+        presence_penalty: settings.presence_penalty,
+        mirostat_mode: settings.mirostat_mode,
+        mirostat_tau: settings.mirostat_tau,
+        mirostat_eta: settings.mirostat_eta,
+    };
+}
+
 export const connectionsRouter = express.Router();
 
 // get all connections from the ../data/connections/ folder
