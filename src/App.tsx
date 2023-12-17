@@ -34,6 +34,7 @@ export default function App() {
 	const [notifcationTitle, setNotificationTitle] = useState('');
 	const [notificationBody, setNotificationBody] = useState('');
 	const isProduction = process.env.NODE_ENV === 'production';
+	
 	const notificationSound = new Audio('../assets/notification.mp3');
 
 	useEffect(() => {

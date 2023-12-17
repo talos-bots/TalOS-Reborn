@@ -20,7 +20,7 @@ const SettingsPage = () => {
             <Helmet>
                 <title>TalOS | Settings</title>
             </Helmet>
-            <div className="w-full min-h-[92.5vh] max-h-full p-2 md:p-4 grid grid-cols-2 gap-2 text-base-content grid-rows-1">
+            <div className="w-full min-h-[92.5vh] max-h-full md:p-4 grid grid-cols-1 md:grid-cols-2 md:gap-2 text-base-content grid-rows-1">
                 <div className="w-full h-[100%] bg-base-300 rounded-box col-span-1 p-4 flex flex-col overflow-y-scroll gap-2">
                     <h3>Language Model Connection</h3>
                     <ConnectionPanel />

@@ -77,13 +77,8 @@ const CharactersPage = () => {
                             <button className="dy-btn dy-btn-sm dy-btn-info dy-btn-outline" disabled><MessageCircle/></button>
                         </div>
                     </div>
-                    <div className="flex flex-col gap-1 col-span-2 max-w-full">
-                        <div className="flex flex-row justify-between">
-                            <h4 className="text-left text-ellipsis line-clamp-1 text-lg">Description</h4>
-                        </div>
-                        <p className="text-left line-clamp-4 overflow-y-scroll text-clip dy-textarea flex-grow flex-col justify-between flex">
-                            <NavLink className="dy-btn dy-btn-primary w-full h-full" to={`/characters/create`}>Create New Character</NavLink>
-                        </p>
+                    <div className="flex flex-col gap-1 col-span-2 max-w-full h-full py-4">
+                        <NavLink className="dy-btn dy-btn-primary w-full h-full text-xl" to={`/characters/create`}>Create New Character</NavLink>
                     </div>
                 </div>
                 {Array.from(publicCharacters).map((character: Character, index: number) => {
