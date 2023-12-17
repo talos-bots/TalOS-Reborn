@@ -3,9 +3,6 @@
 import React from 'react';
 import { Auth } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { getCurrentEngine, setNewLogicEngine } from "../../../helpers";
-import { logicEngines } from "../../../helpers/constants";
-import { emitLogicEngineChange, useLogicEngineChangeListener } from '../../../helpers/events';
 interface ChatSettingsProps {
     theme: any;
     setTheme: (theme: any) => void;
@@ -13,38 +10,7 @@ interface ChatSettingsProps {
 
 const ChatSettings = (props: ChatSettingsProps) => {
     const { theme, setTheme } = props;
-    const [logicEngine, setLogicEngine] = useState<string>('mythomax');
-    const [loading, setLoading] = useState<boolean>(true);
-
-    useEffect(() => {
-        getCurrentEngine().then((engine) => {
-            setLogicEngine(engine);
-        }).catch((err) => {
-            console.log(err);
-        });
-    }, []);
-
-    useLogicEngineChangeListener(() => {
-        getCurrentEngine().then((engine) => {
-            setLogicEngine(engine);
-        }).catch((err) => {
-            console.log(err);
-        });
-    });
-
-    const handleLogicEngineChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedEngine = e.currentTarget.value;
-        const selectedEngineTier = logicEngines.find(engine => engine.value === selectedEngine)?.tier;
-    
-        if (selectedEngineTier !== 'free') {
-            alert("This engine requires beta access. Please select a different engine.");
-            e.currentTarget.value = logicEngine; // Reverting to the previous value
-        } else {
-            setLogicEngine(selectedEngine);
-            setNewLogicEngine(selectedEngine);
-            emitLogicEngineChange();
-        }
-    }
+    const [loading, setLoading] = useState<boolean>(false);
     
     if(loading) return (
         <div className="flex flex-col gap-1 rounded-box bg-base-100 h-full p-2 overflow-y-scroll justify-center">
@@ -84,18 +50,6 @@ const ChatSettings = (props: ChatSettingsProps) => {
                     <option value="monospace">Monospace</option>
                 </select>
             </label> */}
-            <div className="dy-form-control">
-                <span className="dy-label">Logic Engine</span>
-                <select className="dy-input dy-input-bordered w-44" 
-                    title="Logic Engine" 
-                    value={logicEngine}
-                    onChange={handleLogicEngineChange}
-                >
-                    {Array.isArray(logicEngines) && logicEngines.map((engine, index) => {
-                        return <option key={index} value={engine.value}>{engine.label}</option>;
-                    })}
-                </select>
-            </div>
         </div>
     )
 }

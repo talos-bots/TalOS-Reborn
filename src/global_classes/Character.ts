@@ -39,11 +39,7 @@ export class Character{
 
     public createGreetingStoredMessage(): StoredChatMessage | null {
         if(this.first_mes.length > 0){
-            if(this.alternate_greetings.length > 0){
-                return new StoredChatMessage(this._id, this.name, [this.alternate_greetings[Math.floor(Math.random() * this.alternate_greetings.length)]], 0, 'Assistant', false);
-            }else{
-                return new StoredChatMessage(this._id, this.name, [this.first_mes], 0, 'Assistant', false);
-            }
+            return new StoredChatMessage(this._id, this.name, [this.first_mes], 0, 'Assistant', false);
         }
         return null;
     }

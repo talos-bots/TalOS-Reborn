@@ -7,7 +7,7 @@ import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetch
 import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
 const ConnectionPanel = () => {
-    const connectionTypes: EndpointType[] = ['Kobold', 'OAI-Compliant-API', 'OAI', 'Horde', 'P-Claude', 'P-AWS-Claude', 'PaLM', 'Mancer']
+    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
     const [connectionType, setConnectionType] = useState<EndpointType>(connectionTypes[0] as EndpointType)
     const [connectionID, setConnectionID] = useState<string>('' as string)
@@ -85,7 +85,7 @@ const ConnectionPanel = () => {
             setConnectionID(settings)
         })
     }, [])
-    
+
     const handleValidateURL = () => {
         //check if a url is a valid url
         try {
