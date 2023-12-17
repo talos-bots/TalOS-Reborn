@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../components/shared/auth-provider";
+import { Helmet } from "react-helmet-async";
 
 const RegisterPage = () => {
     const { user, signUp } = useUser();
@@ -60,6 +61,9 @@ const RegisterPage = () => {
 
     return (
         <div className="w-full h-screen p-2 md:p-4">
+            <Helmet>
+                <title>TalOS | Register</title>
+            </Helmet>
             <div className="w-full mx-auto my-auto sm:max-w-lg xl:p-0 bg-base-200 rounded-box text-base-content">
             <div className="p-2 md:p-6 space-y-4 lg:space-y-6 sm:p-8">
                 <h1 className="text-xl font-bold leading-tight tracking-tight  sm:text-2xl ">

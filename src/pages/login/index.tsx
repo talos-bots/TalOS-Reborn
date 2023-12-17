@@ -6,6 +6,7 @@ import { NavLink } from 'react-router-dom';
 import { confirmModal } from '../../components/shared/confirm-modal';
 import { TEAlert } from 'tw-elements-react';
 import { useUser } from '../../components/shared/auth-provider';
+import { Helmet } from 'react-helmet-async';
 
 const LoginPage = () => {
     const { user, login } = useUser();
@@ -81,6 +82,9 @@ const LoginPage = () => {
 
     return (
         <div className='w-full h-screen p-2 md:p-4'>
+            <Helmet>
+                <title>TalOS | Login</title>
+            </Helmet>
             <TEAlert dismiss delay={5000} open={error} autohide onClose={
                 () => {
                     setError(false);

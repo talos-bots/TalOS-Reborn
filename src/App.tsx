@@ -12,7 +12,8 @@ import SettingsPage from './pages/settings';
 import LoginPage from './pages/login';
 import RegisterPage from './pages/register';
 import AccountPage from './pages/account';
-import { useWebsocketNotificationListener } from './helpers/events';
+import { useWebsocketNotificationListener, websocketNotification } from './helpers/events';
+import { TEAlert } from 'tw-elements-react';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -26,8 +27,19 @@ function ScrollToTop() {
   
 export default function App() {
 	const [loading, setLoading] = useState(false);
-
+	const [showNotification, setShowNotification] = useState(false);
+	const [notifcationTitle, setNotificationTitle] = useState('');
+	const [notificationBody, setNotificationBody] = useState('');
 	const isProduction = process.env.NODE_ENV === 'production';
+
+	const notificationSound = new Audio('../assets/notification.mp3');
+
+	useWebsocketNotificationListener((data: websocketNotification) => {
+		setNotificationTitle(data.title);
+		setNotificationBody(data.body);
+		setShowNotification(true);
+		notificationSound.play().catch((e) => console.error('Error playing sound:', e));
+	});
 
 	if(loading) {
 		return (
@@ -49,17 +61,27 @@ export default function App() {
 				<ScrollToTop />
 				<NavBar/>
 				<div className='main-content'>
+					<TEAlert dismiss delay={5000} open={showNotification} autohide onClose={
+						() => {
+							setShowNotification(false);
+						}
+					} className='rounded-box bg-accent text-accent-content'>
+						<strong>{notifcationTitle}</strong><br/>
+						<span className="ml-1">
+							{notificationBody}
+						</span>
+					</TEAlert>
 					<Routes>
-					<Route path='/*' element={<Navigate to='/home' />} />
-					<Route path='/create' element={<Navigate to='/characters/create' />} />
-					<Route path='/home' element={<HomePage/>} />
-					<Route path='/chat' element={<ChatPage/>} />
-					<Route path='/characters/:id' element={<CharacterCRUD/>} />
-					<Route path='/characters' element={<CharactersPage/>} />
-					<Route path='/settings' element={<SettingsPage/>} />
-					<Route path='/account' element={<AccountPage/>} />
-					<Route path='/register' element={<RegisterPage/>} />
-					<Route path='/login' element={<LoginPage/>} />
+						<Route path='/*' element={<Navigate to='/home' />} />
+						<Route path='/create' element={<Navigate to='/characters/create' />} />
+						<Route path='/home' element={<HomePage/>} />
+						<Route path='/chat' element={<ChatPage/>} />
+						<Route path='/characters/:id' element={<CharacterCRUD/>} />
+						<Route path='/characters' element={<CharactersPage/>} />
+						<Route path='/settings' element={<SettingsPage/>} />
+						<Route path='/account' element={<AccountPage/>} />
+						<Route path='/register' element={<RegisterPage/>} />
+						<Route path='/login' element={<LoginPage/>} />
 					</Routes>
 				</div>
 			</Router>

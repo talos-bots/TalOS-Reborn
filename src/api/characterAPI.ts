@@ -32,7 +32,6 @@ export async function fetchCharacterById(id: string): Promise<Character | null> 
     }
 
     const data = await response.json()
-    console.log(data);
     return Character.fromJSON(data);
 }
 
@@ -44,7 +43,6 @@ export async function fetchAllCharacters(): Promise<Character[]> {
     }
 
     const data = await response.json()
-    console.log(data);
     return data.map((character: any) => Character.fromJSON(character));
 }
 
@@ -77,7 +75,6 @@ export async function getCharactersByUserID(id: string): Promise<Character[]> {
     }
 
     const data = await response.json()
-    console.log(data);
     return data.map((character: any) => Character.fromJSON(character));
 }
 
@@ -89,6 +86,5 @@ export async function getUserdataByID(id: string): Promise<any> {
     }
 
     const data = await response.json()
-    console.log(data);
     return data;
 }

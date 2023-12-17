@@ -3,6 +3,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
+import { emitWebsocketNotification, websocketNotification } from '../../../helpers/events';
 
 function getCookie(name: string) {
     const cookieArray = document.cookie.split(';');
@@ -54,19 +55,6 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [socket, setSocket] = useState(null);
-
-    const sendDesktopNotification = (title: string, body: string) => {
-        // Let's check if the browser supports notifications
-        Notification.requestPermission().then(function (permission) {
-            if (permission === 'granted') {
-                const notification = new Notification(title, { body });
-                notification.onclick = () => {
-                    window.focus();
-                };
-            }
-        });
-	}
-
     const connectWebSocket = () => {
         // Assuming the JWT token is stored in localStorage or cookies
         const token = getCookie('talosAuthToken');
@@ -76,7 +64,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             newSocket.emit('authenticate', token);
 
             newSocket.on('notification', (data: any) => {
-                sendDesktopNotification('WebSocket Connection', data.message);
+                const notif: websocketNotification = {
+                    title: data.title ?? 'Notification',
+                    body: data.body ?? data.message
+                };
+                emitWebsocketNotification(notif);
             });
 
             setSocket(newSocket);

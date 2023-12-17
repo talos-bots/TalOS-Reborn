@@ -111,7 +111,7 @@ const CharacterCRUD = () => {
             setFirstMes(character?.first_mes);
             setAlternateGreetings(character?.alternate_greetings);
             setScenario(character?.scenario);
-            if(character?.creator !== user?.id){
+            if(character?.creator !== user?.id && character?.creator !== ''){
                 setNotAuthorized(true);
             }else{
                 setNotAuthorized(false);

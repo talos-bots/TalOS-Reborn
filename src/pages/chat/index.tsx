@@ -17,6 +17,8 @@ import ChatLogs from './chat-logs';
 import { useCloseSidesListener } from '../../helpers/events';
 import { getCharacter } from '../../api/characterDB';
 import { useUser } from '../../components/shared/auth-provider';
+import { fetchCharacterById } from '../../api/characterAPI';
+import { Helmet } from 'react-helmet-async';
 
 const ChatPage = () => {
     const { user } = useUser();
@@ -50,7 +52,7 @@ const ChatPage = () => {
     useEffect(() => {
         if(characterID === null) return;
         const retrieveCharacter = async () => {
-            const character = await getCharacter(characterID).then((character) => {
+            const character = await fetchCharacterById(characterID).then((character) => {
                 return character;
             });
             if(!character) return;
@@ -79,6 +81,19 @@ const ChatPage = () => {
     
     return (
         <div className="grid grid-cols-12 w-full h-[92.5vh] max-h-[92.5vh] gap-2 md:p-4 text-base-content">
+            <Helmet>
+                <title>{"Talos | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}</title>
+                <meta name="title" content={"TalOS | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}/>
+                <meta name="description" content={selectedCharacter ? selectedCharacter.personality ?? selectedCharacter.description : 'Chat with your favorite characters!'}/>
+                <meta property="og:type" content="website"/>
+                <meta property="og:url" content={window.location.href}/>
+                <meta property="og:title" content={"TalOS | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}/>
+                <meta property="og:description" content={selectedCharacter ? selectedCharacter.personality ?? selectedCharacter.description : 'Chat with your favorite characters!'}/>
+                <meta property="twitter:card" content={selectedCharacter?.avatar}/>
+                <meta property="twitter:url" content={window.location.href}/>
+                <meta property="twitter:title" content={"Talos | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}/>
+                <meta property="twitter:description" content={selectedCharacter ? selectedCharacter.personality ?? selectedCharacter.description : 'Chat with your favorite characters!'}/>
+            </Helmet>
             <CharacterPopup isOpen={showCharacterPopup} toggleModal={handleCharacterPopupToggle} character={characterPopupCharacter}/>
             <>
             {isDesktop ? (

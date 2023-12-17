@@ -19,6 +19,8 @@ import { settingsRouter } from './settings.js';
 import { usersRouter } from './users.js';
 import { charactersRouter } from './characters.js';
 import { authenticateToken } from './authenticate-token.js';
+import { conversationsRouter } from './conversations.js';
+import { connectionsRouter } from './connections.js';
 dotenv.config();
 
 const uploadsPath = './uploads';
@@ -213,3 +215,5 @@ async function fetchUserByID(id: string): Promise<any> {
 expressApp.use(settingsRouter);
 expressApp.use(usersRouter);
 expressApp.use(charactersRouter);
+expressApp.use(conversationsRouter);
+expressApp.use(connectionsRouter);

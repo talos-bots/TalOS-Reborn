@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
+import { Helmet } from "react-helmet-async";
 
 const HomePage = () => {
     
     return (
         <div className="m-auto flex flex-col bg-base-100 w-full min-h-[90vh] p-2 md:p-4 gap-2 text-base-content">
+            <Helmet>
+                <title>TalOS | Home</title>
+            </Helmet>
             <div className="w-full h-96 flex flex-col md:flex-row gap-2">
                 <div className="w-full h-full rounded-box bg-base-300 p-4">
                     <h2 className="text-2xl">Announcements</h2>

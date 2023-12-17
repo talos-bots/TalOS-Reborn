@@ -9,6 +9,7 @@ import { confirmModal } from "../../components/shared/confirm-modal";
 import RequiredInputField from "../../components/shared/required-input-field";
 import { useUser } from '../../components/shared/auth-provider';
 import { uploadFile, uploadProfilePicture } from '../../api/fileServer';
+import { Helmet } from 'react-helmet-async';
 
 const AccountPage = () => {
     const { user, logout, changeDisplayName, changePassword, changeProfilePicture, changeProfileBackground, changeProfileTagline } = useUser();
@@ -116,6 +117,9 @@ const AccountPage = () => {
 
     return (
         <div className="md:grid md:grid-cols-6 min-h-[90vh] p-2 md:p-4 gap-2 flex flex-col">
+            <Helmet>
+                <title>TalOS | Account</title>
+            </Helmet>
             {isLoading && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
                     <div className="bg-base-300 rounded-box p-2 md:p-6">

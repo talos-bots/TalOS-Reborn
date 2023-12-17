@@ -9,6 +9,7 @@ import { Info, MessageCircle } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useCharacterUpdatedListener } from '../../helpers/events';
 import { fetchAllCharacters } from '../../api/characterAPI';
+import { Helmet } from 'react-helmet-async';
 
 const CharactersPage = () => {
     const [profilePopupOpen, setProfilePopupOpen] = useState<boolean>(false);
@@ -44,6 +45,10 @@ const CharactersPage = () => {
     }
 
     return (
+        <>
+        <Helmet>
+            <title>TalOS | Characters</title>
+        </Helmet>
         <div className="w-full h-full flex-col min-h-[90vh]">
             {loading && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
@@ -88,6 +93,7 @@ const CharactersPage = () => {
                 })}
             </div>
         </div>
+        </>
     )
 };
 

@@ -26,7 +26,6 @@ const CharacterComponent = (props: CharacterComponentProps) => {
 
     useEffect(() => {
 		if (character) {
-			console.log('Getting creator data');
 			getUserdataByID(character.creator).then((newUser) => {
 				setCreatorName(newUser?.display_name || '');
 				setCreatorProfilePic(newUser?.profile_pic || '');
