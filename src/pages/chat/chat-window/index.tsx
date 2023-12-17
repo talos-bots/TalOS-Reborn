@@ -14,7 +14,7 @@ import ReactAnimatedEllipsis from 'react-animated-ellipsis';
 import ReactMarkdown from 'react-markdown';
 import { useNewChatLogListener, useSelectedChatLogChangedListener } from '../../../helpers/events';
 import { TEAlert } from 'tw-elements-react';
-
+import './chat-window.scss';
 interface ChatWindowProps {
     character: Character | null;
     persona: UserPersona | null;
@@ -22,10 +22,14 @@ interface ChatWindowProps {
     toggleRightDrawer: () => void;
     theme: any;
     showCharacterPopup: (character?: Character) => void;
+    theaterMode: boolean;
+    setTheaterMode: (theaterMode: boolean) => void;
+    background: string | null;
+    setBackground: (background: string | null) => void;
 }
 
 const chatWindow = (props: ChatWindowProps) => {
-    const { character, persona, theme } = props;
+    const { character, persona, theme, theaterMode, setTheaterMode, background, setBackground } = props;
     const [chatLog, setChatLog] = useState<StoredChatLog | null>(null);
     const [chatMessages, setChatMessages] = useState<StoredChatMessage[]>([]);
     const [messageText, setMessageText] = useState<string>('');
@@ -155,12 +159,21 @@ const chatWindow = (props: ChatWindowProps) => {
                         }
                     />
                     <span className="text-xl">{character?.name ?? 'None'}</span>
+                    <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm" onClick={() => setTheaterMode(!theaterMode)}>
+                        {theaterMode ? 'Exit' : 'Enter'} Theater Mode
+                    </button>
                 </div>
                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm md:hidden" onClick={props.toggleRightDrawer}>
                     <Cog/>
                 </button>
             </h3>
-            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 max-h-[calc(90vh-180px)] min-h-[calc(90vh-180px)]"}>
+            <div 
+                className={'w-full bg-base-100 rounded-box overflow-y-scroll flex flex-col items-end justify-center flex-grow theater-window ' + (!theaterMode && 'hidden')}
+                style={{ backgroundImage: `url(./backgrounds/${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            >
+
+            </div>
+            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 " + (theaterMode ? 'max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]' : 'max-h-[calc(90vh-180px)] min-h-[calc(90vh-180px)]')}>
                 {chatMessages.map((message) => {
                     return (
                         <div key={message.timestamp} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
@@ -193,7 +206,7 @@ const chatWindow = (props: ChatWindowProps) => {
                 }
                 <div ref={endOfChatRef}></div>
             </div>
-            <div className={"flex flex-row gap-2 justify-center flex-grow "}>
+            <div className={"flex flex-row gap-2 justify-center max-h-[90px] min-h-[90x]"}>
                 {/* <button className="dy-btn dy-btn-accent h-full" disabled={character === null}>
                     <Plus/>
                 </button> */}

@@ -27,6 +27,7 @@ dotenv.config();
 export const uploadsPath = './uploads';
 export const dataPath = './data';
 export const profilePicturesPath = `${dataPath}/profile_pictures`;
+export const backgroundsPath = `${dataPath}/backgrounds`;
 export const charactersPath = `${dataPath}/characters`;
 export const settingsPath = `${dataPath}/settings`;
 export const connectionsPath = `${dataPath}/connections`;
@@ -60,6 +61,7 @@ if(!JWT_SECRET) {
 
 fs.mkdirSync(uploadsPath, { recursive: true });
 fs.mkdirSync(profilePicturesPath, { recursive: true });
+fs.mkdirSync(backgroundsPath, { recursive: true });
 fs.mkdirSync(dataPath, { recursive: true });
 fs.mkdirSync(charactersPath, { recursive: true });
 fs.mkdirSync(settingsPath, { recursive: true });
@@ -88,6 +90,7 @@ expressApp.use(cookieParser());
 expressApp.use(cors(corsOptions));
 expressApp.use('/images', express.static(uploadsPath));
 expressApp.use('/pfp', express.static(profilePicturesPath));
+expressApp.use('/backgrounds', express.static(backgroundsPath));
 
 const server = createServer(expressApp);
 
@@ -192,6 +195,74 @@ const profilePicStorage = multer.diskStorage({
 });
 
 const uploadPfp = multer({ storage: profilePicStorage });
+
+const backgroundStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, backgroundsPath)
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname)
+    }
+});
+
+const uploadBackground = multer({ storage: backgroundStorage });
+
+expressApp.post('/background/upload', authenticateToken, uploadBackground.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+    res.send(`File uploaded: ${req.file.originalname}`);
+});
+
+expressApp.post('/background/delete', authenticateToken, (req, res) => {
+    try {
+        const filename = req.body.filename;
+        const path = `${backgroundsPath}/${filename}`;
+        fs.unlink(path, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send(err);
+            }
+            res.send(`File deleted: ${filename}`);
+        });
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+// rename background
+expressApp.post('/background/rename', authenticateToken, (req, res) => {
+    try{
+        const oldFilename = req.body.oldFilename;
+        const newFilename = req.body.newFilename;
+        const oldPath = `${backgroundsPath}/${oldFilename}`;
+        const newPath = `${backgroundsPath}/${newFilename}`;
+        fs.rename(oldPath, newPath, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send(err);
+            }
+            res.send(`File renamed: ${oldFilename} to ${newFilename}`);
+        });
+    }catch(err){
+        console.log(err);
+    }
+});
+
+// get all image file names in backgrounds folder
+expressApp.get('/background/all', authenticateToken, (req, res) => {
+    try {
+        fs.readdir(backgroundsPath, (err, files) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send(err);
+            }
+            res.send(files);
+        });
+    } catch (error) {
+        console.log(error);
+    }
+});
 
 expressApp.post('/pfp/upload', authenticateToken, uploadPfp.single('image'), (req, res) => {
     if (!req.file) {

@@ -30,6 +30,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: false,
+      },
+      '/backgrounds': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        secure: false,
+        ws: false,
       }
     }
   },

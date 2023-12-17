@@ -3,13 +3,16 @@
 import React from 'react';
 import { Auth } from "firebase/auth";
 import { useEffect, useState } from "react";
+import BackgroundSelector from '../../../components/shared/background-selector';
 interface ChatSettingsProps {
     theme: any;
     setTheme: (theme: any) => void;
+    background: string | null;
+    setBackground: (background: string) => void;
 }
 
 const ChatSettings = (props: ChatSettingsProps) => {
-    const { theme, setTheme } = props;
+    const { theme, setTheme, background, setBackground } = props;
     const [loading, setLoading] = useState<boolean>(false);
     
     if(loading) return (
@@ -23,9 +26,13 @@ const ChatSettings = (props: ChatSettingsProps) => {
             </div>
         </div>
     )
-
+    const handleBackgroundChange = (url: string) => {
+        setBackground(url);
+        console.log(url);
+    }
     return (
         <div className="flex flex-col gap-1 rounded-box bg-base-100 h-full p-2 overflow-y-scroll">
+            <BackgroundSelector background={background} setBackground={handleBackgroundChange}/>
             {/* <label className="dy-form-control">
                 <span className="dy-label">Color Scheme</span>
                 <select className="dy-select dy-select-bordered w-full max-w-xs">

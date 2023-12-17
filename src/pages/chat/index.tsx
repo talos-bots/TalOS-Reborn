@@ -32,6 +32,8 @@ const ChatPage = () => {
     const [selectedChat, setSelectedChat] = useState<StoredChatLog | null>(null);
     const [showCharacterPopup, setShowCharacterPopup] = useState<boolean>(false);
     const [characterPopupCharacter, setCharacterPopupCharacter] = useState<Character | null>(null);
+    const [theaterMode, setTheaterMode] = useState<boolean>(true);
+    const [background, setBackground] = useState<string | null>(null);
 
     const location = useLocation();
     const [width] = useWindowSize();
@@ -167,7 +169,7 @@ const ChatPage = () => {
                 </SwipeableDrawer>
             )}
             </>
-            <ChatWindow character={selectedCharacter} persona={null} theme={null} toggleLeftDrawer={toggleLeftDrawer} toggleRightDrawer={toggleRightDrawer} showCharacterPopup={handleCharacterPopupToggle}/>
+            <ChatWindow theaterMode={theaterMode} setTheaterMode={setTheaterMode}character={selectedCharacter} persona={null} theme={null} toggleLeftDrawer={toggleLeftDrawer} toggleRightDrawer={toggleRightDrawer} showCharacterPopup={handleCharacterPopupToggle} background={background} setBackground={setBackground}/>
             {isDesktop ? (
                 <div className="col-span-2 shadow-xl md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 text-right p-2 max-h-[90vh]">
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
@@ -181,7 +183,7 @@ const ChatPage = () => {
                             </button>
                         </div> */}
                     </h3>
-                    <ChatSettings theme={null} setTheme={() => {}}/>
+                    <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground}/>
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                         Chats
                         {/* <div className="flex gap-1">
@@ -219,7 +221,7 @@ const ChatPage = () => {
                                 </button>
                             </div> */}
                         </h3>
-                        <ChatSettings theme={null} setTheme={() => {}}/>
+                        <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground}/>
                         <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                             Chats
                             {/* <div className="flex gap-1">
