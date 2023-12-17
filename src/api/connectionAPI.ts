@@ -144,13 +144,7 @@ export async function sendCompletionRequest(messages: Message[], character: Char
         }
 
         const data = await response.json();
-        console.log('Sent mancer completion request:', data);
-        if(data.error) {
-            console.error('Error sending mancer completion request:', data.error);
-            return null;
-        }else{
-            return data.data;
-        }
+        return data;
     } catch (error) {
         console.error('Error in sendCompletionRequest:', error);
         return null;

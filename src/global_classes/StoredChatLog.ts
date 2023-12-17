@@ -3,6 +3,8 @@
 import { Character, UserPersona } from "./Character";
 import { CompletionRequest, Message, Role } from "./CompletionRequest";
 import { addStoredChatLog } from "../api/chatLogDB";
+import { sendCompletionRequest } from "../api/connectionAPI";
+import { breakUpCommands } from "../helpers/chat-helpers";
 
 export class StoredChatLog {
     _id: string = new Date().getTime().toString();
@@ -98,35 +100,34 @@ export class StoredChatLog {
     }
 
     async continueChatLogFromNewMessage(persona: UserPersona, message: string, character: Character){
-        // if(!this.characters.includes(character._id)){
-        //     this.addCharacter(character._id);
-        // }
-        // const preset = localStorage.getItem('preset') || 'storywriter';
-        // const newUserMessage = StoredChatMessage.fromUserPersonaAndString(persona, message);
-        // this.addMessage(newUserMessage);
-        // const unparsedResponse = await sendCompletionRequest(model, this.messages, character, preset, 'lorebookid').then((response) => {
-        //     console.log(response);
-        //     return response;
-        // }).catch((error) => {
-        //     console.log(error);
-        // });
-        // if(unparsedResponse === null){
-        //     return null;
-        // }
-        // const value = unparsedResponse?.completion?.choices[0]?.text.trim();
-        // console.log(value);
-        // const refinedResponse = breakUpCommands(character.name, value, persona?.name ?? auth.currentUser?.displayName, null, false);
-        // const assistantResponse: Message = {
-        //     userId: character._id,
-        //     fallbackName: character.name,
-        //     swipes: [refinedResponse],
-        //     currentIndex: 0,
-        //     role: 'Assistant',
-        //     thought: false,
-        // };
-        // const storedAssistantResponse = StoredChatMessage.fromMessage(assistantResponse);
-        // this.addMessage(storedAssistantResponse);
-        // return this.toStoredChatLog();
+        if(!this.characters.includes(character._id)){
+            this.addCharacter(character._id);
+        }
+        const newUserMessage = StoredChatMessage.fromUserPersonaAndString(persona, message);
+        this.addMessage(newUserMessage);
+        const unparsedResponse = await sendCompletionRequest(this.messages, character, persona).then((response) => {
+            console.log(response);
+            return response;
+        }).catch((error) => {
+            console.log(error);
+        });
+        if(unparsedResponse === null){
+            return null;
+        }
+        const value = unparsedResponse?.choices[0]?.text.trim();
+        console.log(value);
+        const refinedResponse = breakUpCommands(character.name, value, persona?.name ?? 'You', null, false);
+        const assistantResponse: Message = {
+            userId: character._id,
+            fallbackName: character.name,
+            swipes: [refinedResponse],
+            currentIndex: 0,
+            role: 'Assistant',
+            thought: false,
+        };
+        const storedAssistantResponse = StoredChatMessage.fromMessage(assistantResponse);
+        this.addMessage(storedAssistantResponse);
+        return this.toStoredChatLog();
     }
 
     public addSwipeByIndex(index: number, swipe: string): void {
@@ -134,38 +135,35 @@ export class StoredChatLog {
     }
 
     public async generateNewSwipe(persona: UserPersona, character: Character) {
-        // const model = localStorage.getItem('modelid') || 'mythomax';
-        // const preset = localStorage.getItem('preset') || 'storywriter';
+        // Reverse a copy of the array to search from the end
+        const reversedMessages = [...this.messages].reverse();
+        const reversedIndex = reversedMessages.findIndex((message) => message.role === 'Assistant' && message.userId === character._id);
         
-        // // Reverse a copy of the array to search from the end
-        // const reversedMessages = [...this.messages].reverse();
-        // const reversedIndex = reversedMessages.findIndex((message) => message.role === 'Assistant' && message.userId === character._id);
-        
-        // // Adjust the index to map to the original array
-        // const lastAssistantMessageIndex = reversedIndex !== -1 ? this.messages.length - 1 - reversedIndex : -1;
+        // Adjust the index to map to the original array
+        const lastAssistantMessageIndex = reversedIndex !== -1 ? this.messages.length - 1 - reversedIndex : -1;
     
-        // if (lastAssistantMessageIndex === -1) {
-        //     // Handle the case where no matching message is found
-        //     return null;
-        // }
+        if (lastAssistantMessageIndex === -1) {
+            // Handle the case where no matching message is found
+            return null;
+        }
     
-        // const messagesBeforeAssistant = this.messages.slice(0, lastAssistantMessageIndex + 1);
-        // const unparsedResponse = await sendCompletionRequest(model, messagesBeforeAssistant, character, preset, 'lorebookid').then((response) => {
-        //     console.log(response);
-        //     return response;
-        // }).catch((error) => {
-        //     console.log(error);
-        // });
+        const messagesBeforeAssistant = this.messages.slice(0, lastAssistantMessageIndex + 1);
+        const unparsedResponse = await sendCompletionRequest(messagesBeforeAssistant, character, persona).then((response) => {
+            console.log(response);
+            return response;
+        }).catch((error) => {
+            console.log(error);
+        });
     
-        // if (unparsedResponse === null) {
-        //     return null;
-        // }
+        if (unparsedResponse === null) {
+            return null;
+        }
     
-        // const value = unparsedResponse?.completion?.choices[0]?.text.trim();
-        // console.log(value);
-        // const refinedResponse = breakUpCommands(character.name, value, persona.name, null, false);
-        // this.addSwipeByIndex(lastAssistantMessageIndex, refinedResponse);
-        // return this.toStoredChatLog();
+        const value = unparsedResponse?.choices[0]?.text.trim();
+        console.log(value);
+        const refinedResponse = breakUpCommands(character.name, value, persona.name, null, false);
+        this.addSwipeByIndex(lastAssistantMessageIndex, refinedResponse);
+        return this.toStoredChatLog();
     }    
 
     public toStoredChatLog(): StoredChatLog {

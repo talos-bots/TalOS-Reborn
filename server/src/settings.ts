@@ -5,6 +5,7 @@ import path from "path";
 import dotenv from 'dotenv';
 dotenv.config();
 import { settingsPath } from "./main.js";
+import { SettingsInterface } from './connections.js';
 
 export const settingsRouter = express.Router();
 
@@ -42,13 +43,12 @@ settingsRouter.post('/save/setting', (req, res) => {
 
 // get a setting by id from the ../data/settings/ folder
 export function fetchSettingById(id: string) {
-    const settingFolderPath = path.join(settingsPath);
-    const filePath = path.join(settingFolderPath, `${id}.json`);
-    if (fs.existsSync(filePath)) {
+    try {
+        const filePath = path.join(settingsPath, `${id}.json`);
         const fileData = fs.readFileSync(filePath, "utf-8");
-        return JSON.parse(fileData);
-    } else {
-        return null; // or handle the error as needed
+        return JSON.parse(fileData) as SettingsInterface;
+    } catch (error) {
+        return null;
     }
 }
 
@@ -64,12 +64,16 @@ settingsRouter.get('/settings/:id', (req, res) => {
 
 //remove a setting by id from the ../data/settings/ folder
 function removeSettingById(id: string) {
-    const settingFolderPath = path.join(settingsPath);
-    const filePath = path.join(settingFolderPath, `${id}.json`);
-    if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-    } else {
-        return null; // or handle the error as needed
+    try {
+        const settingFolderPath = path.join(settingsPath);
+        const filePath = path.join(settingFolderPath, `${id}.json`);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        } else {
+            return null; // or handle the error as needed
+        }
+    } catch (error) {
+        return null;
     }
 }
 
@@ -87,11 +91,16 @@ interface AppSettingsInterface {
 
 // get all appSettings from the ../data/appSettings.json file
 export function fetchAllAppSettings() {
-    const appSettingsData = fs.readFileSync(appSettingsPath, "utf-8");
-    if (!appSettingsData) {
+    try {
+        const appSettingsData = fs.readFileSync(appSettingsPath, "utf-8");
+        if (!appSettingsData) {
+            return null;
+        }
+        return JSON.parse(appSettingsData) as AppSettingsInterface;
+    } catch (error) {
         return null;
     }
-    return JSON.parse(appSettingsData) as AppSettingsInterface;
+
 }
 
 settingsRouter.get('/appSettings', (req, res) => {

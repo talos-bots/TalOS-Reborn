@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-//@ts-expect-error - this is a hack to get around the fact that the server and client share the same codebase
 import llamaTokenizer from './helpers/llama-tokenizer-modified.js';
 import { CharacterInterface, fetchCharacterById } from './characters.js';
 import { CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, Message, SettingsInterface, SettingsInterfaceToMancerSettings, UserPersona, fetchConnectionById } from './connections.js';
@@ -10,6 +9,7 @@ import { authenticateToken } from './authenticate-token.js';
 export const llmsRouter = express.Router();
 
 function getTokens(text: string){
+    //@ts-expect-error fuck off
     return llamaTokenizer.encode(text).length;
 }
 
@@ -265,8 +265,30 @@ async function formatCompletionRequest(request: CompletionRequest){
     }
     let prompt = characterPrompt;
     const characterPromptTokens = getTokens(characterPrompt);
-    //@ts-expect-error - fuck off
-    const settingsInfo = fetchSettingById(request.settingsid) as SettingsInterface;
+    const appSettings = fetchAllAppSettings();
+    console.log(appSettings);
+    let connectionid = request.connectionid;
+    if(!connectionid){
+        connectionid = appSettings?.defaultConnection ?? "";
+    }
+    if(!connectionid){
+        return null;
+    }
+    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = appSettings?.defaultSettings ?? "";
+    }
+    if(!settingsid){
+        return null;
+    }
+    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    if(!settingsInfo){
+        return null;
+    }
     if((request?.persona) && (request?.persona?.description) && (request?.persona?.description.trim() !== "") && (request?.persona?.importance === 'low')){
         prompt += `[${request.persona.description.trim()}]`;
     }
@@ -301,20 +323,28 @@ function getStopSequences(messages: Message[]){
 async function getMancerCompletion(request: CompletionRequest){
     const prompt = await formatCompletionRequest(request);
     const stopSequences = getStopSequences(request.messages);
+    const appSettings = fetchAllAppSettings();
+    console.log(appSettings);
     let connectionid = request.connectionid;
     if(!connectionid){
-        connectionid = fetchAllAppSettings()?.defaultConnection ?? "";
+        connectionid = appSettings?.defaultConnection ?? "";
+    }
+    if(!connectionid){
+        return null;
     }
     const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
     let settingsid = request.settingsid;
     if(!settingsid){
-        settingsid = fetchAllAppSettings()?.defaultSettings ?? "";
+        settingsid = appSettings?.defaultSettings ?? "";
+    }
+    if(!settingsid){
+        return null;
     }
     const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
     if(!settingsInfo){
-        return null;
-    }
-    if(!modelInfo){
         return null;
     }
     if(modelInfo.model === "weaver-alpha" || modelInfo.model === "mythomax"){
@@ -360,14 +390,27 @@ llmsRouter.post('/completions/mancer', authenticateToken, async (req, res) => {
 });
 
 async function handleCompletionRequest(request: CompletionRequest){
-    if(!request.connectionid){
-        request.connectionid = fetchAllAppSettings()?.defaultConnection ?? "";
+    const appSettings = fetchAllAppSettings();
+    console.log(appSettings);
+    let connectionid = request.connectionid;
+    if(!connectionid){
+        connectionid = appSettings?.defaultConnection ?? "";
     }
-    const connection = fetchConnectionById(request.connectionid);
-    if(!connection){
+    if(!connectionid){
         return null;
     }
-    switch(connection.type){
+    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = appSettings?.defaultSettings ?? "";
+    }
+    if(!settingsid){
+        return null;
+    }
+    switch(modelInfo.type){
         case 'Mancer':
             return await getMancerCompletion(request);
         default:

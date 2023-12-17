@@ -8,6 +8,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "allowJs": true,
     "outDir": "./dist",
     "importHelpers": true,
   },
