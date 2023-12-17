@@ -235,3 +235,16 @@ usersRouter.get('/profile/:id', (req, res) => {
         res.json(user);
     });
 });
+
+// get all users
+usersRouter.get('/profiles', (req, res) => {
+    const query = `SELECT id, username, profile_pic, display_name, bio, background_pic, tagline FROM users`;
+
+    db.all(query, [], (err: any, users: any) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        res.json(users);
+    });
+});

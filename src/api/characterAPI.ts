@@ -88,3 +88,14 @@ export async function getUserdataByID(id: string): Promise<any> {
     const data = await response.json()
     return data;
 }
+
+export async function getAllUserdata(): Promise<any> {
+    const response = await fetch(`/api/profiles`);
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+    }
+
+    const data = await response.json()
+    return data;
+}

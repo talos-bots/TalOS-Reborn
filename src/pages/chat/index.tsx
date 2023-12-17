@@ -23,7 +23,7 @@ import { Helmet } from 'react-helmet-async';
 const ChatPage = () => {
     const { user } = useUser();
     const navigate = useNavigate();
-    
+
     useEffect(() => {
         if(!user?.id) navigate('/login?redirect=chat');
     }, [user, navigate]);
@@ -101,26 +101,26 @@ const ChatPage = () => {
                     <div className="col-span-3 md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 p-2 max-h-[90vh]">
                         <h3 className="font-bold justify-between flex flex-row">
                             Contacts
-                            <div className="flex gap-1">
+                            {/* <div className="flex gap-1">
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowLeft/>
                                 </button>
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowRight/>
                                 </button>
-                            </div>
+                            </div> */}
                         </h3>
                         <ContactsBox character={selectedCharacter} setCharacter={handleCharacterSelect} showCharacterPopup={handleCharacterPopupToggle}/>
                         <h3 className="font-bold justify-between flex flex-row">
                             You
-                            <div className="flex gap-1">
+                            {/* <div className="flex gap-1">
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowLeft/>
                                 </button>
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowRight/>
                                 </button>
-                            </div>
+                            </div> */}
                         </h3>
                         <UserPersonaWindow persona={null} setPersona={() => {}}/>
                     </div>
@@ -138,26 +138,26 @@ const ChatPage = () => {
                     <div className="col-span-3 md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 p-2">
                         <h3 className="font-bold justify-between flex flex-row">
                             Contacts
-                            <div className="flex gap-1">
+                            {/* <div className="flex gap-1">
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowLeft/>
                                 </button>
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowRight/>
                                 </button>
-                            </div>
+                            </div> */}
                         </h3>
                         <ContactsBox character={selectedCharacter} setCharacter={handleCharacterSelect} showCharacterPopup={handleCharacterPopupToggle}/>
                         <h3 className="font-bold justify-between flex flex-row">
                             You
-                            <div className="flex gap-1">
+                            {/* <div className="flex gap-1">
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowLeft/>
                                 </button>
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowRight/>
                                 </button>
-                            </div>
+                            </div> */}
                         </h3>
                         <UserPersonaWindow persona={null} setPersona={() => {}}/>
                         <button className="dy-btn dy-btn-error dy-btn-outline dy-btn-sm md:hidden" onClick={toggleLeftDrawer}>
@@ -172,26 +172,26 @@ const ChatPage = () => {
                 <div className="col-span-2 shadow-xl md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 text-right p-2 max-h-[90vh]">
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                         Chat Settings
-                        <div className="flex gap-1">
+                        {/* <div className="flex gap-1">
                             <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                 <ArrowLeft/>
                             </button>
                             <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                 <ArrowRight/>
                             </button>
-                        </div>
+                        </div> */}
                     </h3>
                     <ChatSettings theme={null} setTheme={() => {}}/>
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                         Chats
-                        <div className="flex gap-1">
+                        {/* <div className="flex gap-1">
                             <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                 <ArrowLeft/>
                             </button>
                             <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                 <ArrowRight/>
                             </button>
-                        </div>
+                        </div> */}
                     </h3>
                     <div className="flex flex-col gap-2 rounded-box bg-base-100 h-full">
                         <ChatLogs character={selectedCharacter} showCharacterPopup={handleCharacterPopupToggle}/>
@@ -210,26 +210,26 @@ const ChatPage = () => {
                     <div className="col-span-2 shadow-xl bg-base-300 md:p-4 h-full flex flex-col gap-2 text-right p-2">
                         <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                             Chat Settings
-                            <div className="flex gap-1">
+                            {/* <div className="flex gap-1">
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowLeft/>
                                 </button>
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowRight/>
                                 </button>
-                            </div>
+                            </div> */}
                         </h3>
                         <ChatSettings theme={null} setTheme={() => {}}/>
                         <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                             Chats
-                            <div className="flex gap-1">
+                            {/* <div className="flex gap-1">
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowLeft/>
                                 </button>
                                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm">
                                     <ArrowRight/>
                                 </button>
-                            </div>
+                            </div> */}
                         </h3>
                         <div className="flex flex-col gap-2 rounded-box bg-base-100 h-full">
                             <ChatLogs character={selectedCharacter} showCharacterPopup={handleCharacterPopupToggle}/>

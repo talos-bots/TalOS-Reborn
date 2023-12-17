@@ -20,12 +20,6 @@ const ConnectionPanel = () => {
 
     const [urlValid, setURLValid] = useState<boolean>(false)
 
-    useEffect(() => {
-        getAppSettingsConnection().then((settings) => {
-            setConnectionID(settings)
-        })
-    }, [])
-
     const handleLoadConnections = () => {
         fetchAllConnections().then((connections) => {
             setSavedConnections(connections)
@@ -85,6 +79,12 @@ const ConnectionPanel = () => {
         }
         handleLoadConnection()
     }, [connectionID])
+    
+    useEffect(() => {
+        getAppSettingsConnection().then((settings) => {
+            setConnectionID(settings)
+        })
+    }, [])
     
     const handleValidateURL = () => {
         //check if a url is a valid url

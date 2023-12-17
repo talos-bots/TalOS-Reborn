@@ -19,6 +19,7 @@ const CharactersPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const getMoreCharacters = async () => {
+        setLoading(true);
         const newCharacters = await fetchAllCharacters().then((characters) => {
             return characters;
         });
