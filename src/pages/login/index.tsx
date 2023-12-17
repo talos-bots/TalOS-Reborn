@@ -12,7 +12,7 @@ const LoginPage = () => {
     const { user, login } = useUser();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(location.search);
-    const locationRedirect = queryParams.get('location');
+    const locationRedirect = queryParams.get('redirect');
 
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -20,6 +20,12 @@ const LoginPage = () => {
     const [passwordError, setPasswordError] = React.useState('');
     const [doRemember, setDoRemember] = React.useState(false);
     const [error, setError] = React.useState(false);
+
+    useEffect(() => {
+        if(user) {
+            navigate(`/${locationRedirect}` || '/home');
+        }
+    }, [user, navigate, locationRedirect]);
 
     useEffect(() => {
         if(localStorage.getItem('rememberMe')) {

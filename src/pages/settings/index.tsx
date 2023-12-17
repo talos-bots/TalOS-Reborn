@@ -11,7 +11,7 @@ const SettingsPage = () => {
     
     useEffect(() => {
         if (!user) {
-            navigate('/login');
+            navigate('/login?redirect=settings');
         }
     }, [user, navigate]);
 

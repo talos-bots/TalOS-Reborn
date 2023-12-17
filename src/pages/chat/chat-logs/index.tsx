@@ -18,23 +18,9 @@ const ChatLogs = (props: ChatLogsProps) => {
     const [chatLogs, setChatLogs] = useState<StoredChatLog[]>([]);
 
     const init = async () => {
-        // if(character === null) return;
-        // const finalLogs: StoredChatLog[] = [];
-        // const chatLogs = await getAllStoredChatLogsWithCharacter(character?._id);
-        // const cloudChatLogs = await getChatsWithCharacter(character?._id);
-        // cloudChatLogs.forEach((cloudChatLog) => {
-        //     const chatLog = chatLogs.find((chatLog) => chatLog._id === cloudChatLog._id);
-        //     if(chatLog) {
-        //         chatLog.messages = cloudChatLog.messages;
-        //         chatLog.name = cloudChatLog.name;
-        //         chatLog.lastMessageDate = cloudChatLog.lastMessageDate;
-        //         chatLog.characters = cloudChatLog.characters;
-        //         finalLogs.push(chatLog);
-        //     } else {
-        //         finalLogs.push(cloudChatLog);
-        //     }
-        // });
-        // setChatLogs(finalLogs);
+        if(character === null) return;
+        const chatLogs = await getAllStoredChatLogsWithCharacter(character?._id);
+        setChatLogs(chatLogs);
     }
 
     const updateLogs = async () => {

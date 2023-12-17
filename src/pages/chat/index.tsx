@@ -23,9 +23,9 @@ import { Helmet } from 'react-helmet-async';
 const ChatPage = () => {
     const { user } = useUser();
     const navigate = useNavigate();
-
+    
     useEffect(() => {
-        if(!user?.id) navigate('/login');
+        if(!user?.id) navigate('/login?redirect=chat');
     }, [user, navigate]);
     
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
