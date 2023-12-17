@@ -26,6 +26,9 @@ dotenv.config();
 
 export const uploadsPath = './uploads';
 export const dataPath = './data';
+export const modelsPath = './models';
+export const wasmPath = './wasm';
+export const imagesPath = `${dataPath}/images`;
 export const profilePicturesPath = `${dataPath}/profile_pictures`;
 export const backgroundsPath = `${dataPath}/backgrounds`;
 export const spritesPath = `${dataPath}/sprites`;
