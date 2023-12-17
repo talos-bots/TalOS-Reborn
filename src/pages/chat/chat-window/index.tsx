@@ -175,9 +175,9 @@ const chatWindow = (props: ChatWindowProps) => {
                 <Sprite character={character?._id} emotion={'joy'} position={'right'}/>
             </div>
             <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 " + (theaterMode ? 'max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]' : 'max-h-[calc(90vh-180px)] min-h-[calc(90vh-180px)]')}>
-                {chatMessages.map((message) => {
+                {chatMessages.map((message, index) => {
                     return (
-                        <div key={message.timestamp} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
+                        <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
                             <div className="dy-chat-header">
                                 {message.role !== 'User' ? (character?.name? character?.name : 'none') : persona?.name ?? 'You'}
                             </div>

@@ -6,7 +6,7 @@ import { CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, M
 import { fetchAllAppSettings, fetchSettingById } from './settings.js';
 import express from 'express';
 import { authenticateToken } from './authenticate-token.js';
-
+import axios from 'axios';
 export const llmsRouter = express.Router();
 
 function getTokens(text: string){
@@ -531,31 +531,31 @@ async function getPaLMCompletion(request: CompletionRequest){
         "safetySettings": [
             {
                 "category": "HARM_CATEGORY_UNSPECIFIED",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_UNSPECIFIED as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_UNSPECIFIED : "BLOCK_NONE"
+                "threshold": "BLOCK_NONE"
             },
             {
                 "category": "HARM_CATEGORY_DEROGATORY",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_DEROGATORY as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_DEROGATORY : "BLOCK_NONE"
+                "threshold": "BLOCK_NONE"
             },
             {
                 "category": "HARM_CATEGORY_TOXICITY",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_TOXICITY as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_TOXICITY : "BLOCK_NONE"
+                "threshold": "BLOCK_NONE"
             },
             {
                 "category": "HARM_CATEGORY_VIOLENCE",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_VIOLENCE as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_VIOLENCE : "BLOCK_NONE"
+                "threshold": "BLOCK_NONE"
             },
             {
                 "category": "HARM_CATEGORY_SEXUAL",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_SEXUAL as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_SEXUAL : "BLOCK_NONE"
+                "threshold": "BLOCK_NONE"
             },
             {
                 "category": "HARM_CATEGORY_MEDICAL",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_MEDICAL as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_MEDICAL : "BLOCK_NONE"
+                "threshold": "BLOCK_NONE"
             },
             {
                 "category": "HARM_CATEGORY_DANGEROUS",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_DANGEROUS as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_DANGEROUS : "BLOCK_NONE"
+                "threshold": "BLOCK_NONE"
             }
         ],
         "temperature": (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
@@ -566,30 +566,46 @@ async function getPaLMCompletion(request: CompletionRequest){
     }
     console.log(PaLM_Payload);
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generateText?key=${modelInfo.key?.trim()}`,
+        const response = await axios(`https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generateText?key=${modelInfo.key?.trim()}`,
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(PaLM_Payload),
+                data: JSON.stringify(PaLM_Payload),
             }
-        );
-        if (!response.ok) {
-            console.error('Error generating completion:', response.status);
+        ).then((response) => {
+            return response;
+        }).catch((error) => {
+            return error.response;
+        });
+        if(!response){
             return null;
         }
-        const googleReply = await response.json();
-        if (googleReply?.data?.error) {
-            throw new Error(googleReply.data.error.message);
-        }else if (googleReply?.data?.filters) {
+        if (response.status !== 200) {
+            console.error('Error generating completion:', response.statusText);
+            return null;
+        }
+        const googleReply = await response.data;
+        if (googleReply?.error) {
+            throw new Error(googleReply.error.message);
+        }else if (googleReply?.filters) {
             throw new Error('No valid response from LLM. Filters are blocking the response.');
-        }else if (!googleReply?.data?.candidates[0]?.output) {
+        }else if (!googleReply?.candidates[0]?.output) {
             throw new Error('No valid response from LLM.');
-        }else if (googleReply?.data?.candidates[0]?.output?.length < 1) {
+        }else if (googleReply?.candidates[0]?.output?.length < 1) {
             throw new Error('No valid response from LLM.');
-        }else if (googleReply?.data?.candidates[0]?.output?.length > 1) {
-            return googleReply.data.candidates[0]?.output
+        }else if (googleReply?.candidates[0]?.output?.length > 1) {
+            return {
+                choices: [
+                    {
+                        text: googleReply?.candidates[0]?.output,
+                        index: 0,
+                        logprobs: null,
+                        finish_reason: null,
+                    }
+                ]
+            }
         }
     } catch (error) {
         console.error('Error in getPaLMCompletion:', error);
@@ -635,33 +651,9 @@ async function getGeminiCompletion(request: CompletionRequest){
         ],
         "safetySettings": [
             {
-                "category": "HARM_CATEGORY_UNSPECIFIED",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_UNSPECIFIED as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_UNSPECIFIED : "BLOCK_NONE"
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_NONE"
             },
-            {
-                "category": "HARM_CATEGORY_DEROGATORY",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_DEROGATORY as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_DEROGATORY : "BLOCK_NONE"
-            },
-            {
-                "category": "HARM_CATEGORY_TOXICITY",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_TOXICITY as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_TOXICITY : "BLOCK_NONE"
-            },
-            {
-                "category": "HARM_CATEGORY_VIOLENCE",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_VIOLENCE as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_VIOLENCE : "BLOCK_NONE"
-            },
-            {
-                "category": "HARM_CATEGORY_SEXUAL",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_SEXUAL as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_SEXUAL : "BLOCK_NONE"
-            },
-            {
-                "category": "HARM_CATEGORY_MEDICAL",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_MEDICAL as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_MEDICAL : "BLOCK_NONE"
-            },
-            {
-                "category": "HARM_CATEGORY_DANGEROUS",
-                "threshold": defaultPaLMFilters.HARM_CATEGORY_DANGEROUS as PaLMFilterType ? defaultPaLMFilters.HARM_CATEGORY_DANGEROUS : "BLOCK_NONE"
-            }
         ],
         "generationConfig": {
             "stopSequences": [
@@ -677,33 +669,50 @@ async function getGeminiCompletion(request: CompletionRequest){
     }
     console.log(PaLM_Payload);
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${modelInfo?.model}:generateContent?key=${modelInfo.key?.trim()}`,
+        const response = await axios(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${modelInfo.key?.trim()}`,
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(PaLM_Payload),
-            }
-        );
-        if (!response.ok) {
-            console.error('Error generating completion:', response.status);
+                data: JSON.stringify(PaLM_Payload),
+            },
+        ).then((response) => {
+            return response;
+        }).catch((error) => {
+            return error.response;
+        });
+        console.log(response.data);
+        if(!response){
             return null;
         }
-        const googleReply = await response.json();
-        if (googleReply?.data?.error) {
+        if (response.status !== 200) {
+            console.error('Error generating completion:', response.statusText);
+            return null;
+        }
+        const googleReply = await response.data;
+        if (googleReply?.error) {
             throw new Error(googleReply.data.error.message);
-        }else if (googleReply?.data?.filters) {
+        }else if (googleReply?.filters) {
             throw new Error('No valid response from LLM. Filters are blocking the response.');
-        }else if (!googleReply?.data?.candidates[0]?.content?.parts[0]?.text) {
+        }else if (!googleReply?.candidates[0]?.content?.parts[0]?.text) {
             throw new Error('No valid response from LLM.');
-        }else if (googleReply?.data?.candidates[0]?.content?.parts[0]?.text.length < 1) {
+        }else if (googleReply?.candidates[0]?.content?.parts[0]?.text.length < 1) {
             throw new Error('No valid response from LLM.');
-        }else if (googleReply?.data?.candidates[0]?.content?.parts[0]?.text.length > 1) {
-            return googleReply?.data?.candidates[0]?.content?.parts[0]?.text
+        }else if (googleReply?.candidates[0]?.content?.parts[0]?.text.length > 1) {
+            return {
+                choices: [
+                    {
+                        text: googleReply.candidates[0]?.content?.parts[0]?.text,
+                        index: 0,
+                        logprobs: null,
+                        finish_reason: null,
+                    }
+                ]
+            }
         }
     } catch (error) {
-        console.error('Error in getPaLMCompletion:', error);
+        console.error('Error in getGeminiCompletion:', error);
         return null;
     }
 }

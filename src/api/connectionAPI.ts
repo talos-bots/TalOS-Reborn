@@ -127,6 +127,11 @@ export async function fetchPalmModels(key?: string){
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ key }),
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.error('Error sending palm completion request:', error);
+            return null;
         });
         
         if (!response.ok) {
@@ -170,6 +175,11 @@ export async function sendCompletionRequest(messages: Message[], character: Char
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(newRequest),
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.error('Error sending mancer completion request:', error);
+            return null;
         });
         
         if (!response.ok) {
