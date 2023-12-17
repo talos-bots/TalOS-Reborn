@@ -389,6 +389,69 @@ llmsRouter.post('/completions/mancer', authenticateToken, async (req, res) => {
     res.send(response);
 });
 
+async function getGenericCompletion(request: CompletionRequest){
+    const prompt = await formatCompletionRequest(request);
+    const stopSequences = getStopSequences(request.messages);
+    const appSettings = fetchAllAppSettings();
+    console.log(appSettings);
+    let connectionid = request.connectionid;
+    if(!connectionid){
+        connectionid = appSettings?.defaultConnection ?? "";
+    }
+    if(!connectionid){
+        return null;
+    }
+    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = appSettings?.defaultSettings ?? "";
+    }
+    if(!settingsid){
+        return null;
+    }
+    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    if(!settingsInfo){
+        return null;
+    }
+    if(modelInfo.model === "weaver-alpha" || modelInfo.model === "mythomax"){
+        stopSequences.push("###");
+    }
+    if(modelInfo.model === "synthia-70b" || modelInfo.model === "goliath-120b"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(modelInfo.model === "mythalion"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    const body = {
+        'model': modelInfo.model,
+        'prompt': prompt,
+        'stop': stopSequences,
+        ...settingsInfo
+    }
+    console.log(body);
+    try {
+        const newURL = new URL(modelInfo.url as string);
+        const response = await fetch(`${newURL.protocol}//${newURL.hostname}${newURL.port? `:${newURL.port}` : ''}` + '/v1/completions', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${modelInfo.key?.trim()}`,
+            },
+        });
+        const json = await response.json();
+        return json;
+    } catch (error) {
+        console.error('Error in getGenericCompletion:', error);
+        return null;
+    }
+}
+
 async function handleCompletionRequest(request: CompletionRequest){
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
@@ -414,7 +477,7 @@ async function handleCompletionRequest(request: CompletionRequest){
         case 'Mancer':
             return await getMancerCompletion(request);
         default:
-            return null;
+            return await getGenericCompletion(request);
     }
 }
 

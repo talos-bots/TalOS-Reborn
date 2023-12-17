@@ -12,7 +12,10 @@ const SettingsPage = () => {
     useEffect(() => {
         if (!user) {
             navigate('/login?redirect=settings');
+        }else if(user?.username !== 'sendev') {
+            navigate('/home');
         }
+
     }, [user, navigate]);
 
     return (
