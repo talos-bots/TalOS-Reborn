@@ -57,7 +57,7 @@ export async function deleteConnectionById(id: string): Promise<void> {
     console.log('Connection deleted successfully!');
 }
 
-export async function fetchConnectionModels(url: string): Promise<any> {
+export async function fetchConnectionModels(url: string, key?: string): Promise<any> {
     try {
         const response = await fetch(`/api/test/connections`,
         {
@@ -65,7 +65,7 @@ export async function fetchConnectionModels(url: string): Promise<any> {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url }),
+            body: JSON.stringify({ url, key }),
         });
         
         if (!response.ok) {

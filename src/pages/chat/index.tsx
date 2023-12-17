@@ -91,7 +91,7 @@ const ChatPage = () => {
                 <meta property="og:description" content={selectedCharacter ? selectedCharacter.personality ?? selectedCharacter.description : 'Chat with your favorite characters!'}/>
                 <meta property="twitter:card" content={selectedCharacter?.avatar}/>
                 <meta property="twitter:url" content={window.location.href}/>
-                <meta property="twitter:title" content={"Talos | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}/>
+                <meta property="twitter:title" content={"TalOS | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}/>
                 <meta property="twitter:description" content={selectedCharacter ? selectedCharacter.personality ?? selectedCharacter.description : 'Chat with your favorite characters!'}/>
             </Helmet>
             <CharacterPopup isOpen={showCharacterPopup} toggleModal={handleCharacterPopupToggle} character={characterPopupCharacter}/>

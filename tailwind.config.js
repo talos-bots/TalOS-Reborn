@@ -268,6 +268,12 @@ module.exports = withMT({
           accent: "#4c22c4",
           warning: "#d22a3a",
           neutral: "#b080f7",
+        },
+        dim: {
+          ...require("daisyui/src/theming/themes")["dim"],
+          primary: "#e64919",
+          secondary: "#e6af19",
+          accent: "#19b6e6",
         }
       }
     ],

@@ -79,9 +79,17 @@ connectionsRouter.delete('/connections/:id', (req, res) => {
     res.send({ message: "Connection removed successfully!" });
 });
 
-async function fetchGenericConnectionModels(url: string) {
+async function fetchGenericConnectionModels(url: string, key?: string) {
     const endpointURLObject = new URL(url);
-    const response = await fetch(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}` + `/v1/models`);
+    const response = await fetch(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}` + `/v1/models`,
+    {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': (key? key.length > 0? `Bearer ${key}` : '' : '')
+        }
+    
+    });
     console.log(response);
     if (!response.ok) {
         console.log('Connection models not found');
@@ -94,6 +102,7 @@ async function fetchGenericConnectionModels(url: string) {
 
 connectionsRouter.post('/test/connections', async (req, res) => {
     const url = req.body.url;
-    const data = await fetchGenericConnectionModels(url as string);
+    const key = req.body.key;
+    const data = await fetchGenericConnectionModels(url as string, key as string);
     res.send({...data});
 });
