@@ -13,6 +13,12 @@ export default defineConfig({
         ws: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
+      '/socket.io': {
+        target: 'http://localhost:3003/socket.io/',
+        changeOrigin: false,
+        secure: false,
+        ws: true,
+      },
       '/images': {
         target: 'http://localhost:3003',
         changeOrigin: true,
@@ -25,6 +31,7 @@ export default defineConfig({
         secure: false,
         ws: false,
       }
+
     }
   },
 })

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createEvent } from "react-event-hook";
 import { StoredChatLog } from "../global_classes/StoredChatLog";
 
@@ -24,3 +25,7 @@ export const { useCloseSidesListener, emitCloseSides } = createEvent('closeSides
 export const { useCharacterUpdatedListener, emitCharacterUpdated } = createEvent('characterUpdated')(
     { crossTab: true }
 )
+
+export const { useWebsocketNotificationListener, emitWebsocketNotification } = createEvent<any>('websocketNotification')({
+    crossTab: true
+});

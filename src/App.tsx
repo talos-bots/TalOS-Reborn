@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import HomePage from "./pages";
@@ -11,6 +12,7 @@ import SettingsPage from './pages/settings';
 import LoginPage from './pages/login';
 import RegisterPage from './pages/register';
 import AccountPage from './pages/account';
+import { useWebsocketNotificationListener } from './helpers/events';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -40,7 +42,7 @@ export default function App() {
 			</div>
 		);
 	}
-
+	
 	return (
 		<div id='App'>
 			<Router>

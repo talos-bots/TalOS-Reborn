@@ -2,7 +2,7 @@
 import { SettingsInterface } from "../types";
 
 export async function saveSettingToLocal(setting: SettingsInterface): Promise<void> {
-    const response = await fetch('/api/save/settings', {
+    const response = await fetch('/api/save/setting', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ export async function fetchSettingById(id: string): Promise<SettingsInterface | 
 }
 
 export async function fetchAllSettings(): Promise<SettingsInterface[]> {
-    const response = await fetch('/api/setting');
+    const response = await fetch('/api/settings');
 
     if (!response.ok) {
         throw new Error(`Error: ${response.status}`);

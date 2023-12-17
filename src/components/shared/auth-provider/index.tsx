@@ -1,7 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import axios from 'axios';
+import io from 'socket.io-client';
 
+function getCookie(name: string) {
+    const cookieArray = document.cookie.split(';');
+    for(let i = 0; i < cookieArray.length; i++) {
+        const cookiePair = cookieArray[i].split('=');
+        if (name == cookiePair[0].trim()) {
+            return decodeURIComponent(cookiePair[1]);
+        }
+    }
+    return null;
+}
+  
 interface User {
     id: string;
     username: string;
@@ -40,11 +53,47 @@ interface UserProviderProps {
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [socket, setSocket] = useState(null);
+
+    const sendDesktopNotification = (title: string, body: string) => {
+        // Let's check if the browser supports notifications
+        Notification.requestPermission().then(function (permission) {
+            if (permission === 'granted') {
+                const notification = new Notification(title, { body });
+                notification.onclick = () => {
+                    window.focus();
+                };
+            }
+        });
+	}
+
+    const connectWebSocket = () => {
+        // Assuming the JWT token is stored in localStorage or cookies
+        const token = getCookie('talosAuthToken');
+        if (token && !socket) {
+            const newSocket = io();
+
+            newSocket.emit('authenticate', token);
+
+            newSocket.on('notification', (data: any) => {
+                sendDesktopNotification('WebSocket Connection', data.message);
+            });
+
+            setSocket(newSocket);
+            return newSocket;
+        }
+    };
+
+    const disconnectWebSocket = () => {
+        if (socket) {
+            socket.disconnect();
+            setSocket(null);
+        }
+    };
 
     const fetchUserData = async () => {
         try {
             const response = await axios.get('/api/me').then((res) => res.data);
-            console.log(response);
             const newUser: User = {
                 id: response.id,
                 username: response.username,
@@ -64,6 +113,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         try {
             await axios.post('/api/login', { username, password });
             await fetchUserData();
+            connectWebSocket();
         } catch (error) {
             console.error('Login error:', error);
         }
@@ -73,6 +123,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         try {
             await axios.post('/api/logout');
             setUser(null);
+            disconnectWebSocket();
         } catch (error) {
             console.error('Logout error:', error);
         }
@@ -151,8 +202,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
     useEffect(() => {
         const interval = setInterval(validateToken, 10 * 60 * 1000); // every 10 minutes
-        return () => clearInterval(interval);
-    }, []);
+        if (user) {
+            connectWebSocket();
+        }
+        return () => {
+            disconnectWebSocket();
+            clearInterval(interval);
+        };
+    }, [user]);
 
     useEffect(() => {
         fetchUserData();

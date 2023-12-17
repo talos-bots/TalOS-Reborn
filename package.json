@@ -38,6 +38,7 @@
     "react-indexed-db-hook": "^1.0.14",
     "react-router-dom": "^6.20.0",
     "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
     "sqlite3": "^5.1.6",
     "styled-components": "^6.1.1",
     "theme-change": "^2.5.0",

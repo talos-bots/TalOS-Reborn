@@ -134,17 +134,15 @@ process.on('SIGINT', gracefulShutdown);
 expressAppIO.sockets.on('connection', (socket) => {
 	console.log('Client connected:', socket.id);
 
-	// Logging all events
-	socket.onAny((eventName, ...args) => {
-		console.log(`event: ${eventName}`, args);
-	});
-
     socket.on('authenticate', (token: string) => {
         // Implement your authentication logic here
         const userId = authenticateTokenSocket(token); // Replace with your auth logic
         if (userId) {
             userConnections.set(userId, socket.id);
-            console.log(`User ${userId} connected with socket ${socket.id}`);
+            fetchUserByID(userId).then((user) => {
+                socket.emit('notification', { message: `Authenticated successfully, Welcome to TalOS, ${user?.display_name}.` });
+                console.log(`User ${user?.display_name} authenticated with socket ${socket.id}`);
+            });
         }
     });
 
@@ -159,6 +157,13 @@ expressAppIO.sockets.on('connection', (socket) => {
     });
 
 });
+
+function sendNotificationToUser(userId: string, notification: any) {
+    const socketId = userConnections.get(userId);
+    if (socketId) {
+        expressAppIO.sockets.to(socketId).emit('notification', notification);
+    }
+}
 
 server.listen(port, () => {
 	console.log(`Server started on http://localhost:${port}`);
@@ -251,7 +256,7 @@ expressApp.post('/login', async (req, res) => {
 
             // Set cookie with the token
             res.cookie('talosAuthToken', token, {
-                httpOnly: true, // Makes the cookie inaccessible to client-side JavaScript
+                httpOnly: false, // Makes the cookie inaccessible to client-side JavaScript
                 secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
                 maxAge: 24 * 60 * 60 * 1000 // 24 hours
             });
@@ -425,6 +430,18 @@ expressApp.get('/profile/:id', (req, res) => {
         res.json(user);
     });
 });
+
+async function fetchUserByID(id: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM users WHERE id = ?', [id], (err, row: any) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(row || null);
+        });
+    });
+}
 
 export type CharacterInterface = {
     _id: string;
