@@ -60,6 +60,12 @@ export async function deleteSettingById(id: string): Promise<void> {
 interface AppSettingsInterface {
     defaultConnection: string;
     defaultSettings: string;
+    admins: string[];
+    enableCaptioning: boolean;
+    enableEmbedding: boolean;
+    enableQuestionAnswering: boolean;
+    enableZeroShotClassification: boolean;
+    enableYesNoMaybe: boolean;
 }
 
 // Fetch all app settings

@@ -15,19 +15,24 @@ export async function getModels(){
         env.localModelPath = modelsPath;
         env.backends.onnx.wasm.numThreads = 1;
         env.backends.onnx.wasm.wasmPaths = wasmPath;
-        await pipeline('text-classification', 'Cohee/distilbert-base-uncased-go-emotions-onnx', { cache_dir: modelsPath, quantized: true}).then(() => {
+        await pipeline('text-classification', 'Cohee/distilbert-base-uncased-go-emotions-onnx', { cache_dir: modelsPath, quantized: true}).then((model) => {
+            model.dispose();
             console.log("Text Classification model loaded");
-        });
-        await pipeline('image-to-text', 'Xenova/vit-gpt2-image-captioning', { cache_dir: modelsPath, quantized: true}).then(() => {
+        })
+        await pipeline('image-to-text', 'Xenova/vit-gpt2-image-captioning', { cache_dir: modelsPath, quantized: true}).then((model) => {
+            model.dispose();
             console.log("Image Captioning model loaded");
         });
-        await pipeline('feature-extraction',  'Xenova/all-MiniLM-L6-v2', { cache_dir: modelsPath, quantized: true}).then(() => {
+        await pipeline('feature-extraction',  'Xenova/all-MiniLM-L6-v2', { cache_dir: modelsPath, quantized: true}).then((model) => {
+            model.dispose();
             console.log("Feature Extraction model loaded");
         });
-        await pipeline('question-answering', 'Xenova/distilbert-base-uncased-distilled-squad', { cache_dir: modelsPath, quantized: true}).then(() => {
+        await pipeline('question-answering', 'Xenova/distilbert-base-uncased-distilled-squad', { cache_dir: modelsPath, quantized: true}).then((model) => {
+            model.dispose();
             console.log("Question Answering model loaded");
         });
-        await pipeline('zero-shot-classification', 'Xenova/mobilebert-uncased-mnli', { cache_dir: modelsPath, quantized: true}).then(() => {
+        await pipeline('zero-shot-classification', 'Xenova/mobilebert-uncased-mnli', { cache_dir: modelsPath, quantized: true}).then((model) => {
+            model.dispose();
             console.log("Zero Shot Classification model loaded");
         });
     }catch(err){

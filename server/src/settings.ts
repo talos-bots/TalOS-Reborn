@@ -84,9 +84,16 @@ settingsRouter.delete('/settings/:id', (req, res) => {
 });
 
 const appSettingsPath = path.join("./appSettings.json");
+
 interface AppSettingsInterface {
     defaultConnection: string;
     defaultSettings: string;
+    admins: string[];
+    enableCaptioning: boolean;
+    enableEmbedding: boolean;
+    enableQuestionAnswering: boolean;
+    enableZeroShotClassification: boolean;
+    enableYesNoMaybe: boolean;
 }
 
 // get all appSettings from the ../data/appSettings.json file
@@ -159,6 +166,144 @@ settingsRouter.post('/appSettings/settings', (req, res) => {
         appSettingsData.defaultSettings = id;
         saveAppSetting(appSettingsData);
         res.send({ message: "Default settings set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// get all admins from the ../data/appSettings.json file
+settingsRouter.get('/appSettings/admins', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.admins);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the admins in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/admins', (req, res) => {
+    const admins = req.body.admins;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.admins = admins;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "Admins set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// get all enableCaptioning from the ../data/appSettings.json file
+settingsRouter.get('/appSettings/enableCaptioning', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.enableCaptioning);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the enableCaptioning in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/enableCaptioning', (req, res) => {
+    const enableCaptioning = req.body.enableCaptioning;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.enableCaptioning = enableCaptioning;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "enableCaptioning set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// get all enableEmbedding from the ../data/appSettings.json file
+settingsRouter.get('/appSettings/enableEmbedding', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.enableEmbedding);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the enableEmbedding in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/enableEmbedding', (req, res) => {
+    const enableEmbedding = req.body.enableEmbedding;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.enableEmbedding = enableEmbedding;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "enableEmbedding set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// get all enableQuestionAnswering from the ../data/appSettings.json file
+settingsRouter.get('/appSettings/enableQuestionAnswering', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.enableQuestionAnswering);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the enableQuestionAnswering in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/enableQuestionAnswering', (req, res) => {
+    const enableQuestionAnswering = req.body.enableQuestionAnswering;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.enableQuestionAnswering = enableQuestionAnswering;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "enableQuestionAnswering set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// get all enableZeroShotClassification from the ../data/appSettings.json file
+settingsRouter.get('/appSettings/enableZeroShotClassification', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.enableZeroShotClassification);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the enableZeroShotClassification in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/enableZeroShotClassification', (req, res) => {
+    const enableZeroShotClassification = req.body.enableZeroShotClassification;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.enableZeroShotClassification = enableZeroShotClassification;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "enableZeroShotClassification set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// get all enableYesNoMaybe from the ../data/appSettings.json file
+settingsRouter.get('/appSettings/enableYesNoMaybe', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.enableYesNoMaybe);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the enableYesNoMaybe in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/enableYesNoMaybe', (req, res) => {
+    const enableYesNoMaybe = req.body.enableYesNoMaybe;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.enableYesNoMaybe = enableYesNoMaybe;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "enableYesNoMaybe set successfully!" });
     } else {
         res.status(404).send({ message: "AppSetting not found" });
     }
