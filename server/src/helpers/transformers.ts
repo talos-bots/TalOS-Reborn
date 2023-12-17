@@ -5,6 +5,7 @@ import { unlink, writeFile } from 'fs/promises';
 import { Pipeline } from '@xenova/transformers';
 import { modelsPath, uploadsPath, wasmPath } from '../main.js';
 import express from 'express';
+import { authenticateToken } from '../authenticate-token.js';
 
 export const transformersRouter = express.Router();
 
@@ -182,7 +183,7 @@ export {
     getYesNoMaybe
 };
 
-transformersRouter.post('/classification', async (req, res) => {
+transformersRouter.post('/classification', authenticateToken, async (req, res) => {
     try {
         const text = req.body.text;
         const results = await getClassification(text);
@@ -192,7 +193,7 @@ transformersRouter.post('/classification', async (req, res) => {
     }
 });
 
-transformersRouter.post('/caption', async (req, res) => {
+transformersRouter.post('/caption', authenticateToken, async (req, res) => {
     try {
         const image = req.body.image;
         const results = await getCaption(image);
@@ -202,7 +203,7 @@ transformersRouter.post('/caption', async (req, res) => {
     }
 });
 
-transformersRouter.post('/embedding', async (req, res) => {
+transformersRouter.post('/embedding', authenticateToken, async (req, res) => {
     try {
         const text = req.body.text;
         const results = await getEmbedding(text);
@@ -212,7 +213,7 @@ transformersRouter.post('/embedding', async (req, res) => {
     }
 });
 
-transformersRouter.post('/embedding/tensor', async (req, res) => {
+transformersRouter.post('/embedding/tensor', authenticateToken, async (req, res) => {
     try {
         const text = req.body.text;
         const results = await getEmbeddingTensor(text);
@@ -222,7 +223,7 @@ transformersRouter.post('/embedding/tensor', async (req, res) => {
     }
 });
 
-transformersRouter.post('/embedding/similarity', async (req, res) => {
+transformersRouter.post('/embedding/similarity', authenticateToken, async (req, res) => {
     try {
         const text1 = req.body.text1;
         const text2 = req.body.text2;
@@ -233,7 +234,7 @@ transformersRouter.post('/embedding/similarity', async (req, res) => {
     }
 });
 
-transformersRouter.post('/question', async (req, res) => {
+transformersRouter.post('/question', authenticateToken, async (req, res) => {
     try {
         const context = req.body.context;
         const question = req.body.question;
@@ -244,7 +245,7 @@ transformersRouter.post('/question', async (req, res) => {
     }
 });
 
-transformersRouter.post('/zero-shot', async (req, res) => {
+transformersRouter.post('/zero-shot', authenticateToken, async (req, res) => {
     try {
         const text = req.body.text;
         const labels = req.body.labels;
@@ -255,7 +256,7 @@ transformersRouter.post('/zero-shot', async (req, res) => {
     }
 });
 
-transformersRouter.post('/yes-no-maybe', async (req, res) => {
+transformersRouter.post('/yes-no-maybe', authenticateToken, async (req, res) => {
     try {
         const text = req.body.text;
         const results = await getYesNoMaybe(text);
@@ -265,7 +266,7 @@ transformersRouter.post('/yes-no-maybe', async (req, res) => {
     }
 });
 
-transformersRouter.get('/models', async (req, res) => {
+transformersRouter.get('/models', authenticateToken, async (req, res) => {
     try {
         await getModels();
         res.send('Models loaded');
