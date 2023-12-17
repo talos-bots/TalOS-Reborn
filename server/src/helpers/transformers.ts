@@ -4,6 +4,9 @@ import path from 'path';
 import { unlink, writeFile } from 'fs/promises';
 import { Pipeline } from '@xenova/transformers';
 import { modelsPath, uploadsPath, wasmPath } from '../main.js';
+import express from 'express';
+
+export const transformersRouter = express.Router();
 
 export async function getModels(){
     try{
@@ -178,3 +181,95 @@ export {
     getZeroShotClassification,
     getYesNoMaybe
 };
+
+transformersRouter.post('/classification', async (req, res) => {
+    try {
+        const text = req.body.text;
+        const results = await getClassification(text);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.post('/caption', async (req, res) => {
+    try {
+        const image = req.body.image;
+        const results = await getCaption(image);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.post('/embedding', async (req, res) => {
+    try {
+        const text = req.body.text;
+        const results = await getEmbedding(text);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.post('/embedding/tensor', async (req, res) => {
+    try {
+        const text = req.body.text;
+        const results = await getEmbeddingTensor(text);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.post('/embedding/similarity', async (req, res) => {
+    try {
+        const text1 = req.body.text1;
+        const text2 = req.body.text2;
+        const results = await getEmbeddingSimilarity(text1, text2);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.post('/question', async (req, res) => {
+    try {
+        const context = req.body.context;
+        const question = req.body.question;
+        const results = await getQuestionAnswering(context, question);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.post('/zero-shot', async (req, res) => {
+    try {
+        const text = req.body.text;
+        const labels = req.body.labels;
+        const results = await getZeroShotClassification(text, labels);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.post('/yes-no-maybe', async (req, res) => {
+    try {
+        const text = req.body.text;
+        const results = await getYesNoMaybe(text);
+        res.send(results);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+transformersRouter.get('/models', async (req, res) => {
+    try {
+        await getModels();
+        res.send('Models loaded');
+    } catch (error) {
+        console.log(error);
+    }
+});

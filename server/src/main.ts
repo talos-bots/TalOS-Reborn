@@ -22,6 +22,7 @@ import { authenticateToken } from './authenticate-token.js';
 import { conversationsRouter } from './conversations.js';
 import { connectionsRouter } from './connections.js';
 import { llmsRouter } from './llms.js';
+import { transformersRouter } from './helpers/transformers.js';
 dotenv.config();
 
 export const uploadsPath = './uploads';
@@ -294,3 +295,4 @@ expressApp.use(charactersRouter);
 expressApp.use(conversationsRouter);
 expressApp.use(connectionsRouter);
 expressApp.use(llmsRouter);
+expressApp.use('/transformers', transformersRouter);
