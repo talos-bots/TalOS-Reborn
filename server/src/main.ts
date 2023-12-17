@@ -28,6 +28,7 @@ export const uploadsPath = './uploads';
 export const dataPath = './data';
 export const profilePicturesPath = `${dataPath}/profile_pictures`;
 export const backgroundsPath = `${dataPath}/backgrounds`;
+export const spritesPath = `${dataPath}/sprites`;
 export const charactersPath = `${dataPath}/characters`;
 export const settingsPath = `${dataPath}/settings`;
 export const connectionsPath = `${dataPath}/connections`;
@@ -91,7 +92,7 @@ expressApp.use(cors(corsOptions));
 expressApp.use('/images', express.static(uploadsPath));
 expressApp.use('/pfp', express.static(profilePicturesPath));
 expressApp.use('/backgrounds', express.static(backgroundsPath));
-
+expressApp.use('/sprites', express.static(spritesPath));
 const server = createServer(expressApp);
 
 const userConnections = new Map<string, string>();

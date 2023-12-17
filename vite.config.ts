@@ -36,6 +36,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: false,
+      },
+      '/sprites': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        secure: false,
+        ws: false,
       }
     }
   },

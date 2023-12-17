@@ -12,13 +12,6 @@ const BackgroundSelector = (props: BackgroundSelectorProps) => {
     const [backgrounds, setBackgrounds] = useState<string[]>([]);
 
     useEffect(() => {
-        const fetchAndSetBackground = async () => {
-            localStorage.getItem("background");
-            if (background !== null) {
-                setBackground(background);
-            }
-        }
-        fetchAndSetBackground();
         const fetchAndSetBackgrounds = async () => {
             const data = await fetchAllBackgrounds();
             if (data !== null) {
@@ -26,6 +19,10 @@ const BackgroundSelector = (props: BackgroundSelectorProps) => {
             }
         };
         fetchAndSetBackgrounds();
+        localStorage.getItem("background");
+        if (localStorage.getItem("background") !== null) {
+            setBackground(localStorage.getItem("background"));
+        }
     }, []);
 
     const selectBackground = (filename: string) => {

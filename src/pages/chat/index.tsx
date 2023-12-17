@@ -183,7 +183,7 @@ const ChatPage = () => {
                             </button>
                         </div> */}
                     </h3>
-                    <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground}/>
+                    <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground} theaterMode={theaterMode}/>
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                         Chats
                         {/* <div className="flex gap-1">
@@ -221,7 +221,7 @@ const ChatPage = () => {
                                 </button>
                             </div> */}
                         </h3>
-                        <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground}/>
+                        <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground} theaterMode={theaterMode}/>
                         <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                             Chats
                             {/* <div className="flex gap-1">

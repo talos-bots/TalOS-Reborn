@@ -9,10 +9,11 @@ interface ChatSettingsProps {
     setTheme: (theme: any) => void;
     background: string | null;
     setBackground: (background: string) => void;
+    theaterMode: boolean;
 }
 
 const ChatSettings = (props: ChatSettingsProps) => {
-    const { theme, setTheme, background, setBackground } = props;
+    const { theme, setTheme, background, setBackground, theaterMode } = props;
     const [loading, setLoading] = useState<boolean>(false);
     
     if(loading) return (
@@ -32,7 +33,9 @@ const ChatSettings = (props: ChatSettingsProps) => {
     }
     return (
         <div className="flex flex-col gap-1 rounded-box bg-base-100 h-full p-2 overflow-y-scroll">
-            <BackgroundSelector background={background} setBackground={handleBackgroundChange}/>
+            {theaterMode && (
+                <BackgroundSelector background={background} setBackground={handleBackgroundChange}/>
+            )}
             {/* <label className="dy-form-control">
                 <span className="dy-label">Color Scheme</span>
                 <select className="dy-select dy-select-bordered w-full max-w-xs">

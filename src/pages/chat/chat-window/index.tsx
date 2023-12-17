@@ -15,6 +15,7 @@ import ReactMarkdown from 'react-markdown';
 import { useNewChatLogListener, useSelectedChatLogChangedListener } from '../../../helpers/events';
 import { TEAlert } from 'tw-elements-react';
 import './chat-window.scss';
+import Sprite from '../../../components/shared/sprite';
 interface ChatWindowProps {
     character: Character | null;
     persona: UserPersona | null;
@@ -168,10 +169,10 @@ const chatWindow = (props: ChatWindowProps) => {
                 </button>
             </h3>
             <div 
-                className={'w-full bg-base-100 rounded-box overflow-y-scroll flex flex-col items-end justify-center flex-grow theater-window ' + (!theaterMode && 'hidden')}
+                className={'w-full border-4 border-base-200 inset-4 bg-base-100 rounded-box overflow-y-scroll flex flex-col items-end justify-center flex-grow theater-window ' + (!theaterMode && 'hidden')}
                 style={{ backgroundImage: `url(./backgrounds/${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
-
+                <Sprite character={character?._id} emotion={'joy'} position={'right'}/>
             </div>
             <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 " + (theaterMode ? 'max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]' : 'max-h-[calc(90vh-180px)] min-h-[calc(90vh-180px)]')}>
                 {chatMessages.map((message) => {
