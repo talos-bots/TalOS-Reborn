@@ -74,7 +74,7 @@ const CharacterComponent = (props: CharacterComponentProps) => {
     };
 
     return (
-        <div className="p-4 rounded-box bg-base-300 grid grid-cols-3 justify-between gap-2 text-base-content">
+        <div className="p-4 rounded-box bg-base-300 grid grid-cols-3 justify-between gap-2 text-base-content max-h-[260px] h-[260px]">
             <div className="flex flex-col gap-1 col-span-1">
                 <h3 className="character-name text-left text-ellipsis line-clamp-1">{displayName}</h3>
                 <img className="rounded-md flex-grow character-photo" src={photoURL} alt="character"/>

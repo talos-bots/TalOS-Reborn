@@ -66,7 +66,7 @@ const CharactersPage = () => {
                     <p className="text-center text-base-content flex justify-center items-center gap-1">Click on the <Info size={18}/> to view their profile.</p>
                     <p className="text-center text-base-content flex justify-center items-center gap-1">Click on the <MessageCircle size={18}/> to chat.</p>
                 </div>
-                <div className="p-4 rounded-box bg-base-300 grid grid-cols-3 justify-between gap-2">
+                <div className="p-4 rounded-box bg-base-300 grid grid-cols-3 justify-between gap-2 max-h-[260px] h-[260px]">
                     <div className="flex flex-col gap-1 col-span-1">
                         <h3 className="character-name text-left text-ellipsis line-clamp-1">Unknown</h3>
                         <div className="rounded-md flex-grow justify-center items-center flex flex-col bg-base-100 h-[10rem]">
