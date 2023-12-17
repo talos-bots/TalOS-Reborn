@@ -118,6 +118,40 @@ export async function fetchMancerModels(key?: string){
     }
 }
 
+export async function fetchPalmModels(key?: string){
+    try {
+        const response = await fetch(`/api/test/palm`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key }),
+        });
+        
+        if (!response.ok) {
+            console.error('Error fetching palm models:', response.status);
+            return null;
+        }
+
+        const data = await response.json();
+        console.log('Fetched palm models:', data);
+        if(data.error) {
+            console.error('Error fetching palm models:', data.error);
+            return null;
+        }else{
+            return data.models.filter(
+                (model: any) => model.supportedGenerationMethods.includes("generateText") || model.supportedGenerationMethods.includes("generateContent")
+            ).map((model: any) => {
+                return model.name
+            });
+        }
+    } catch (error) {
+        console.error('Error in fetchPalmModel:', error);
+        return null;
+    }
+}
+
 export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona: UserPersona, connectionid?: string, settingsid?: string){
     const newRequest: CompletionRequest = {
         lorebookid: 'mancer',

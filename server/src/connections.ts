@@ -255,3 +255,24 @@ connectionsRouter.post('/test/mancer', async (req, res) => {
     const data = await getMancerModels(request);
     res.send({...data});
 });
+
+async function getPalmModels(key?: string){
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    if (!response.ok) {
+        console.log('Connection models not found');
+        throw new Error(`Error: ${response.status}`);
+    }
+    const json = await response.json();
+    return json;
+}
+
+connectionsRouter.post('/test/palm', async (req, res) => {
+    const request = req.body.key;
+    const data = await getPalmModels(request);
+    res.send({...data});
+});

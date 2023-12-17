@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
-import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels } from "../../api/connectionAPI";
+import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels } from "../../api/connectionAPI";
 import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
 const ConnectionPanel = () => {
-    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI']
+    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
     const [connectionType, setConnectionType] = useState<EndpointType>(connectionTypes[0] as EndpointType)
     const [connectionID, setConnectionID] = useState<string>('' as string)
@@ -15,7 +15,7 @@ const ConnectionPanel = () => {
     const [connectionURL, setConnectionURL] = useState<string>('' as string)
     const [connectionName, setConnectionName] = useState<string>('' as string)
     const [connectionModel, setConnectionModel] = useState<string>('' as string)
-    const [connectionStatus, setConnectionStatus] = useState<string>('' as string)
+    const [connectionStatus, setConnectionStatus] = useState<string>('Untested' as string)
     const [connectionModelList, setConnectionModelList] = useState<string[]>([] as string[])
 
     const [urlValid, setURLValid] = useState<boolean>(false)
@@ -105,6 +105,15 @@ const ConnectionPanel = () => {
         if(connectionType === 'Mancer'){
             setConnectionStatus('Connecting...')
             fetchMancerModels(connectionPassword).then((models) => {
+                if(models === null) return
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            })
+        }else if (connectionType === 'PaLM'){
+            setConnectionStatus('Connecting...')
+            fetchPalmModels(connectionPassword).then((models) => {
                 if(models === null) return
                 setConnectionStatus('Connection Successful!')
                 setConnectionModelList(models)
