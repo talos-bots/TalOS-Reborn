@@ -21,7 +21,6 @@ import { charactersRouter } from './characters.js';
 import { authenticateToken } from './authenticate-token.js';
 import { conversationsRouter } from './conversations.js';
 import { connectionsRouter } from './connections.js';
-import { discordRouter } from './discord.js';
 dotenv.config();
 
 export const uploadsPath = './uploads';
@@ -218,4 +217,3 @@ expressApp.use(usersRouter);
 expressApp.use(charactersRouter);
 expressApp.use(conversationsRouter);
 expressApp.use(connectionsRouter);
-expressApp.use(discordRouter);

@@ -5,6 +5,10 @@ import { SettingsInterface } from "../../types";
 import { deleteSettingById, fetchAllSettings, saveSettingToLocal } from "../../api/settingsAPI";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 
+export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme";
+
+const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "None", "Metharme"];
+
 const GenerationSettings = () => {
     const [maxContextLength, setMaxContextLength] = useState<number>(2048);
     const [maxTokens, setMaxTokens] = useState<number>(250);
@@ -26,11 +30,10 @@ const GenerationSettings = () => {
     const [mirostatMode, setMirostatMode] = useState<number>(0);
     const [mirostatTau, setMirostatTau] = useState<number>(0.0);
     const [mirostatEta, setMirostatEta] = useState<number>(0.0);
-
+    const [instructMode, setInstructMode] = useState<InstructMode>('None');
     const [presetID, setPresetID] = useState<string>('' as string);
     const [presetName, setPresetName] = useState<string>('' as string);
     const [availablePresets, setAvailablePresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
-
 
     const handleLoadSettings = () => {
         fetchAllSettings().then((connections) => {
@@ -71,6 +74,7 @@ const GenerationSettings = () => {
             mirostat_eta: mirostatEta,
             mirostat_mode: mirostatMode,
             mirostat_tau: mirostatTau,
+            instruct_mode: instructMode,
         }
         if (availablePresets.some((connection) => connection.id === presetID)) {
             const index = availablePresets.findIndex((connection) => connection.id === presetID)
@@ -113,6 +117,7 @@ const GenerationSettings = () => {
                 setTopP(connection.top_p)
                 setTfs(connection.tfs)
                 setTypical(connection.typical)
+                setInstructMode(connection.instruct_mode)
             }else{
                 setPresetName('')
                 setFrequencyPenalty(0.0)
@@ -134,6 +139,7 @@ const GenerationSettings = () => {
                 setTopP(0.9)
                 setTfs(1)
                 setTypical(1)
+                setInstructMode('None')
             }
         }
         handleLoadConnection()
@@ -165,6 +171,17 @@ const GenerationSettings = () => {
                 required={false}
                 className={''}
             />
+            <RequiredSelectField
+                label="Instruct Mode"
+                value={instructMode}
+                onChange={(e)=> setInstructMode(e.target.value as InstructMode)}
+                required={false}
+                className={'w-full'}
+            >
+                {instructModes.map((connectionOption, index) => (
+                    <option key={index} value={connectionOption}>{connectionOption}</option>
+                ))}
+            </RequiredSelectField>
             <div className="flex flex-col w-full overflow-y-auto text-left themed-box max-h-[600px]">
                 <div className="flex flex-col ">
                     <span className=" font-semibold">Max Context Length</span>

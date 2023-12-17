@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { AttachmentBuilder, CommandInteraction, EmbedBuilder, Message } from "discord.js";
 import { SlashCommand } from "./discord.js";
-import { CharacterInterface } from "./characters.js";
+import { CharacterInterface } from "../characters.js";
 
 export const RegisterCommand: SlashCommand = {
     name: 'register',

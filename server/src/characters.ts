@@ -73,7 +73,7 @@ charactersRouter.post('/save/character', authenticateToken, async (req, res) => 
 });
 
 // get a character by id from the ../data/characters/ folder
-function fetchCharacterById(id: string): Promise<CharacterInterface | null> {
+export function fetchCharacterById(id: string): Promise<CharacterInterface | null> {
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM characters WHERE _id = ?', [id], (err, row: any) => {
             if (err) {

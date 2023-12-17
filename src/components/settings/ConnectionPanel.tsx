@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
-import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels } from "../../api/connectionAPI";
+import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels } from "../../api/connectionAPI";
 
 const ConnectionPanel = () => {
-    const connectionTypes = ['Kobold', 'OAI-Compliant-API', 'OAI', 'Horde', 'P-Claude', 'P-AWS-Claude', 'PaLM']
+    const connectionTypes: EndpointType[] = ['Kobold', 'OAI-Compliant-API', 'OAI', 'Horde', 'P-Claude', 'P-AWS-Claude', 'PaLM', 'Mancer']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
     const [connectionType, setConnectionType] = useState<EndpointType>(connectionTypes[0] as EndpointType)
     const [connectionID, setConnectionID] = useState<string>('' as string)
@@ -91,12 +91,23 @@ const ConnectionPanel = () => {
     }
 
     const handleTestConnection = () => {
-        fetchConnectionModels(connectionURL).then((models) => {
-            setConnectionStatus('Connection Successful!')
-            setConnectionModelList(models)
-        }).catch((error) => {
-            setConnectionStatus('Connection Failed')
-        })
+        if(connectionType === 'Mancer'){
+            fetchMancerModels(connectionPassword).then((models) => {
+                if(models === null) return
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            })
+        }else {
+            fetchConnectionModels(connectionURL).then((models) => {
+                if(models === null) return
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            })
+        }
     }
 
     return (
@@ -136,20 +147,22 @@ const ConnectionPanel = () => {
                     <option key={index} value={connectionOption}>{connectionOption}</option>
                 ))}
             </RequiredSelectField>
-            <div className="flex flex-row gap-2 w-full items-center justify-center">
-                <RequiredInputField
-                    type="text"
-                    label="Connection URL"
-                    value={connectionURL}
-                    onChange={(e)=> setConnectionURL(e.target.value)}
-                    required={false}
-                    className={'w-full'}
-                />
-                <button className="dy-btn dy-btn-primary" onClick={() => handleValidateURL()}>Validate URL</button>
-                <div className="flex flex-col gap-2">
-                    <p className="text-sm dy-label">URL Valid: {urlValid ? 'True' : 'False'}</p>
+            {connectionType !== 'Mancer' && connectionType !== 'OAI' && connectionType !== 'Horde' && connectionType !== 'PaLM' && (
+                <div className="flex flex-row gap-2 w-full items-center justify-center">
+                    <RequiredInputField
+                        type="text"
+                        label="Connection URL"
+                        value={connectionURL}
+                        onChange={(e)=> setConnectionURL(e.target.value)}
+                        required={false}
+                        className={'w-full'}
+                    />
+                    <button className="dy-btn dy-btn-primary" onClick={() => handleValidateURL()}>Validate URL</button>
+                    <div className="flex flex-col gap-2">
+                        <p className="text-sm dy-label">URL Valid: {urlValid ? 'True' : 'False'}</p>
+                    </div>
                 </div>
-            </div>
+            )}
             <RequiredInputField
                 type="password"
                 label="Connection Password"

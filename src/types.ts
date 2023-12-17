@@ -1,3 +1,5 @@
+import { UserPersona } from "./global_classes/Character";
+
 export type DiscordBotApplicationDetails = {
     id: string;
     key: string;
@@ -39,6 +41,7 @@ export type SettingsInterface = {
     mirostat_mode: number;
     mirostat_tau: number;
     mirostat_eta: number;
+    instruct_mode: InstructMode;
 }
 
 export type CharacterInterface = {
@@ -74,15 +77,16 @@ export type Message = {
 };
 
 export type CompletionRequest = {
-    model: string;
     lorebookid: string;
+    connectionid: string | null;
     character: CharacterInterface | string;
-    preset: string;
+    settingsid: string | null;
     messages: Message[];
+    persona: UserPersona;
 }
 
 export type TokenType = 'SentencePiece' | 'GPT';
 
-export type EndpointType = 'Kobold' | 'OAI' | 'Horde' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'OAI-Compliant-API'
+export type EndpointType = 'Kobold' | 'OAI' | 'Horde' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'OAI-Compliant-API' | 'Mancer'
 
 export type CompletionType = 'Chat' | 'Text';

@@ -3,10 +3,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ActivityType, Client, GatewayIntentBits, Collection, REST, Routes, Partials, TextChannel, DMChannel, NewsChannel, Snowflake, Webhook, Message, CommandInteraction, Events, PartialGroupDMChannel } from 'discord.js';
 import { DefaultCommands, stableDiffusionCommands } from './commands.js';
-import { getRegisteredChannels, setInterrupted, handleRengenerateMessage, handleRemoveMessage, doImageReaction, getDoStableDiffusion, getUsername, makeDelay, handleDiscordMessage } from './controllers/DiscordController.js';
-import { CharacterInterface } from './characters.js';
+import { getRegisteredChannels, setInterrupted, handleRengenerateMessage, handleRemoveMessage, doImageReaction, getDoStableDiffusion, getUsername, makeDelay, handleDiscordMessage } from './DiscordController.js';
+import { CharacterInterface } from '../characters.js';
 import express from 'express';
-import { uploadsPath } from './main.js';
+import { uploadsPath } from '../main.js';
 import FormData from 'form-data';
 import axios from "axios";
 import fs from 'fs';

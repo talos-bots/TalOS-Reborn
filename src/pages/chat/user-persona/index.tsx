@@ -41,7 +41,7 @@ const UserPersonaWindow = (props: UserPersonaProps) => {
     }, [selectedPersona]);
     
     return (
-        <div className="rounded-box bg-base-100 h-full gap-2 grid grid-cols-3 px-2 overflow-y-scroll">
+        <div className="rounded-box bg-base-100 h-full gap-2 grid grid-cols-3 px-2 overflow-y-scroll text-base-content">
             <div className="flex flex-col gap-2">
                 <label className="dy-form-control w-full">
                     <span className="dy-label">Name</span>

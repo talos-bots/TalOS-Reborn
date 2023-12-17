@@ -41,7 +41,7 @@ settingsRouter.post('/save/setting', (req, res) => {
 });
 
 // get a setting by id from the ../data/settings/ folder
-function fetchSettingById(id: string) {
+export function fetchSettingById(id: string) {
     const settingFolderPath = path.join(settingsPath);
     const filePath = path.join(settingFolderPath, `${id}.json`);
     if (fs.existsSync(filePath)) {
@@ -77,4 +77,80 @@ settingsRouter.delete('/settings/:id', (req, res) => {
     const id = req.params.id;
     removeSettingById(id);
     res.send({ message: "Setting removed successfully!" });
+});
+
+const appSettingsPath = path.join("./appSettings.json");
+interface AppSettingsInterface {
+    defaultConnection: string;
+    defaultSettings: string;
+}
+
+// get all appSettings from the ../data/appSettings.json file
+export function fetchAllAppSettings() {
+    const appSettingsData = fs.readFileSync(appSettingsPath, "utf-8");
+    if (!appSettingsData) {
+        return null;
+    }
+    return JSON.parse(appSettingsData) as AppSettingsInterface;
+}
+
+settingsRouter.get('/appSettings', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    res.send(appSettingsData);
+});
+
+// save an appSetting to the ../data/appSettings.json file
+function saveAppSetting(appSetting: AppSettingsInterface) {
+    const appSettingsJson = JSON.stringify(appSetting, null, 4); // Pretty print the JSON
+    fs.writeFileSync(appSettingsPath, appSettingsJson, "utf-8");
+}
+
+settingsRouter.post('/save/appSetting', (req, res) => {
+    const appSetting = req.body;
+    saveAppSetting(appSetting);
+    res.send({ message: "AppSetting saved successfully!" });
+});
+
+settingsRouter.get('/appSettings/connection', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.defaultConnection);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+settingsRouter.get('/appSettings/settings', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.defaultSettings);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the default connection in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/connection', (req, res) => {
+    const id = req.body.connectionid;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.defaultConnection = id;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "Default connection set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the default settings in the ../data/appSettings.json file
+settingsRouter.post('/appSettings/settings', (req, res) => {
+    const id = req.body.settingsid;
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.defaultSettings = id;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "Default settings set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
 });

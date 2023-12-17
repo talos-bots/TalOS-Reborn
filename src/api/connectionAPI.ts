@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GenericCompletionConnectionTemplate } from "../types";
+import { UserPersona } from "../global_classes/Character";
+import { CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, Message } from "../types";
 
 export async function saveConnectionToLocal(connection: GenericCompletionConnectionTemplate): Promise<void> {
     const response = await fetch('/api/save/connection', {
@@ -83,6 +84,75 @@ export async function fetchConnectionModels(url: string, key?: string): Promise<
         }
     } catch (error) {
         console.error('Error in fetchConnectionModels:', error);
+        return null;
+    }
+}
+
+export async function fetchMancerModels(key?: string){
+    try {
+        const response = await fetch(`/api/test/mancer`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key }),
+        });
+        
+        if (!response.ok) {
+            console.error('Error fetching mancer models:', response.status);
+            return null;
+        }
+
+        const data = await response.json();
+        console.log('Fetched mancer models:', data);
+        if(data.error) {
+            console.error('Error fetching mancer models:', data.error);
+            return null;
+        }else{
+            return data.data.map((model: any) => model.id);
+        }
+    } catch (error) {
+        console.error('Error in fetchMancerModels:', error);
+        return null;
+    }
+}
+
+export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona: UserPersona, connectionid?: string, settingsid?: string){
+    const newRequest: CompletionRequest = {
+        lorebookid: 'mancer',
+        messages,
+        character,
+        persona,
+        connectionid,
+        settingsid,
+    }
+
+    try {
+        const response = await fetch(`/api/completions`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newRequest),
+        });
+        
+        if (!response.ok) {
+            console.error('Error sending mancer completion request:', response.status);
+            return null;
+        }
+
+        const data = await response.json();
+        console.log('Sent mancer completion request:', data);
+        if(data.error) {
+            console.error('Error sending mancer completion request:', data.error);
+            return null;
+        }else{
+            return data.data;
+        }
+    } catch (error) {
+        console.error('Error in sendMancerCompletionRequest:', error);
         return null;
     }
 }
