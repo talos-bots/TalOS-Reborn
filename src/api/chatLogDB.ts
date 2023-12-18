@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { StoredChatLog } from "../global_classes/StoredChatLog";
 import { emitChatLogChanged } from "../helpers/events";
 

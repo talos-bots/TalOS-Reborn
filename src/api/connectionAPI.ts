@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UserPersona } from "../global_classes/Character";
 import { CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, Message } from "../types";
 

@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import { RiQuestionMark } from "react-icons/ri";
 import { Emotion } from "../../helpers/constants";

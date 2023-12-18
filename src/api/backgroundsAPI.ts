@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function uploadBackground(file: File): Promise<any> {
     const formData = new FormData();
     formData.append('image', file);

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Character } from '../global_classes/Character';
 import { emitCharacterUpdated } from '../helpers/events';
 

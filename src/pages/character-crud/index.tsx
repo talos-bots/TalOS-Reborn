@@ -72,7 +72,7 @@ const CharacterCRUD = () => {
 
     const [width] = useWindowSize();
 
-    const isDesktop = width >= 1024;
+    const isDesktop = window.innerWidth > 768;
 
     const [testMessages, setTestMessages] = useState<Message[]>([]);
     const [testMessage, setTestMessage] = useState<string>('');

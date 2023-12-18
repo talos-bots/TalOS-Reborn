@@ -17,6 +17,7 @@ import { TEAlert } from 'tw-elements-react';
 import './chat-window.scss';
 import Sprite from '../../../components/shared/sprite';
 import { Emotion } from '../../../helpers/constants';
+import { doc } from 'firebase/firestore';
 interface ChatWindowProps {
     character: Character | null;
     persona: UserPersona | null;
@@ -37,6 +38,9 @@ const chatWindow = (props: ChatWindowProps) => {
     const [messageText, setMessageText] = useState<string>('');
     const [showTypingIndicator, setShowTypingIndicator] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
+    const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
+
+    const isDesktop = window.innerWidth > 768;
 
     const [currentEmotion, setCurrentEmotion] = useState<Emotion>('neutral');
     const [currentPosition, setCurrentPosition] = useState<'left' | 'right' | 'center'>('center');
@@ -150,6 +154,59 @@ const chatWindow = (props: ChatWindowProps) => {
         props.showCharacterPopup(character);
     }
 
+    const toggleMessageBox = () => {
+        setIsMessageBoxOpen(!isMessageBoxOpen);
+        // Other logic for toggling the message box
+    };
+
+    const disableBodyScroll = (shouldDisable) => {
+        if (shouldDisable) {
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${window.scrollY}px`;
+        } else {
+            const scrollY = document.body.style.top;
+            document.body.style.position = '';
+            document.body.style.top = '';
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+    };
+
+    
+    const handleMessageBarFocus = () => {
+        if(isDesktop) return;
+        if(endOfChatRef.current !== null){
+            endOfChatRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+        console.log('focus');
+        document.getElementById('mobile-nav')?.setAttribute('style', 'display: none !important;')
+        toggleMessageBox();
+    }
+
+    const handleMessageBarBlur = () => {
+        if(isDesktop) return;
+        console.log('blur');
+        document.getElementById('mobile-nav')?.setAttribute('style', 'display: flex !important;')
+        toggleMessageBox();
+    }
+    
+    useEffect(() => {
+        disableBodyScroll(isMessageBoxOpen);
+    }, [isMessageBoxOpen]);
+    
+    useEffect(() => {
+        const handleTouchMove = (e) => {
+            if (isMessageBoxOpen) {
+                e.preventDefault();
+            }
+        };
+    
+        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
+        return () => {
+            window.removeEventListener('touchmove', handleTouchMove);
+        };
+    }, [isMessageBoxOpen]);    
+
     return (
         <div className="col-span-full md:col-span-7 md:rounded-box bg-base-300 md:p-4 max-h-[calc(90vh-40px)] md:max-h-[90vh] flex flex-col gap-2 p-2" style={chatContainerStyle}>
             <TEAlert dismiss delay={5000} open={showError} autohide onClose={
@@ -185,12 +242,12 @@ const chatWindow = (props: ChatWindowProps) => {
                 </button>
             </h3>
             <div 
-                className={'w-full border-4 border-base-200 inset-4 bg-base-100 rounded-box overflow-y-scroll flex flex-col items-end justify-center flex-grow theater-window ' + (!theaterMode && 'hidden')}
+                className={'w-full border-4 border-base-200 inset-4 bg-base-100 rounded-box overflow-y-scroll flex flex-col items-end justify-center flex-grow theater-window max-h-[calc(65vh-80px)] min-h-[calc(65vh-80px)] ' + (!theaterMode && 'hidden')}
                 style={{ backgroundImage: `url(./backgrounds/${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
                 <Sprite character={character?._id} emotion={currentEmotion} position={currentPosition}/>
             </div>
-            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 " + (theaterMode ? 'max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]' : 'max-h-[calc(90vh-180px)] min-h-[calc(90vh-180px)]')}>
+            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 " + (theaterMode ? `max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]` : 'max-h-[calc(92.5vh-180px)] min-h-[calc(92.5vh-180px)]')}>
                 {chatMessages.map((message, index) => {
                     return (
                         <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
@@ -223,7 +280,7 @@ const chatWindow = (props: ChatWindowProps) => {
                 }
                 <div ref={endOfChatRef}></div>
             </div>
-            <div className={"flex flex-row gap-2 justify-center max-h-[90px] min-h-[90x]"}>
+            <div className={`flex flex-row gap-2 justify-center md:max-h-[90px] md:min-h-[90x] ${isMessageBoxOpen && 'min-h-[115px] max-h-[115px]'}`}>
                 {/* <button className="dy-btn dy-btn-accent h-full" disabled={character === null}>
                     <Plus/>
                 </button> */}
@@ -236,8 +293,12 @@ const chatWindow = (props: ChatWindowProps) => {
                     placeholder="Type a message..."
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
+                    onFocus={(e) => {
+                        handleMessageBarFocus();
+                        e.currentTarget.scrollIntoView({ behavior: 'smooth' });
+                    }}
                     onBlur={(e) => {
-                        //scroll to top of chat
+                        handleMessageBarBlur();
                         e.currentTarget.scrollIntoView({ behavior: 'smooth' });
                     }}
                     onKeyDown={(e) => {

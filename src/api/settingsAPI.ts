@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SettingsInterface } from "../types";
 
 export async function saveSettingToLocal(setting: SettingsInterface): Promise<void> {

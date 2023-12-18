@@ -41,7 +41,7 @@ const ChatPage = () => {
 
     const [width] = useWindowSize();
 
-    const isDesktop = width >= 1024;
+    const isDesktop = window.innerWidth > 768;
 
     // State variables to control drawer open/close
     const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
@@ -80,11 +80,11 @@ const ChatPage = () => {
         setIsLeftDrawerOpen(false);
         setIsRightDrawerOpen(false);
     });
-    
+
     return (
         <div className="grid grid-cols-12 w-full h-[92.5vh] max-h-[92.5vh] gap-2 md:p-4 text-base-content">
             <Helmet>
-                <title>{"Talos | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}</title>
+                <title>{"TalOS | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}</title>
                 <meta name="title" content={"TalOS | Chat " + (selectedCharacter ? '- ' + selectedCharacter.name : '')}/>
                 <meta name="description" content={selectedCharacter ? selectedCharacter.personality ?? selectedCharacter.description : 'Chat with your favorite characters!'}/>
                 <meta property="og:type" content="website"/>

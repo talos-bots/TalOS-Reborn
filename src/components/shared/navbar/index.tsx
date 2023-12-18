@@ -75,7 +75,7 @@ const NavBar = (props: NavBarProps) => {
                 </select>
             </div>
             {/* Mobile Navigation Icons */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-base-300 shadow-xl py-2 w-full mobile-nav">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-base-300 shadow-xl py-2 w-full mobile-nav" id='mobile-nav'>
                 <div className="flex justify-around w-full">
                     <NavLink className="dy-btn dy-btn-ghost" title="Home" to="/home">
                         <Home />
@@ -160,11 +160,8 @@ const NavBar = (props: NavBarProps) => {
                 </div>
             ) : (
                 <div className="dy-btn-group gap-1 flex-row flex">
-                    <NavLink className="dy-btn bg-gradient-to-r to-secondary from-primary text-primary-content hover:dy-btn-primary dy-btn-sm md:dy-btn-md" title="Login" to="/login">
-                        Login
-                    </NavLink>
-                    <NavLink className="dy-btn bg-gradient-to-r to-secondary from-accent text-primary-content hover:dy-btn-primary dy-btn-sm md:dy-btn-md" title="Register" to="/register">
-                        Sign Up
+                    <NavLink className="dy-btn bg-gradient-to-r to-secondary from-primary text-primary-content hover:dy-btn-primary dy-btn-sm md:dy-btn-md" title="Account" to="/account">
+                        Account
                     </NavLink>
                 </div>
             )}

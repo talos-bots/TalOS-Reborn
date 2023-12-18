@@ -23,6 +23,7 @@ import { conversationsRouter } from './conversations.js';
 import { connectionsRouter } from './connections.js';
 import { llmsRouter } from './llms.js';
 import { transformersRouter } from './helpers/transformers.js';
+import { lorebooksRouter } from './lorebooks.js';
 dotenv.config();
 
 export const uploadsPath = './uploads';
@@ -299,7 +300,6 @@ expressApp.post('/upload/sprite', authenticateToken, upload.single('sprite'), (r
     }
 });
 
-
 async function fetchUserByID(id: string): Promise<any> {
     return new Promise((resolve, reject) => {
         db.get('SELECT * FROM users WHERE id = ?', [id], (err, row: any) => {
@@ -312,11 +312,11 @@ async function fetchUserByID(id: string): Promise<any> {
     });
 }
 
-
 expressApp.use(settingsRouter);
 expressApp.use(usersRouter);
 expressApp.use(charactersRouter);
 expressApp.use(conversationsRouter);
 expressApp.use(connectionsRouter);
 expressApp.use(llmsRouter);
+expressApp.use(lorebooksRouter);
 expressApp.use('/transformers', transformersRouter);

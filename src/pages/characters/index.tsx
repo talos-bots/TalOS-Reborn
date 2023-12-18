@@ -71,7 +71,7 @@ const CharactersPage = () => {
                     <div className="flex flex-col gap-1 col-span-1">
                         <h3 className="character-name text-left text-ellipsis line-clamp-1">Unknown</h3>
                         <div className="rounded-md flex-grow justify-center items-center flex flex-col bg-base-100 h-[10rem]">
-                            <svg className="absolute w-20 h-20 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                            <svg className="relative w-20 h-20 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>
                         </div>
                         <div className="grid grid-cols-2 justify-center mt-2 gap-1 items-center grid-">
                             <button className="dy-btn dy-btn-sm dy-btn-info dy-btn-outline" disabled><Info/></button>
