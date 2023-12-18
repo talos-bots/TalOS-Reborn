@@ -41,7 +41,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
                 command = lines[1];
             }
         }
-        return command.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '');
+        return command.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '').replaceAll(`${charName}: `, '');
     }
     
     for (let i = 0; i < lines.length; i++) {
@@ -84,9 +84,5 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     }
     
     const final = formattedCommands.join('\n');
-    return final.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '');
-}
-
-function sendCompletionRequest(model: string, messages: Message[], character: Character, preset: string, arg4: string) {
-    throw new Error("Function not implemented.");
+    return final.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '').replaceAll(`${charName}: `, '');
 }

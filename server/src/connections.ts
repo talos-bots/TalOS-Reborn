@@ -204,7 +204,7 @@ function removeConnectionById(id: string) {
     }
 }
 
-connectionsRouter.delete('/connections/:id', (req, res) => {
+connectionsRouter.delete('/connection/:id', (req, res) => {
     const id = req.params.id;
     removeConnectionById(id);
     res.send({ message: "Connection removed successfully!" });
@@ -274,5 +274,23 @@ async function getPalmModels(key?: string){
 connectionsRouter.post('/test/palm', async (req, res) => {
     const request = req.body.key;
     const data = await getPalmModels(request);
+    res.send({...data});
+});
+
+async function getOpenAI(key?: string) {
+    const response = await fetch(`https://api.openai.com/v1/models`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key?.trim()}`,
+        },
+    });
+    const json = await response.json();
+    return json;
+}
+
+connectionsRouter.post('/test/openai', async (req, res) => {
+    const request = req.body.key;
+    const data = await getOpenAI(request);
     res.send({...data});
 });

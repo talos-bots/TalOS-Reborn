@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import llamaTokenizer from './helpers/llama-tokenizer-modified.js';
 import { CharacterInterface, fetchCharacterById } from './characters.js';
-import { CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, Message, SettingsInterface, SettingsInterfaceToMancerSettings, UserPersona, fetchConnectionById } from './connections.js';
+import { CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, Message, Role, SettingsInterface, SettingsInterfaceToMancerSettings, UserPersona, fetchConnectionById } from './connections.js';
 import { fetchAllAppSettings, fetchSettingById } from './settings.js';
 import express from 'express';
 import { authenticateToken } from './authenticate-token.js';
@@ -12,6 +12,25 @@ export const llmsRouter = express.Router();
 function getTokens(text: string){
     //@ts-expect-error fuck off
     return llamaTokenizer.encode(text).length;
+}
+
+type OpenAIRole = 'system' | 'assistant' | 'system';
+
+interface OpenAIMessage {
+    role: OpenAIRole;
+    content: string;    
+}
+
+function messagesToOpenAIChat(messages: Message[]){
+    const formattedMessages: OpenAIMessage[] = [];
+    messages.map((message: Message) => {
+        const newMessage: OpenAIMessage = {
+            'content': `${message.fallbackName}: ${message.swipes[message.currentIndex]}`,
+            'role': message.role.toLowerCase() as OpenAIRole
+        }
+        formattedMessages.push(newMessage)
+    })
+    return formattedMessages
 }
 
 function getInstructTokens(message: Message, instructFormat: InstructMode){
@@ -313,7 +332,7 @@ function getStopSequences(messages: Message[]){
     const stopSequences: string[] = [];
     for(let i = 0; i < messages.length; i++){
         const message = messages[i];
-        if(stopSequences.includes(message.fallbackName)){
+        if(stopSequences.includes(message.fallbackName) || message.role === "System" || message.thought === true || message.role === "Assistant"){
             continue;
         }
         stopSequences.push(`${message.fallbackName}:`);
@@ -717,6 +736,86 @@ async function getGeminiCompletion(request: CompletionRequest){
     }
 }
 
+async function getOpenAICompletion(request: CompletionRequest){
+    const messages = messagesToOpenAIChat(request.messages);
+    const stopSequences = getStopSequences(request.messages);
+    const appSettings = fetchAllAppSettings();
+    if(!messages){
+        return null;
+    }
+    let connectionid = request.connectionid;
+    if(!connectionid){
+        connectionid = appSettings?.defaultConnection ?? "";
+    }
+    if(!connectionid){
+        return null;
+    }
+    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = appSettings?.defaultSettings ?? "";
+    }
+    if(!settingsid){
+        return null;
+    }
+    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    if(!settingsInfo){
+        return null;
+    }
+    console.log(settingsInfo);
+    console.log(modelInfo);
+    const response = await axios('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${modelInfo.key?.trim()}`,
+        },
+        data: {
+            "model": modelInfo.model,
+            "messages": messages,
+            "stop": stopSequences,
+            "max_tokens": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
+            "temperature": (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
+            "top_p": (settingsInfo.top_p !== undefined && settingsInfo.top_k <= 1) ? settingsInfo.top_p : 0.9,
+            "frequency_penalty": (settingsInfo.frequency_penalty !== undefined && settingsInfo.frequency_penalty <= 2) ? settingsInfo.frequency_penalty : 1,
+            "presence_penalty": (settingsInfo.presence_penalty !== undefined && settingsInfo.presence_penalty <= 2) ? settingsInfo.presence_penalty : 1,
+        },
+    }).then((response) => {
+        return response;
+    }).catch((error) => {
+        return error.response;
+    });
+    console.log(response.data);
+    if(!response){
+        return null;
+    }
+    if (response.status !== 200) {
+        console.error('Error generating completion:', response.statusText);
+        return null;
+    }
+    const openAIReply = await response.data;
+    if (openAIReply?.error) {
+        throw new Error(openAIReply.error.message);
+    }
+    const text = openAIReply?.choices[0]?.message.content.trim();
+    if(!text){
+        throw new Error('No valid response from LLM.');
+    }
+    return {
+        choices: [
+            {
+                text: text,
+                index: 0,
+                logprobs: openAIReply?.choices[0]?.logprobs,
+                finish_reason: openAIReply?.choices[0]?.finish_reason,
+            }
+        ]
+    }
+}
+
 async function handleCompletionRequest(request: CompletionRequest){
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
@@ -743,6 +842,8 @@ async function handleCompletionRequest(request: CompletionRequest){
             return await getMancerCompletion(request);
         case 'PaLM':
             return await getGoogleCompletion(request);
+        case 'OAI':
+            return await getOpenAICompletion(request);
         default:
             return await getGenericCompletion(request);
     }

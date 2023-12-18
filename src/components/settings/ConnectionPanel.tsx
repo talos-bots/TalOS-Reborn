@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
-import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels } from "../../api/connectionAPI";
+import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels } from "../../api/connectionAPI";
 import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
 function getForwardFacingName(type: EndpointType): string {
@@ -133,6 +133,16 @@ const ConnectionPanel = () => {
             }).catch((error) => {
                 setConnectionStatus('Connection Failed')
             })
+        }else if(connectionType === 'OAI'){
+            setConnectionStatus('Connecting...')
+            fetchOpenAIModels(connectionPassword).then((models) => {
+                if(models === null) return
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            })
+        
         }else {
             setConnectionStatus('Connecting...')
             fetchConnectionModels(connectionURL).then((models) => {
@@ -200,7 +210,7 @@ const ConnectionPanel = () => {
             )}
             <RequiredInputField
                 type="password"
-                label="Connection Password"
+                label="Connection Password (API Key)"
                 value={connectionPassword}
                 onChange={(e)=> setConnectionPassword(e.target.value)}
                 required={false}

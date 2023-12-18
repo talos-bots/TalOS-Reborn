@@ -157,6 +157,35 @@ export async function fetchPalmModels(key?: string){
     }
 }
 
+export async function fetchOpenAIModels(key?: string){
+    try {
+        const response = await fetch(`/api/test/openai`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key }),
+        });
+        
+        if (!response.ok) {
+            console.error('Error fetching openai models:', response.status);
+            return null;
+        }
+
+        const data = await response.json();
+        if(data.error) {
+            console.error('Error fetching openai models:', data.error);
+            return null;
+        }else{
+            return data.data.filter((model: any) => (model.id.includes('gpt'))).map((model: any) => model.id);
+        }
+    } catch (error) {
+        console.error('Error in fetchOpenAIModels:', error);
+        return null;
+    }
+}
+
 export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona: UserPersona, connectionid?: string, settingsid?: string){
     const newRequest: CompletionRequest = {
         lorebookid: 'mancer',
@@ -178,16 +207,17 @@ export async function sendCompletionRequest(messages: Message[], character: Char
         }).then((response) => {
             return response;
         }).catch((error) => {
-            console.error('Error sending mancer completion request:', error);
+            console.error('Error sending completion request:', error);
             return null;
         });
         
         if (!response.ok) {
-            console.error('Error sending mancer completion request:', response.status);
+            console.error('Error sending completion request:', response.status);
             return null;
         }
 
         const data = await response.json();
+        console.log('Fetched completion:', data);
         return data;
     } catch (error) {
         console.error('Error in sendCompletionRequest:', error);
