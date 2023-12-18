@@ -287,4 +287,9 @@ export class StoredChatMessage implements Message{
     public static fromJSON(json: any): StoredChatMessage {
         return new StoredChatMessage(json?.userId, json?.fallbackName, json?.swipes, json?.currentIndex, json?.role, json?.thought);
     }
+
+    getEmotion(): string {
+        const text = this.getCurrentSwipe();
+        return text;
+    }
 }

@@ -128,6 +128,21 @@ const chatWindow = (props: ChatWindowProps) => {
         setChatLog(currentLog);
     }, [character]);
 
+    const findLastAssistantMessage = () => {
+        for(let i = chatMessages.length - 1; i >= 0; i--){
+            if(chatMessages[i].role === 'Assistant'){
+                return chatMessages[i];
+            }
+        }
+        return null;
+    }
+
+    useEffect(() => {
+        const message = findLastAssistantMessage();
+        if(message === null) return;
+        const emotion = message.getEmotion();
+    }, [chatMessages]);
+
     const chatContainerStyle = isKeyboardVisible ? { maxHeight: '40vh', overflow: 'scroll' } : null;
 
     const handleCharacterInfoClick = () => {

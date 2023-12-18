@@ -6,6 +6,19 @@ import RequiredInputField, { RequiredSelectField } from "../shared/required-inpu
 import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels } from "../../api/connectionAPI";
 import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
+function getForwardFacingName(type: EndpointType): string {
+    switch (type) {
+        case 'OAI-Compliant-API':
+            return 'Generic OpenAI Completions Endpoint';
+        case 'PaLM':
+            return 'Google Makersuite';
+        case 'OAI':
+            return 'OpenAI Key';
+        default:
+            return type;
+    }
+}
+
 const ConnectionPanel = () => {
     const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
@@ -166,7 +179,7 @@ const ConnectionPanel = () => {
                 className={''}
             >
                 {connectionTypes.map((connectionOption, index) => (
-                    <option key={index} value={connectionOption}>{connectionOption}</option>
+                    <option key={index} value={connectionOption}>{getForwardFacingName(connectionOption)}</option>
                 ))}
             </RequiredSelectField>
             {connectionType !== 'Mancer' && connectionType !== 'OAI' && connectionType !== 'Horde' && connectionType !== 'PaLM' && (
