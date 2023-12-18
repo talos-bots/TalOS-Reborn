@@ -146,7 +146,7 @@ const CharacterCRUD = () => {
     };
 
     const handleSubmit = async () => {
-        if((await confirmModal('Are you sure you want to submit this character?', 'This character will only be visible from within your private chats until it is approved and vetted by a curator.')) === false) return;
+        if((await confirmModal('Are you sure you want to submit this character?', 'The character will be editable by you and anyone the creator of this instance has marked as a moderator after submission, but it will also be publicly viewable by any users of this instance.')) === false) return;
         const newCharacter = new Character();
         if(id !== undefined && id !== null && id !== '' && id !== 'create'){
             newCharacter._id = id;

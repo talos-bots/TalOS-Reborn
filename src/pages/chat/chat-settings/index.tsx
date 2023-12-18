@@ -10,10 +10,11 @@ interface ChatSettingsProps {
     background: string | null;
     setBackground: (background: string) => void;
     theaterMode: boolean;
+    setTheaterMode: (theaterMode: boolean) => void;
 }
 
 const ChatSettings = (props: ChatSettingsProps) => {
-    const { theme, setTheme, background, setBackground, theaterMode } = props;
+    const { theme, setTheme, background, setBackground, theaterMode, setTheaterMode } = props;
     const [loading, setLoading] = useState<boolean>(false);
     
     if(loading) return (
@@ -32,7 +33,10 @@ const ChatSettings = (props: ChatSettingsProps) => {
         console.log(url);
     }
     return (
-        <div className="flex flex-col gap-1 rounded-box bg-base-100 h-full p-2 overflow-y-scroll">
+        <div className="flex flex-col gap-1 rounded-box bg-base-100 h-full p-2 overflow-y-scroll text-right">
+            <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm" onClick={() => setTheaterMode(!theaterMode)}>
+                {theaterMode ? 'Exit' : 'Enter'} Theater Mode
+            </button>
             {theaterMode && (
                 <BackgroundSelector background={background} setBackground={handleBackgroundChange}/>
             )}

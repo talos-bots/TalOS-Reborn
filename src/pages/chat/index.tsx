@@ -36,7 +36,7 @@ const ChatPage = () => {
     const [selectedChat, setSelectedChat] = useState<StoredChatLog | null>(null);
     const [showCharacterPopup, setShowCharacterPopup] = useState<boolean>(false);
     const [characterPopupCharacter, setCharacterPopupCharacter] = useState<Character | null>(null);
-    const [theaterMode, setTheaterMode] = useState<boolean>(true);
+    const [theaterMode, setTheaterMode] = useState<boolean>(false);
     const [background, setBackground] = useState<string | null>(null);
 
     const [width] = useWindowSize();
@@ -183,7 +183,7 @@ const ChatPage = () => {
                             </button>
                         </div> */}
                     </h3>
-                    <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground} theaterMode={theaterMode}/>
+                    <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground} theaterMode={theaterMode} setTheaterMode={setTheaterMode}/>
                     <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                         Chats
                         {/* <div className="flex gap-1">
@@ -221,7 +221,7 @@ const ChatPage = () => {
                                 </button>
                             </div> */}
                         </h3>
-                        <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground} theaterMode={theaterMode}/>
+                        <ChatSettings theme={null} setTheme={() => {}} background={background} setBackground={setBackground} theaterMode={theaterMode} setTheaterMode={setTheaterMode}/>
                         <h3 className="font-bold text-right flex flex-row-reverse justify-between">
                             Chats
                             {/* <div className="flex gap-1">

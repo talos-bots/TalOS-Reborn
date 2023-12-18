@@ -164,9 +164,6 @@ const chatWindow = (props: ChatWindowProps) => {
                         }
                     />
                     <span className="text-xl">{character?.name ?? 'None'}</span>
-                    <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm" onClick={() => setTheaterMode(!theaterMode)}>
-                        {theaterMode ? 'Exit' : 'Enter'} Theater Mode
-                    </button>
                 </div>
                 <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm md:hidden" onClick={props.toggleRightDrawer}>
                     <Cog/>

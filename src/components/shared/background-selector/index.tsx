@@ -57,7 +57,7 @@ const BackgroundSelector = (props: BackgroundSelectorProps) => {
     };
 
     return (
-        <div className="rounded-box flex flex-col text-base-content gap-2">
+        <div className="rounded-box flex flex-col text-base-content gap-2 text-left">
             <h4>Background Selector</h4>
             <div className="grid grid-cols-2 gap-4">
                 {backgrounds.map((bg) => (
