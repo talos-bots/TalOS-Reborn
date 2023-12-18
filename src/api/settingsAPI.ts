@@ -162,3 +162,53 @@ export async function setAppSettingsSettings(settingsId: string): Promise<void> 
         console.error("Error setting default settings:", error);
     }
 }
+
+// Fetch status of a specific feature
+export async function fetchFeatureStatus(feature: string): Promise<boolean | null> {
+    try {
+        const response = await fetch(`/api/appSettings/${feature}`);
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error(`Error fetching ${feature} status:`, error);
+        return null;
+    }
+}
+
+// Update status of a specific feature
+export async function updateFeatureStatus(feature: string, status: boolean): Promise<void> {
+    try {
+        const response = await fetch(`/api/appSettings/${feature}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ [feature]: status }),
+        });
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+    } catch (error) {
+        console.error(`Error updating ${feature} status:`, error);
+    }
+}
+
+// Update admins
+export async function updateAdmins(admins: string[]): Promise<void> {
+    try {
+        const response = await fetch('/api/appSettings/admins', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ admins }),
+        });
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+    } catch (error) {
+        console.error("Error updating admins:", error);
+    }
+}

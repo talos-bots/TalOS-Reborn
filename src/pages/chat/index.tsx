@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import { Auth } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Character } from "../../global_classes/Character";
 import { useLocation, useNavigate } from "react-router-dom";

@@ -75,18 +75,18 @@ const NavBar = (props: NavBarProps) => {
                 </select>
             </div>
             {/* Mobile Navigation Icons */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-base-300 shadow-xl py-2 w-full mobile-nav" id='mobile-nav'>
-                <div className="flex justify-around w-full">
-                    <NavLink className="dy-btn dy-btn-ghost" title="Home" to="/home">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-base-300 shadow-xl py-2 w-full mobile-nav z-[1000]" id='mobile-nav'>
+                <div className="flex justify-around w-full z-[1000]">
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Home" to="/home">
                         <Home />
                     </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost" title="Characters" to="/characters">
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Characters" to="/characters">
                         <UsersRound />
                     </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost" title="Chat" to="/chat">
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Chat" to="/chat">
                         <MessageCircle />
                     </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost" title="Settings" to="/settings">
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Settings" to="/settings">
                         <Cog />
                     </NavLink>
                     {/* <NavLink className="dy-btn dy-btn-ghost" title="Games" to="/games">

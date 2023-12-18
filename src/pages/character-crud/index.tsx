@@ -310,7 +310,7 @@ const CharacterCRUD = () => {
                     () => {
                         setImageGenerationError(false);
                     }
-                } className='rounded-box bg-error text-error-content'>
+                } className='rounded-box bg-error text-error-content z-[1000]'>
                     <strong>Error Creating Image!</strong>
                     <span className="ml-1">
                     Our image generation service is currently unavailable. Please try again later.

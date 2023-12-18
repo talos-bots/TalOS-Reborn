@@ -72,12 +72,12 @@ export default function App() {
 			<Router>
 				<ScrollToTop />
 				<NavBar theme={theme} setTheme={setTheme}/>
-				<div className='main-content'>
+				<div className='main-content mb-[64px] md:mb-0'>
 					<TEAlert dismiss delay={5000} open={showNotification} autohide onClose={
 						() => {
 							setShowNotification(false);
 						}
-					} className='rounded-box bg-accent text-accent-content'>
+					} className='rounded-box bg-accent text-accent-content z-[1000]'>
 						<strong>{notifcationTitle}</strong><br/>
 						<span className="ml-1">
 							{notificationBody}

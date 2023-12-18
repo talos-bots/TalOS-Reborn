@@ -16,7 +16,7 @@ function getCookie(name: string) {
     return null;
 }
   
-interface User {
+export interface User {
     id: string;
     username: string;
     profilePic: string;

@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { Auth } from "firebase/auth";
 import { ArrowLeft, ArrowRight, Cog, Contact, Plus, Smile } from "lucide-react";
 import { Character, UserPersona } from "../../../global_classes/Character";
 import { useEffect, useRef, useState } from "react";
@@ -17,7 +16,7 @@ import { TEAlert } from 'tw-elements-react';
 import './chat-window.scss';
 import Sprite from '../../../components/shared/sprite';
 import { Emotion } from '../../../helpers/constants';
-import { doc } from 'firebase/firestore';
+
 interface ChatWindowProps {
     character: Character | null;
     persona: UserPersona | null;
@@ -171,21 +170,18 @@ const chatWindow = (props: ChatWindowProps) => {
         }
     };
 
-    
     const handleMessageBarFocus = () => {
         if(isDesktop) return;
         if(endOfChatRef.current !== null){
             endOfChatRef.current.scrollIntoView({ behavior: 'smooth' });
         }
         console.log('focus');
-        document.getElementById('mobile-nav')?.setAttribute('style', 'display: none !important;')
         toggleMessageBox();
     }
 
     const handleMessageBarBlur = () => {
         if(isDesktop) return;
         console.log('blur');
-        document.getElementById('mobile-nav')?.setAttribute('style', 'display: flex !important;')
         toggleMessageBox();
     }
     
@@ -208,16 +204,16 @@ const chatWindow = (props: ChatWindowProps) => {
     }, [isMessageBoxOpen]);    
 
     return (
-        <div className="col-span-full md:col-span-7 md:rounded-box bg-base-300 md:p-4 max-h-[calc(90vh-40px)] md:max-h-[90vh] flex flex-col gap-2 p-2" style={chatContainerStyle}>
+        <div className="col-span-full md:col-span-7 md:rounded-box bg-base-300 md:p-4 md:max-h-[90vh] flex flex-col gap-2 p-2" style={chatContainerStyle}>
             <TEAlert dismiss delay={5000} open={showError} autohide onClose={
                 () => {
                     setShowError(false);
                     setShowTypingIndicator(false);
                 }
-            } className='rounded-box bg-error text-error-content'>
+            } className='rounded-box bg-error text-error-content z-[1000]'>
                 <strong>Error Generating Reply!</strong>
                 <span className="ml-1">
-                If you aren't an alpha tester, or haven't payed for a premium engine, you can only use Mytholite. Please select a different engine.
+                    Please try again later.
                 </span>
             </TEAlert>
             <h3 className={"font-bold text-center flex flex-row gap-2 justify-between md:justify-center items-center"}>
@@ -280,7 +276,7 @@ const chatWindow = (props: ChatWindowProps) => {
                 }
                 <div ref={endOfChatRef}></div>
             </div>
-            <div className={`flex flex-row gap-2 justify-center md:max-h-[90px] md:min-h-[90x] ${isMessageBoxOpen && 'min-h-[115px] max-h-[115px]'}`}>
+            <div className={`flex flex-row gap-2 justify-center min-h-[115px] max-h-[115px] md:max-h-none md:min-h-[60px] md:flex-grow`}>
                 {/* <button className="dy-btn dy-btn-accent h-full" disabled={character === null}>
                     <Plus/>
                 </button> */}

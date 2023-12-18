@@ -308,3 +308,21 @@ settingsRouter.post('/appSettings/enableYesNoMaybe', (req, res) => {
         res.status(404).send({ message: "AppSetting not found" });
     }
 });
+
+//function that checks if the user is an admin
+export function isAdmin(user: string) {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        const admins = appSettingsData.admins;
+        if (admins.includes(user)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+settingsRouter.get('/appSettings/isAdmin/:user', (req, res) => {
+    const user = req.params.user;
+    const isAdministrator = isAdmin(user);
+    res.send(isAdmin);
+});

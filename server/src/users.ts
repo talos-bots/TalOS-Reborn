@@ -236,15 +236,27 @@ usersRouter.get('/profile/:id', (req, res) => {
     });
 });
 
+export function getAllUsers(){
+    try{
+        const query = `SELECT id, username, profile_pic, display_name, bio, background_pic, tagline FROM users`;
+
+        db.all(query, [], (err: any, users: any) => {
+            if(err){
+                throw new Error(`Error: ${err.message}`);
+            }
+            return JSON.parse(JSON.stringify(users));
+        });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return null;
+    }
+}
 // get all users
 usersRouter.get('/profiles', (req, res) => {
-    const query = `SELECT id, username, profile_pic, display_name, bio, background_pic, tagline FROM users`;
-
-    db.all(query, [], (err: any, users: any) => {
-        if (err) {
-            res.status(400).json({ error: err.message });
-            return;
-        }
+    const users = getAllUsers();
+    if(users){
         res.json(users);
-    });
+    } else {
+        res.status(400).json({ error: 'Error fetching users' });
+    }
 });

@@ -16,7 +16,7 @@ import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { settingsRouter } from './settings.js';
-import { usersRouter } from './users.js';
+import { getAllUsers, usersRouter } from './users.js';
 import { charactersRouter } from './characters.js';
 import { authenticateToken } from './authenticate-token.js';
 import { conversationsRouter } from './conversations.js';
@@ -170,6 +170,27 @@ function sendNotificationToUser(userId: string, notification: any) {
     }
 }
 
+function sendNotificationToAll(notification: any) {
+    expressAppIO.sockets.emit('notification', notification);
+}
+
+function sendNotificationToAllExcept(userId: string, notification: any) {
+    userConnections.forEach((socketId, id) => {
+        if (id !== userId) {
+            expressAppIO.sockets.to(socketId).emit('notification', notification);
+        }
+    });
+}
+
+// create a function that gets all of the profile data for connected users
+function getConnectedUsers() {
+    const connectedUsers: any[] = [];
+    userConnections.forEach((socketId, userId) => {
+        connectedUsers.push(userId);
+    });
+    return connectedUsers;
+}
+
 server.listen(port, () => {
 	console.log(`Server started on http://localhost:${port}`);
 });
@@ -311,6 +332,26 @@ async function fetchUserByID(id: string): Promise<any> {
         });
     });
 }
+
+function getActiveUsers() {
+    const activeUsers: any[] = [];
+    userConnections.forEach((socketId, userId) => {
+        activeUsers.push(userId);
+    });
+    const userDetails: any[] = [];
+    activeUsers.forEach((userId) => {
+        fetchUserByID(userId).then((user) => {
+            userDetails.push(user);
+        });
+    });
+    return userDetails;
+}
+
+expressApp.get('/stats/users', authenticateToken, async (req, res) => {
+    const users = await getAllUsers();
+    const activeUsers = getActiveUsers();
+    res.json({ users: users, activeUsers: activeUsers });
+});
 
 expressApp.use(settingsRouter);
 expressApp.use(usersRouter);

@@ -235,7 +235,7 @@ connectionsRouter.post('/test/connections', async (req, res) => {
     const url = req.body.url;
     const key = req.body.key;
     const data = await fetchGenericConnectionModels(url as string, key as string);
-    res.send({...data});
+    res.send({data});
 });
 
 async function getMancerModels(key?: string) {
@@ -253,7 +253,7 @@ async function getMancerModels(key?: string) {
 connectionsRouter.post('/test/mancer', async (req, res) => {
     const request = req.body.key;
     const data = await getMancerModels(request);
-    res.send({...data});
+    res.send({data});
 });
 
 async function getPalmModels(key?: string){
@@ -274,7 +274,7 @@ async function getPalmModels(key?: string){
 connectionsRouter.post('/test/palm', async (req, res) => {
     const request = req.body.key;
     const data = await getPalmModels(request);
-    res.send({...data});
+    res.send({data});
 });
 
 async function getOpenAI(key?: string) {
@@ -292,5 +292,5 @@ async function getOpenAI(key?: string) {
 connectionsRouter.post('/test/openai', async (req, res) => {
     const request = req.body.key;
     const data = await getOpenAI(request);
-    res.send({...data});
+    res.send({data});
 });
