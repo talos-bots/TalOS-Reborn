@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import HomePage from "./pages";
 import { useEffect, useState } from "react";
 
@@ -33,6 +33,7 @@ export default function App() {
 	const [showNotification, setShowNotification] = useState(false);
 	const [notifcationTitle, setNotificationTitle] = useState('');
 	const [notificationBody, setNotificationBody] = useState('');
+
 	const isProduction = process.env.NODE_ENV === 'production';
 	
 	const notificationSound = new Audio('../assets/notification.mp3');

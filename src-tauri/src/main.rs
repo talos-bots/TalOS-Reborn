@@ -1,13 +1,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use actix_web::error::ErrorInternalServerError;
 use actix_web::{web, App, HttpResponse, HttpServer, Error, HttpRequest};
 use actix_files as fs;
-use actix_web::body::to_bytes;
 use std::thread;
 use actix_rt;
 use reqwest::{Client};
 use tauri::Manager;
+use futures::stream::StreamExt; // Add this
+use actix_web::error::ErrorInternalServerError;
 
 #[tauri::command]
 fn open_external(window: tauri::Window, url: String) -> Result<(), String> {
@@ -16,11 +16,20 @@ fn open_external(window: tauri::Window, url: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
-async fn forward_to_api(req: HttpRequest, body: web::Payload, client: web::Data<Client>) -> Result<HttpResponse, Error> {
-    let new_url = format!("http://localhost:3003{}", req.uri());
+async fn forward_to_api(req: HttpRequest, mut body: web::Payload, client: web::Data<Client>) -> Result<HttpResponse, Error> {
+    let uri = req.uri().to_string();
+    let new_url = if uri.starts_with("/api") {
+        format!("http://localhost:3003{}", uri.replacen("/api", "", 1))
+    } else {
+        format!("http://localhost:3003{}", uri)
+    };
 
-    // Read the entire body
-    let bytes = to_bytes(body).await.map_err(ErrorInternalServerError)?;
+    // Collect the incoming payload into bytes
+    let mut body_bytes = web::BytesMut::new();
+    while let Some(chunk) = body.next().await {
+        let chunk = chunk.map_err(ErrorInternalServerError)?;
+        body_bytes.extend_from_slice(&chunk);
+    }
 
     // Create a new request with Reqwest
     let mut client_request = client
@@ -38,7 +47,7 @@ async fn forward_to_api(req: HttpRequest, body: web::Payload, client: web::Data<
 
     // Send the request with the read body
     let response = client_request
-        .body(bytes)
+        .body(body_bytes.freeze())
         .send()
         .await
         .map_err(ErrorInternalServerError)?;
@@ -61,10 +70,13 @@ fn main() {
             HttpServer::new(move || {
                 App::new()
                     .app_data(web::Data::new(client.clone()))
-                    .service(fs::Files::new("/", "./_up_/dist").index_file("index.html"))
-                    .default_service(
-                        web::route().to(forward_to_api)  // Proxy for /api
-                    )
+                    .service(web::scope("/api").default_service(web::route().to(forward_to_api)))
+                    .service(web::scope("/images").default_service(web::route().to(forward_to_api)))
+                    .service(web::scope("/socket.io").default_service(web::route().to(forward_to_api)))
+                    .service(web::scope("/backgrounds").default_service(web::route().to(forward_to_api)))
+                    .service(web::scope("/pfp").default_service(web::route().to(forward_to_api)))
+                    .service(web::scope("/sprites").default_service(web::route().to(forward_to_api)))
+                    .default_service(fs::Files::new("/", "./_up_/dist").index_file("index.html"))
             })
             .bind("0.0.0.0:8080")
             .expect("Failed to bind to port")
