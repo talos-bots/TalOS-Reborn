@@ -13,7 +13,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/socket.io': {
         target: 'http://localhost:3003/socket.io/',

@@ -1,15 +1,18 @@
+import axios from "axios";
 import { SettingsInterface } from "../types";
 
+const api = axios.create({baseURL: ''});
+
 export async function saveSettingToLocal(setting: SettingsInterface): Promise<void> {
-    const response = await fetch('/api/save/setting', {
+    const response = await api('/api/save/setting', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(setting),
+        data: JSON.stringify(setting),
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
@@ -17,9 +20,9 @@ export async function saveSettingToLocal(setting: SettingsInterface): Promise<vo
 }
 
 export async function fetchSettingById(id: string): Promise<SettingsInterface | null> {
-    const response = await fetch(`/api/setting/${id}`);
+    const response = await api(`/api/setting/${id}`);
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         if (response.status === 404) {
             console.log('Character not found');
             return null;
@@ -27,29 +30,29 @@ export async function fetchSettingById(id: string): Promise<SettingsInterface | 
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     console.log(data);
     return data as SettingsInterface;
 }
 
 export async function fetchAllSettings(): Promise<SettingsInterface[]> {
-    const response = await fetch('/api/settings');
+    const response = await api('/api/settings');
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     console.log(data);
     return data.map((character: any) => character as SettingsInterface);
 }
 
 export async function deleteSettingById(id: string): Promise<void> {
-    const response = await fetch(`/api/setting/${id}`, {
+    const response = await api(`/api/setting/${id}`, {
         method: 'DELETE',
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
@@ -70,11 +73,11 @@ interface AppSettingsInterface {
 // Fetch all app settings
 export async function fetchAllAppSettings(): Promise<AppSettingsInterface | null> {
     try {
-        const response = await fetch('/api/appSettings');
-        if (!response.ok) {
+        const response = await api('/api/appSettings');
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
-        return response.json() as Promise<AppSettingsInterface>;
+        return response.data as AppSettingsInterface;
     } catch (error) {
         console.error("Error fetching app settings:", error);
         return null;
@@ -84,14 +87,14 @@ export async function fetchAllAppSettings(): Promise<AppSettingsInterface | null
 // Save an app setting
 export async function saveAppSetting(appSetting: AppSettingsInterface): Promise<void> {
     try {
-        const response = await fetch('/api/save/appSetting', {
+        const response = await api('/api/save/appSetting', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(appSetting),
+            data: JSON.stringify(appSetting),
         });
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
     } catch (error) {
@@ -102,11 +105,11 @@ export async function saveAppSetting(appSetting: AppSettingsInterface): Promise<
 // Get default connection setting
 export async function getAppSettingsConnection(): Promise<string | null> {
     try {
-        const response = await fetch('/api/appSettings/connection');
-        if (!response.ok) {
+        const response = await api('/api/appSettings/connection');
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
-        return response.text();
+        return response.data;
     } catch (error) {
         console.error("Error fetching default connection:", error);
         return null;
@@ -116,11 +119,11 @@ export async function getAppSettingsConnection(): Promise<string | null> {
 // Get default settings
 export async function getAppSettingsSettings(): Promise<string | null> {
     try {
-        const response = await fetch('/api/appSettings/settings');
-        if (!response.ok) {
+        const response = await api('/api/appSettings/settings');
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
-        return response.text();
+        return response.data;
     } catch (error) {
         console.error("Error fetching default settings:", error);
         return null;
@@ -130,14 +133,14 @@ export async function getAppSettingsSettings(): Promise<string | null> {
 // Set default connection setting
 export async function setAppSettingsConnection(connectionId: string): Promise<void> {
     try {
-        const response = await fetch('/api/appSettings/connection', {
+        const response = await api('/api/appSettings/connection', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ connectionid: connectionId }),
+            data: JSON.stringify({ connectionid: connectionId }),
         });
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
     } catch (error) {
@@ -148,14 +151,14 @@ export async function setAppSettingsConnection(connectionId: string): Promise<vo
 // Set default settings
 export async function setAppSettingsSettings(settingsId: string): Promise<void> {
     try {
-        const response = await fetch('/api/appSettings/settings', {
+        const response = await api('/api/appSettings/settings', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ settingsid: settingsId }),
+            data: JSON.stringify({ settingsid: settingsId }),
         });
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
     } catch (error) {
@@ -166,11 +169,11 @@ export async function setAppSettingsSettings(settingsId: string): Promise<void> 
 // Fetch status of a specific feature
 export async function fetchFeatureStatus(feature: string): Promise<boolean | null> {
     try {
-        const response = await fetch(`/api/appSettings/${feature}`);
-        if (!response.ok) {
+        const response = await api(`/api/appSettings/${feature}`);
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
-        return response.json();
+        return response.data;
     } catch (error) {
         console.error(`Error fetching ${feature} status:`, error);
         return null;
@@ -180,14 +183,14 @@ export async function fetchFeatureStatus(feature: string): Promise<boolean | nul
 // Update status of a specific feature
 export async function updateFeatureStatus(feature: string, status: boolean): Promise<void> {
     try {
-        const response = await fetch(`/api/appSettings/${feature}`, {
+        const response = await api(`/api/appSettings/${feature}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ [feature]: status }),
+            data: JSON.stringify({ [feature]: status }),
         });
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
     } catch (error) {
@@ -198,14 +201,14 @@ export async function updateFeatureStatus(feature: string, status: boolean): Pro
 // Update admins
 export async function updateAdmins(admins: string[]): Promise<void> {
     try {
-        const response = await fetch('/api/appSettings/admins', {
+        const response = await api('/api/appSettings/admins', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ admins }),
+            data: JSON.stringify({ admins }),
         });
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
     } catch (error) {

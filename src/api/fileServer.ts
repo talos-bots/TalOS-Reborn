@@ -1,3 +1,7 @@
+import axios from "axios";
+
+const api = axios.create({baseURL: ''});
+
 export async function uploadFile(file: File) {
     // Generate a unique name for the file
     const uniqueName = new Date().getTime() + '_' + file.name.replace(/[^a-zA-Z0-9.]/g, '_');
@@ -13,12 +17,12 @@ export async function uploadFile(file: File) {
     formData.append('image', newFile);
 
     // Perform the fetch request
-    const response = await fetch('/api/files/upload', {
+    const response = await api('/api/files/upload', {
         method: 'POST',
-        body: formData
+        data: formData
     });
 
-    const data = await response.text();
+    const data = await response.data;
     console.log(data);
 
     // Return the path with the unique file name
@@ -40,12 +44,12 @@ export async function uploadProfilePicture(file: File) {
     formData.append('image', newFile);
 
     // Perform the fetch request
-    const response = await fetch('/api/pfp/upload', {
+    const response = await api('/api/pfp/upload', {
         method: 'POST',
-        body: formData
+        data: formData
     });
 
-    const data = await response.text();
+    const data = await response.data;
     console.log(data);
 
     // Return the path with the unique file name

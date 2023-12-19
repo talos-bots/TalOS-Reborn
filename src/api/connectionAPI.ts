@@ -1,16 +1,19 @@
+import axios, { AxiosError } from "axios";
 import { UserPersona } from "../global_classes/Character";
 import { CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, Message } from "../types";
 
+const api = axios.create({baseURL: ''});
+
 export async function saveConnectionToLocal(connection: GenericCompletionConnectionTemplate): Promise<void> {
-    const response = await fetch('/api/save/connection', {
+    const response = await api('/api/save/connection', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(connection),
+        data: JSON.stringify(connection),
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
@@ -18,9 +21,9 @@ export async function saveConnectionToLocal(connection: GenericCompletionConnect
 }
 
 export async function fetchConnectionById(id: string): Promise<GenericCompletionConnectionTemplate | null> {
-    const response = await fetch(`/api/connection/${id}`);
+    const response = await api(`/api/connection/${id}`);
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         if (response.status === 404) {
             console.log('Character not found');
             return null;
@@ -28,29 +31,29 @@ export async function fetchConnectionById(id: string): Promise<GenericCompletion
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     console.log(data);
     return data as GenericCompletionConnectionTemplate;
 }
 
 export async function fetchAllConnections(): Promise<GenericCompletionConnectionTemplate[]> {
-    const response = await fetch('/api/connections');
+    const response = await api('/api/connections');
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     console.log(data);
     return data.map((character: any) => character as GenericCompletionConnectionTemplate);
 }
 
 export async function deleteConnectionById(id: string): Promise<void> {
-    const response = await fetch(`/api/connection/${id}`, {
+    const response = await api(`/api/connection/${id}`, {
         method: 'DELETE',
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
@@ -59,21 +62,20 @@ export async function deleteConnectionById(id: string): Promise<void> {
 
 export async function fetchConnectionModels(url: string, key?: string): Promise<any> {
     try {
-        const response = await fetch(`/api/test/connections`,
+        const response = await api(`/api/test/connections`,
         {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url, key }),
+            data: JSON.stringify({ url, key }),
         });
         
-        if (!response.ok) {
-            console.error('Error fetching connection models:', response.status);
-            return null;
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = await response.data;
         console.log('Fetched connection models:', data);
         if(data.error) {
             console.error('Error fetching connection models:', data.error);
@@ -89,21 +91,20 @@ export async function fetchConnectionModels(url: string, key?: string): Promise<
 
 export async function fetchMancerModels(key?: string){
     try {
-        const response = await fetch(`/api/test/mancer`,
+        const response = await api(`/api/test/mancer`,
         {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ key }),
+            data: JSON.stringify({ key }),
         });
         
-        if (!response.ok) {
-            console.error('Error fetching mancer models:', response.status);
-            return null;
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = await response.data;
         console.log('Fetched mancer models:', data);
         if(data.error) {
             console.error('Error fetching mancer models:', data.error);
@@ -119,13 +120,13 @@ export async function fetchMancerModels(key?: string){
 
 export async function fetchPalmModels(key?: string){
     try {
-        const response = await fetch(`/api/test/palm`,
+        const response = await api(`/api/test/palm`,
         {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ key }),
+            data: JSON.stringify({ key }),
         }).then((response) => {
             return response;
         }).catch((error) => {
@@ -138,7 +139,7 @@ export async function fetchPalmModels(key?: string){
             return null;
         }
 
-        const data = await response.json();
+        const data = await response.data;
         console.log('Fetched palm models:', data);
         if(data.error) {
             console.error('Error fetching palm models:', data.error);
@@ -158,21 +159,20 @@ export async function fetchPalmModels(key?: string){
 
 export async function fetchOpenAIModels(key?: string){
     try {
-        const response = await fetch(`/api/test/openai`,
+        const response = await api(`/api/test/openai`,
         {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ key }),
+            data: JSON.stringify({ key }),
         });
         
-        if (!response.ok) {
-            console.error('Error fetching openai models:', response.status);
-            return null;
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = await response.data;
         if(data.error) {
             console.error('Error fetching openai models:', data.error);
             return null;
@@ -196,26 +196,25 @@ export async function sendCompletionRequest(messages: Message[], character: Char
     }
 
     try {
-        const response = await fetch(`/api/completions`,
+        const response = await api(`/api/completions`,
         {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(newRequest),
+            data: JSON.stringify(newRequest),
         }).then((response) => {
             return response;
-        }).catch((error) => {
+        }).catch((error: AxiosError) => {
             console.error('Error sending completion request:', error);
-            return null;
+            return error.response;
         });
         
-        if (!response.ok) {
-            console.error('Error sending completion request:', response.status);
-            return null;
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = await response.data;
         console.log('Fetched completion:', data);
         return data;
     } catch (error) {

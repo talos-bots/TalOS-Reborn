@@ -1,17 +1,20 @@
 import { User } from '../components/shared/auth-provider';
 import { Character } from '../global_classes/Character';
 import { emitCharacterUpdated } from '../helpers/events';
+import axios from "axios";
+
+const api = axios.create({baseURL: ''});
 
 export async function saveCharacterToLocal(character: Character): Promise<void> {
-    const response = await fetch('/api/save/character', {
+    const response = await api('/api/save/character', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(character.toJSON()),
+        data: JSON.stringify(character.toJSON()),
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
@@ -20,9 +23,9 @@ export async function saveCharacterToLocal(character: Character): Promise<void> 
 }
 
 export async function fetchCharacterById(id: string): Promise<Character | null> {
-    const response = await fetch(`/api/character/${id}`);
+    const response = await api(`/api/character/${id}`);
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         if (response.status === 404) {
             console.log('Character not found');
             return null;
@@ -30,27 +33,29 @@ export async function fetchCharacterById(id: string): Promise<Character | null> 
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data;
     return Character.fromJSON(data);
 }
 
 export async function fetchAllCharacters(): Promise<Character[]> {
-    const response = await fetch('/api/characters');
+    const response = await api('/api/characters');
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
+    console.log(data);
+    if(!Array.isArray(data)) return [];
     return data.map((character: any) => Character.fromJSON(character));
 }
 
 export async function deleteCharacterById(id: string): Promise<void> {
-    const response = await fetch(`/api/character/${id}`, {
+    const response = await api(`/api/character/${id}`, {
         method: 'DELETE',
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
@@ -59,32 +64,32 @@ export async function deleteCharacterById(id: string): Promise<void> {
 }
 
 export async function getCharactersByUserID(id: string): Promise<Character[]> {
-    const response = await fetch(`/api/characters/creator`, {
+    const response = await api(`/api/characters/creator`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        data: JSON.stringify({
             creator: id,
         }),
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     return data.map((character: any) => Character.fromJSON(character));
 }
 
 export async function getUserdataByID(id: string): Promise<User> {
-    const response = await fetch(`/api/profile/${id}`);
+    const response = await api(`/api/profile/${id}`);
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     console.log(data);
     const newUser: User = {
         id: data.id,
@@ -99,36 +104,36 @@ export async function getUserdataByID(id: string): Promise<User> {
 }
 
 export async function getAllUserdata(): Promise<any> {
-    const response = await fetch(`/api/profiles`);
+    const response = await api(`/api/profiles`);
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     return data;
 }
 
 // get all users
 export async function getAllUsers(): Promise<any> {
-    const response = await fetch(`/api/stats/users`);
+    const response = await api(`/api/stats/users`);
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.data
     return data;
 }
 
 // Fetch admins
 export async function fetchAdmins(): Promise<string[] | null> {
     try {
-        const response = await fetch('/api/appSettings/admins');
-        if (!response.ok) {
+        const response = await api('/api/appSettings/admins');
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
-        return response.json();
+        return response.data;
     } catch (error) {
         console.error("Error fetching admins:", error);
         return null;
@@ -138,11 +143,11 @@ export async function fetchAdmins(): Promise<string[] | null> {
 // Check if a user is an admin
 export async function checkIfAdmin(user: string): Promise<boolean> {
     try {
-        const response = await fetch(`/api/appSettings/isAdmin/${user}`);
-        if (!response.ok) {
+        const response = await api(`/api/appSettings/isAdmin/${user}`);
+        if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
-        return response.json();
+        return response.data;
     } catch (error) {
         console.error("Error checking if user is admin:", error);
         return false;

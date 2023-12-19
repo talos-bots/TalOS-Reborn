@@ -279,23 +279,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4668cab20f66d8d020e1fbc0ebe47217433c1b6c8f2040faf858554e394ace6"
 
 [[package]]
-name = "app"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-rt",
- "actix-web",
- "futures",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "winapi",
-]
-
-[[package]]
 name = "askama_escape"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3775,6 +3758,23 @@ dependencies = [
  "pkg-config",
  "toml 0.8.8",
  "version-compare 0.1.1",
+]
+
+[[package]]
+name = "talos-app"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-rt",
+ "actix-web",
+ "futures",
+ "futures-util",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "winapi",
 ]
 
 [[package]]

@@ -1,9 +1,13 @@
+import axios from "axios";
+
+const api = axios.create({baseURL: ''});
+  
 export async function uploadBackground(file: File): Promise<any> {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await fetch('/api/background/upload', {
+    const response = await api('/api/background/upload', {
         method: 'POST',
-        body: formData,
+        data: formData,
     });
     if (response.status === 200) {
         return `${file.name}`;
@@ -13,9 +17,9 @@ export async function uploadBackground(file: File): Promise<any> {
 export async function deleteBackground(filename: string): Promise<any> {
     const formData = new FormData();
     formData.append('filename', filename);
-    const response = await fetch('/api/background/delete', {
+    const response = await api('/api/background/delete', {
         method: 'POST',
-        body: formData,
+        data: formData,
     });
     return response;
 }
@@ -24,9 +28,9 @@ export async function renameBackground(oldFilename: string, newFilename: string)
     const formData = new FormData();
     formData.append('oldFilename', oldFilename);
     formData.append('newFilename', newFilename);
-    const response = await fetch('/api/background/rename', {
+    const response = await api('/api/background/rename', {
         method: 'POST',
-        body: formData,
+        data: formData,
     });
     if (response.status === 200) {
         return `${newFilename}`;
@@ -34,7 +38,7 @@ export async function renameBackground(oldFilename: string, newFilename: string)
 }
 
 export async function fetchAllBackgrounds(): Promise<any> {
-    const response = await fetch('/api/background/all');
-    const data = await response.json();
+    const response = await api('/api/background/all');
+    const data = await response.data;
     return data;
 }

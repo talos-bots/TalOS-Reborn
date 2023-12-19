@@ -25,6 +25,8 @@ import { llmsRouter } from './llms.js';
 import { transformersRouter } from './helpers/transformers.js';
 import { lorebooksRouter } from './lorebooks.js';
 dotenv.config();
+
+const __dirname = path.resolve();
 //get the userData directory
 const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
 //get the talos directory
@@ -84,8 +86,6 @@ fs.mkdirSync(armorsPath, { recursive: true });
 fs.mkdirSync(conversationsPath, { recursive: true });
 fs.mkdirSync(connectionsPath, { recursive: true });
 
-expressApp.use(express.static('public'));
-expressApp.use(express.static('dist'));
 expressApp.use(bodyParser.json({ limit: '1000mb' }));
 expressApp.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
 
@@ -210,7 +210,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-expressApp.post('/files/upload', authenticateToken, upload.single('image'), (req, res) => {
+expressApp.post('/api/files/upload', authenticateToken, upload.single('image'), (req, res) => {
 	if (!req.file) {
 		return res.status(400).send('No file uploaded.');
 	}
@@ -239,14 +239,14 @@ const backgroundStorage = multer.diskStorage({
 
 const uploadBackground = multer({ storage: backgroundStorage });
 
-expressApp.post('/background/upload', authenticateToken, uploadBackground.single('image'), (req, res) => {
+expressApp.post('/api/background/upload', authenticateToken, uploadBackground.single('image'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded.');
     }
     res.send(`File uploaded: ${req.file.originalname}`);
 });
 
-expressApp.post('/background/delete', authenticateToken, (req, res) => {
+expressApp.post('/api/background/delete', authenticateToken, (req, res) => {
     try {
         const filename = req.body.filename;
         const path = `${backgroundsPath}/${filename}`;
@@ -263,7 +263,7 @@ expressApp.post('/background/delete', authenticateToken, (req, res) => {
 });
 
 // rename background
-expressApp.post('/background/rename', authenticateToken, (req, res) => {
+expressApp.post('/api/background/rename', authenticateToken, (req, res) => {
     try{
         const oldFilename = req.body.oldFilename;
         const newFilename = req.body.newFilename;
@@ -282,7 +282,7 @@ expressApp.post('/background/rename', authenticateToken, (req, res) => {
 });
 
 // get all image file names in backgrounds folder
-expressApp.get('/background/all', authenticateToken, (req, res) => {
+expressApp.get('/api/background/all', authenticateToken, (req, res) => {
     try {
         fs.readdir(backgroundsPath, (err, files) => {
             if (err) {
@@ -296,14 +296,14 @@ expressApp.get('/background/all', authenticateToken, (req, res) => {
     }
 });
 
-expressApp.post('/pfp/upload', authenticateToken, uploadPfp.single('image'), (req, res) => {
+expressApp.post('/api/pfp/upload', authenticateToken, uploadPfp.single('image'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded.');
     }
     res.send(`File uploaded: ${req.file.originalname}`);
 });
 
-expressApp.post('/upload/sprite', authenticateToken, upload.single('sprite'), (req, res) => {
+expressApp.post('/api/upload/sprite', authenticateToken, upload.single('sprite'), (req, res) => {
     if (!req.file) {
         console.log('No file uploaded');
         return res.status(400).send('No file uploaded');
@@ -351,17 +351,23 @@ function getActiveUsers() {
     return userDetails;
 }
 
-expressApp.get('/stats/users', authenticateToken, async (req, res) => {
+expressApp.get('/api/stats/users', authenticateToken, async (req, res) => {
     const users = await getAllUsers();
     const activeUsers = getActiveUsers();
     res.json({ users: users, activeUsers: activeUsers });
 });
 
-expressApp.use(settingsRouter);
-expressApp.use(usersRouter);
-expressApp.use(charactersRouter);
-expressApp.use(conversationsRouter);
-expressApp.use(connectionsRouter);
-expressApp.use(llmsRouter);
-expressApp.use(lorebooksRouter);
-expressApp.use('/transformers', transformersRouter);
+expressApp.use('/api', settingsRouter);
+expressApp.use('/api', usersRouter);
+expressApp.use('/api', charactersRouter);
+expressApp.use('/api', conversationsRouter);
+expressApp.use('/api', connectionsRouter);
+expressApp.use('/api', llmsRouter);
+expressApp.use('/api', lorebooksRouter);
+expressApp.use('/api/transformers', transformersRouter);
+
+expressApp.use(express.static(path.join(__dirname, '/_up_/dist')));
+
+expressApp.use('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '/_up_/dist', 'index.html'));
+});

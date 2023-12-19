@@ -1,9 +1,11 @@
 import axios from 'axios';
 
+const api = axios.create({baseURL: ''});
+
 // Get all lorebooks
 export async function getAllLorebooks() {
     try {
-        const response = await axios.get(`/api/lorebooks`);
+        const response = await api.get(`/api/lorebooks`);
         return response.data;
     } catch (error) {
         console.error('Error fetching all lorebooks:', error);
@@ -14,7 +16,7 @@ export async function getAllLorebooks() {
 // Save a lorebook
 export async function saveLorebook(lorebook: any) {
     try {
-        const response = await axios.post(`/api/save/lorebook`, lorebook);
+        const response = await api.post(`/api/save/lorebook`, lorebook);
         return response.data;
     } catch (error) {
         console.error('Error saving lorebook:', error);
@@ -25,7 +27,7 @@ export async function saveLorebook(lorebook: any) {
 // Get a lorebook by ID
 export async function getLorebookById(id: string) {
     try {
-        const response = await axios.get(`/api/lorebooks/${id}`);
+        const response = await api.get(`/api/lorebooks/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error fetching lorebook with ID ${id}:`, error);
@@ -36,7 +38,7 @@ export async function getLorebookById(id: string) {
 // Remove a lorebook by ID
 export async function removeLorebookById(id: string) {
     try {
-        const response = await axios.delete(`/api/lorebooks/${id}`);
+        const response = await api.delete(`/api/lorebooks/${id}`);
         return response.data;
     } catch (error) {
         console.error(`Error removing lorebook with ID ${id}:`, error);
