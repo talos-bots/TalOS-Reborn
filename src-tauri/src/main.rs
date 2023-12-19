@@ -2,6 +2,9 @@
 
 use tauri::Manager;
 use std::sync::{Arc, Mutex};
+use tungstenite::accept;
+use std::net::TcpListener;
+use std::thread;
 
 extern crate winapi;
 use winapi::um::winbase::CREATE_NO_WINDOW;
@@ -16,9 +19,15 @@ fn open_external(window: tauri::Window, url: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn my_simple_command() -> String {
+    "This command is running in Tauri".to_string()
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![open_external])
+        .invoke_handler(tauri::generate_handler![my_simple_command])
         .setup(|app| {
             let path_to_server = app.path_resolver().resource_dir()
                 .expect("Failed to resolve resource directory")
@@ -43,6 +52,28 @@ fn main() {
             app.listen_global("tauri://close-requested", move |_| {
                 let mut locked_process = server_process_clone.lock().unwrap();
                 let _ = locked_process.kill();
+            });
+
+            thread::spawn(|| {
+                let server = TcpListener::bind("localhost:8080").unwrap();
+                for stream in server.incoming() {
+                    let stream = stream.unwrap();
+
+                    // Handle the WebSocket connection
+                    let mut websocket = accept(stream).unwrap();
+                    loop {
+                        let msg = match websocket.read_message() {
+                            Ok(msg) => msg,
+                            Err(e) => {
+                                println!("Error reading message: {:?}", e);
+                                break;
+                            }
+                        };
+                        println!("Received a message: {:?}", msg);
+                        // Process the message and possibly send a response
+                        // websocket.write_message(msg).unwrap();
+                    }
+                }
             });
             Ok(())
         })

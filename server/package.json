@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "tsc",
-    "start": "tsc && node ../dist-server/main.js"
+    "start": "tsc && node ../dist-server/main.js --dev"
   },
   "type": "module",
   "dependencies": {

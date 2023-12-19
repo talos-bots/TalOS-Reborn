@@ -24,6 +24,8 @@ import { connectionsRouter } from './connections.js';
 import { llmsRouter } from './llms.js';
 import { transformersRouter } from './helpers/transformers.js';
 import { lorebooksRouter } from './lorebooks.js';
+import WebSocket from 'ws';
+
 dotenv.config();
 
 const __dirname = path.resolve();
@@ -56,6 +58,16 @@ export const conversationsPath = `${dataPath}/conversations`;
 
 export const expressApp = express();
 const port = 3003;
+
+let dev = false;
+
+const args = process.argv.slice(2);
+
+args.forEach(arg => {
+    if (arg.startsWith('--dev')) {
+        dev = true;
+    }
+});
 
 export let JWT_SECRET = process.env.JWT_SECRET
 
@@ -113,10 +125,7 @@ export const expressAppIO = new Server(server, {
 // Graceful shutdown function
 function gracefulShutdown() {
 	console.log('Shutting down gracefully...');
-	server.close(() => {
-		console.log('Server closed');
-		process.exit(0);
-	});
+    process.exit(0);
 }
 
 const authenticateTokenSocket = (token: string) => {
@@ -366,8 +375,55 @@ expressApp.use('/api', llmsRouter);
 expressApp.use('/api', lorebooksRouter);
 expressApp.use('/api/transformers', transformersRouter);
 
-expressApp.use(express.static(path.join(__dirname, '/_up_/dist')));
+function checkIfTauriAppIsOpen() {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket('ws://localhost:8080');
 
-expressApp.use('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '/_up_/dist', 'index.html'));
-});
+        ws.on('open', function open() {
+            console.log('Tauri app is open');
+            ws.close();
+            resolve(true);
+        });
+
+        ws.on('error', function error() {
+            console.log('Tauri app is not open');
+            resolve(false);
+        });
+    });
+}
+let numberOfTries = 0;
+
+if(!dev){
+    expressApp.use(express.static(path.join(__dirname, '/_up_/dist')));
+
+    expressApp.use('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '/_up_/dist', 'index.html'));
+    });
+
+    setInterval(() => {
+        checkIfTauriAppIsOpen().then((isOpen) => {
+            numberOfTries++;
+            if (!isOpen && numberOfTries > 5) {
+                console.log("Tauri app is not running. Exiting Node.js server.");
+                process.exit(1);
+            }
+        });
+    }, 5000);
+
+}else{
+    checkIfTauriAppIsOpen().then((isOpen) => {
+        if(isOpen){
+            expressApp.use(express.static(path.join(__dirname, '/target/debug/_up_/dist')));
+
+            expressApp.use('*', (req, res) => {
+                res.sendFile(path.join(__dirname, '/target/debug/_up_/dist', 'index.html'));
+            });
+        } else {
+            expressApp.use(express.static(path.join(__dirname, '../dist')));
+
+            expressApp.use('*', (req, res) => {
+                res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+            });
+        }
+    });
+}
