@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import dotenv from 'dotenv';
 dotenv.config();
-import { settingsPath } from "./main.js";
+import { appSettingsPath, settingsPath } from "./main.js";
 import { SettingsInterface } from './connections.js';
 
 export const settingsRouter = express.Router();
@@ -83,9 +83,7 @@ settingsRouter.delete('/settings/:id', (req, res) => {
     res.send({ message: "Setting removed successfully!" });
 });
 
-const appSettingsPath = path.join("./appSettings.json");
-
-interface AppSettingsInterface {
+export interface AppSettingsInterface {
     defaultConnection: string;
     defaultSettings: string;
     admins: string[];

@@ -1,21 +1,21 @@
 import React, { useEffect } from 'react';
 import ConnectionPanel from '../../components/settings/ConnectionPanel';
 import GenerationSettings from '../../components/settings/GenerationSettings';
-import { useUser } from '../../components/shared/auth-provider';
+import { User, useUser } from '../../components/shared/auth-provider';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { getFirstAdminProfile } from '../../api/characterAPI';
 
 const SettingsPage = () => {
     const { user } = useUser();
     const navigate = useNavigate();
     
     useEffect(() => {
-        if (!user) {
+        if (!user?.id) {
             navigate('/login?redirect=settings');
-        }else if(user?.username !== 'sendev') {
+        }else if(user?.id?.toString() !== '1') {
             navigate('/home');
         }
-
     }, [user, navigate]);
 
     return (

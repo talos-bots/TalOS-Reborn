@@ -15,7 +15,7 @@ import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { settingsRouter } from './settings.js';
+import { AppSettingsInterface, settingsRouter } from './settings.js';
 import { getAllUsers, usersRouter } from './users.js';
 import { charactersRouter } from './characters.js';
 import { authenticateToken } from './authenticate-token.js';
@@ -35,6 +35,42 @@ const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? proces
 const talosDir = path.join(appDataDir, 'TalOS');
 //get the uploads directory
 fs.mkdirSync(talosDir, { recursive: true });
+export const appSettingsPath = path.join(talosDir, "/appSettings.json");
+
+function checkForAppSettings() {
+    return new Promise((resolve, reject) => {
+        fs.access(appSettingsPath, fs.constants.F_OK, (err) => {
+            if (err) {
+                resolve(false);
+                return;
+            }
+            resolve(true);
+        });
+    });
+}
+
+const defaultAppSettings: AppSettingsInterface = {
+    defaultConnection: "",
+    defaultSettings: "",
+    admins: ['1'],
+    enableCaptioning: false,
+    enableEmbedding: false,
+    enableQuestionAnswering: false,
+    enableZeroShotClassification: false,
+    enableYesNoMaybe: false
+};
+
+checkForAppSettings().then((exists) => {
+    if (!exists) {
+        fs.writeFile(appSettingsPath, JSON.stringify(defaultAppSettings), (err) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            console.log('App settings file created');
+        });
+    }
+});
 
 export const uploadsPath = path.join(talosDir, '/uploads');
 export const dataPath = path.join(talosDir, '/data');
