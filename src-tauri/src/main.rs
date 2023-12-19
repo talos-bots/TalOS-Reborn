@@ -31,11 +31,26 @@ fn main() {
         .setup(|app| {
             let path_to_server = app.path_resolver().resource_dir()
                 .expect("Failed to resolve resource directory")
-                .join("./_up_/dist-server/main.js");
+                .join("/_up_/dist-server/main.js");
             let node_path = app.path_resolver().resource_dir()
                 .expect("Failed to resolve resource directory")
-                .join("./_up_/bin/node/node.exe");
+                .join("/_up_/bin/node/node.exe");
             
+            let npm_path = app.path_resolver().resource_dir()
+                .expect("Failed to resolve resource directory")
+                .join("/_up_/bin/node/npm.cmd");
+
+            // run npm install
+            let _ = Command::new(npm_path)
+                .arg("install")
+                .current_dir(app.path_resolver().resource_dir().unwrap().join("/_up_/"))
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .stdin(Stdio::null())
+                .creation_flags(CREATE_NO_WINDOW)
+                .spawn()
+                .expect("Failed to run npm install");
+
             // Start the Node server and keep a handle to the process
             let server_process = Arc::new(Mutex::new(
                 Command::new(node_path)

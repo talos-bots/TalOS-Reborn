@@ -38,7 +38,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["../dist-server/*", "../dist/*", "../bin/*"],
+      "resources": ["../dist-server/*", "../dist/*","../package.json", "../package-lock.json"],
       "shortDescription": "",
       "targets": "all",
       "windows": {

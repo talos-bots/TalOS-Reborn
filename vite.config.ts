@@ -46,4 +46,12 @@ export default defineConfig({
       }
     }
   },
+  build: {
+    "outDir": "./dist-react",
+    "assetsDir": "assets",
+    "sourcemap": false,
+    "minify": false,
+    "copyPublicDir": true,
+    "modulePreload": true,
+  }
 })

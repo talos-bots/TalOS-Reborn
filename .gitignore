@@ -135,4 +135,5 @@ server/auth.db
 server/models/*
 server/data/sprites/*
 dist-server/*
+dist-react/*
 conda/*

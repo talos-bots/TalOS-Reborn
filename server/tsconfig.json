@@ -9,11 +9,10 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "outDir": "../dist-server",
+    "outDir": "../dist",
     "importHelpers": true
     // Removed outFile, adjust if necessary
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
+  "exclude": ["dist"],
   "extends": "@tsconfig/node16/tsconfig.json"
 }
