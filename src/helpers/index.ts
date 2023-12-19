@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { QueryDocumentSnapshot } from "firebase/firestore";
 import { Character } from "../global_classes/Character";
 import { StoredChatLog, StoredChatMessage } from "../global_classes/StoredChatLog";
 
@@ -49,29 +48,6 @@ export function resizeImage(file: File) {
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
-}
-
-export function firestoreDocToCharacter(doc: QueryDocumentSnapshot) {
-    const data = doc.data();
-    const retrievedCharacter = new Character(
-        data._id,
-        data.name,
-        data.avatar,
-        data.description,
-        data.personality,
-        data.mes_example,
-        data.creator_notes,
-        data.system_prompt,
-        data.post_history_instructions,
-        data.tags,
-        data.creator,
-        data.visual_description,
-        data.thought_pattern,
-        data.first_mes,
-        data.alternate_greetings,
-        data.scenario,
-    );
-    return retrievedCharacter;
 }
 
 export async function getCurrentEngine(){
@@ -129,20 +105,4 @@ export function determineModel(model: string){
                 'token_limit': 4096,
             }
     }
-}
-
-export function firestoreDocToChat(doc: QueryDocumentSnapshot) {
-    const data = doc.data();
-    const retrievedChat = new StoredChatLog(
-        data._id,
-        data.messages.map((message: any) => {
-            return StoredChatMessage.fromJSON(message);
-        }),
-        data.characters,
-        data.firstMessageDate,
-        data.lastMessageDate,
-        data.name,
-        data.userID,    
-    );
-    return retrievedChat;
 }

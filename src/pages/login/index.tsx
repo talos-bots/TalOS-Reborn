@@ -22,7 +22,7 @@ const LoginPage = () => {
     const [error, setError] = React.useState(false);
 
     useEffect(() => {
-        if(user) {
+        if(user?.id && locationRedirect.length > 0) {
             navigate(`/${locationRedirect}` || '/home');
         }
     }, [user, navigate, locationRedirect]);

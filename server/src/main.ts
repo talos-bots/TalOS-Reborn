@@ -25,11 +25,17 @@ import { llmsRouter } from './llms.js';
 import { transformersRouter } from './helpers/transformers.js';
 import { lorebooksRouter } from './lorebooks.js';
 dotenv.config();
+//get the userData directory
+const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
+//get the talos directory
+const talosDir = path.join(appDataDir, 'TalOS');
+//get the uploads directory
+fs.mkdirSync(talosDir, { recursive: true });
 
-export const uploadsPath = './uploads';
-export const dataPath = './data';
-export const modelsPath = './models';
-export const wasmPath = './wasm';
+export const uploadsPath = path.join(talosDir, '/uploads');
+export const dataPath = path.join(talosDir, '/data');
+export const modelsPath = path.join(talosDir, '/models');
+export const wasmPath = path.join(talosDir, '/wasm');
 export const imagesPath = `${dataPath}/images`;
 export const profilePicturesPath = `${dataPath}/profile_pictures`;
 export const backgroundsPath = `${dataPath}/backgrounds`;
@@ -49,7 +55,7 @@ export const conversationsPath = `${dataPath}/conversations`;
 export const expressApp = express();
 const port = 3003;
 
-export const JWT_SECRET = process.env.JWT_SECRET
+export let JWT_SECRET = process.env.JWT_SECRET
 
 if(!JWT_SECRET) {
     const generateSecret = () => crypto.randomBytes(64).toString('hex');
@@ -59,10 +65,7 @@ if(!JWT_SECRET) {
         if (err) throw err;
         console.log('.env file created with JWT_SECRET');
     });
-    
-    //restart the server
-    console.log('Generated new JWT_SECRET... application will restart');
-    process.exit(1);
+    JWT_SECRET = secret;
 }
 
 fs.mkdirSync(uploadsPath, { recursive: true });
@@ -121,6 +124,7 @@ const authenticateTokenSocket = (token: string) => {
 
     try {
         let userid = null;
+        //@ts-expect-error jwt_secret is defined
         jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
             if (err) return false;
             userid = user.userId;

@@ -77,7 +77,7 @@ export async function getCharactersByUserID(id: string): Promise<Character[]> {
     return data.map((character: any) => Character.fromJSON(character));
 }
 
-export async function getUserdataByID(id: string): Promise<any> {
+export async function getUserdataByID(id: string): Promise<User> {
     const response = await fetch(`/api/profile/${id}`);
 
     if (!response.ok) {

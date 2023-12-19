@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { Auth } from "firebase/auth";
 import { useEffect, useState } from "react";
 import BackgroundSelector from '../../../components/shared/background-selector';
 interface ChatSettingsProps {

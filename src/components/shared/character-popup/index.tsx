@@ -23,8 +23,8 @@ const CharacterPopup = (props: CharacterPopupProps) => {
 			console.log('Getting creator data');
 			setLoading(true);
 			getUserdataByID(character.creator).then((user) => {
-				setCreatorName(user?.display_name || '');
-				setCreatorProfilePic(user?.profile_pic || '');
+				setCreatorName(user?.displayName || '');
+				setCreatorProfilePic(user?.profilePic || '');
 				setLoading(false);
 			}).catch((err) => {
 				console.error(err);

@@ -1,7 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import sqlite3 from 'sqlite3';
-
-const db = new sqlite3.Database('./talos.db', (err: any) => {
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
+dotenv.config();
+//get the userData directory
+const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
+//get the talos directory
+const talosDir = path.join(appDataDir, 'TalOS');
+//get the uploads directory
+fs.mkdirSync(talosDir, { recursive: true });
+//get the database file
+const dbFile = path.join(talosDir, 'talos.db');
+const db = new sqlite3.Database(dbFile, (err: any) => {
     if (err) {
         console.error(err.message);
     }

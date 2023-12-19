@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeBuildCommand": "npm run build-all",
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "npm run build-server && npm run dev-react",
     "devPath": "http://localhost:5173",
     "distDir": "../dist"
   },
@@ -38,7 +38,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": ["../dist-server/*", "../dist/*"],
       "shortDescription": "",
       "targets": "all",
       "windows": {

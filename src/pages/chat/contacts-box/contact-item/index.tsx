@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { Auth } from "firebase/auth";
 import { Character } from "../../../../global_classes/Character";
 import { Check, Info } from "lucide-react";
 

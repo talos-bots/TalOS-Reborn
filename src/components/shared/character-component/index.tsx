@@ -27,8 +27,8 @@ const CharacterComponent = (props: CharacterComponentProps) => {
     useEffect(() => {
 		if (character) {
 			getUserdataByID(character.creator).then((newUser) => {
-				setCreatorName(newUser?.display_name || '');
-				setCreatorProfilePic(newUser?.profile_pic || '');
+				setCreatorName(newUser?.displayName || '');
+				setCreatorProfilePic(newUser?.profilePic || '');
                 if(newUser?.id === user?.id) {
                     setIsAuthor(true);
                 }

@@ -16,8 +16,8 @@ const AccountPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if(!user){
-            navigate('/login?redirect=account');
+        if(!user?.id){
+            navigate('/login');
         }else{
             setUsername(user.username || '');
             setDisplayName(user.displayName || '');

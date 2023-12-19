@@ -46,9 +46,9 @@ const HomePage = () => {
             <Helmet>
                 <title>TalOS | Home</title>
             </Helmet>
-            <div className="w-full h-full rounded-box bg-base-300 p-4 flex flex-col gap-2">
-                <h1>Welcome to TalOS: Reborn!</h1>
-                <div className="grid grid-rows-[auto]">
+            <div className="grid grid-rows-[auto]">
+                <div className="w-full rounded-box bg-base-300 p-4 flex flex-col gap-2">
+                    <h1>Welcome to TalOS: Reborn!</h1>
                     <div className="flex flex-col md:flex-row justify-between w-full gap-2 row-span-1">
                         <div className="h-fit flex flex-col min-w-[256px] md:min-w-[512px] items-center gap-2">
                             <img src={IconImage} alt="TalOS Icon" className="w-[256px] h-[256px] md:w-[512px] md:h-[512px] rounded-box"/>
@@ -98,6 +98,7 @@ const HomePage = () => {
                         </p>
                     </div>
                 </div>
+
             </div>
         </div>
     )

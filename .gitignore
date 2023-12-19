@@ -134,3 +134,4 @@ server/data/profile_pictures/*
 server/auth.db
 server/models/*
 server/data/sprites/*
+dist-server/*

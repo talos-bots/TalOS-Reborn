@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Auth, User } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import CharacterPopup from '../../components/shared/character-popup';
 import { Character } from '../../global_classes/Character';
