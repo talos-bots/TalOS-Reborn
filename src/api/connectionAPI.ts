@@ -81,7 +81,14 @@ export async function fetchConnectionModels(url: string, key?: string): Promise<
             console.error('Error fetching connection models:', data.error);
             return null;
         }else{
-            return data.data.map((model: any) => model.id);
+            console.log(data);
+            if(!data?.data){
+                return data.map((model: any) => model.id);
+            }else if(data?.data?.data){
+                return data.data.data.map((model: any) => model.id);
+            }else if(data?.data){
+                return data.data.map((model: any) => model.id);
+            }
         }
     } catch (error) {
         console.error('Error in fetchConnectionModels:', error);

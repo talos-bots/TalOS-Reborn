@@ -5,6 +5,7 @@ import { fetchAllAppSettings, fetchSettingById } from './settings.js';
 import express from 'express';
 import { authenticateToken } from './authenticate-token.js';
 import axios from 'axios';
+import { DefaultSettings } from '../defaults/settings.js';
 export const llmsRouter = express.Router();
 
 function getTokens(text: string){
@@ -298,14 +299,14 @@ async function formatCompletionRequest(request: CompletionRequest){
     }
     let settingsid = request.settingsid;
     if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "";
+        settingsid = appSettings?.defaultSettings ?? "1";
     }
-    if(!settingsid){
-        return null;
+    if(settingsid?.length < 1){
+        settingsid = "1";
     }
-    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
     if(!settingsInfo){
-        return null;
+        settingsInfo = DefaultSettings[0];
     }
     if((request?.persona) && (request?.persona?.description) && (request?.persona?.description.trim() !== "") && (request?.persona?.importance === 'low')){
         prompt += `[${request.persona.description.trim()}]`;
@@ -356,14 +357,14 @@ async function getMancerCompletion(request: CompletionRequest){
     }
     let settingsid = request.settingsid;
     if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "";
+        settingsid = appSettings?.defaultSettings ?? "1";
     }
-    if(!settingsid){
-        return null;
+    if(settingsid?.length < 1){
+        settingsid = "1";
     }
-    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
     if(!settingsInfo){
-        return null;
+        settingsInfo = DefaultSettings[0];
     }
     if(modelInfo.model === "weaver-alpha" || modelInfo.model === "mythomax"){
         stopSequences.push("###");
@@ -425,14 +426,14 @@ async function getGenericCompletion(request: CompletionRequest){
     }
     let settingsid = request.settingsid;
     if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "";
+        settingsid = appSettings?.defaultSettings ?? "1";
     }
-    if(!settingsid){
-        return null;
+    if(settingsid?.length < 1){
+        settingsid = "1";
     }
-    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
     if(!settingsInfo){
-        return null;
+        settingsInfo = DefaultSettings[0];
     }
     if(modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
         stopSequences.push("###");
@@ -449,6 +450,7 @@ async function getGenericCompletion(request: CompletionRequest){
         'model': modelInfo.model,
         'prompt': prompt,
         'stop': stopSequences,
+        'stream': false,
         ...settingsInfo
     }
     console.log(body);
@@ -532,14 +534,14 @@ async function getPaLMCompletion(request: CompletionRequest){
     }
     let settingsid = request.settingsid;
     if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "";
+        settingsid = appSettings?.defaultSettings ?? "1";
     }
-    if(!settingsid){
-        return null;
+    if(settingsid?.length < 1){
+        settingsid = "1";
     }
-    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
     if(!settingsInfo){
-        return null;
+        settingsInfo = DefaultSettings[0];
     }
     const PaLM_Payload = {
         "prompt": {
@@ -649,14 +651,14 @@ async function getGeminiCompletion(request: CompletionRequest){
     }
     let settingsid = request.settingsid;
     if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "";
+        settingsid = appSettings?.defaultSettings ?? "1";
     }
-    if(!settingsid){
-        return null;
+    if(settingsid?.length < 1){
+        settingsid = "1";
     }
-    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
     if(!settingsInfo){
-        return null;
+        settingsInfo = DefaultSettings[0];
     }
     const PaLM_Payload = {
         "contents": [
@@ -754,14 +756,14 @@ async function getOpenAICompletion(request: CompletionRequest){
     }
     let settingsid = request.settingsid;
     if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "";
+        settingsid = appSettings?.defaultSettings ?? "1";
     }
-    if(!settingsid){
-        return null;
+    if(settingsid?.length < 1){
+        settingsid = "1";
     }
-    const settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
     if(!settingsInfo){
-        return null;
+        settingsInfo = DefaultSettings[0];
     }
     console.log(settingsInfo);
     console.log(modelInfo);
@@ -826,13 +828,6 @@ async function handleCompletionRequest(request: CompletionRequest){
     }
     const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
     if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "";
-    }
-    if(!settingsid){
         return null;
     }
     switch(modelInfo.type){

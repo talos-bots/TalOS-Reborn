@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { appSettingsPath, settingsPath } from "../server.js";
 import { SettingsInterface } from './connections.js';
+import { DefaultSettings } from '../defaults/settings.js';
 
 export const settingsRouter = express.Router();
 
@@ -18,7 +19,7 @@ function fetchAllSettings() {
         const fileData = fs.readFileSync(filePath, "utf-8");
         return JSON.parse(fileData);
     });
-    return settingData;
+    return settingData.concat(DefaultSettings);
 }
 
 settingsRouter.get('/settings', (req, res) => {
@@ -47,8 +48,21 @@ export function fetchSettingById(id: string) {
         const fileData = fs.readFileSync(filePath, "utf-8");
         return JSON.parse(fileData) as SettingsInterface;
     } catch (error) {
+        const setting = checkForSettingsInDefaultArray(id);
+        if(setting){
+            return setting;
+        }
         return null;
     }
+}
+
+function checkForSettingsInDefaultArray(id:string){
+    for(let i = 0; i < DefaultSettings.length; i++){
+        if(DefaultSettings[i].id === id){
+            return DefaultSettings[i];
+        }
+    }
+    return null;
 }
 
 settingsRouter.get('/settings/:id', (req, res) => {

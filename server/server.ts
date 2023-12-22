@@ -47,7 +47,7 @@ function checkForAppSettings() {
 
 const defaultAppSettings: AppSettingsInterface = {
     defaultConnection: "",
-    defaultSettings: "",
+    defaultSettings: "1",
     admins: ['1'],
     enableCaptioning: false,
     enableEmbedding: false,
