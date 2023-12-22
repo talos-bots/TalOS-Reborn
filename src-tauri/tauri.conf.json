@@ -17,7 +17,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "Wayward Wyverns Softworks",
       "deb": {
         "depends": []
       },
@@ -38,7 +38,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": ["../dist-server/*", "../dist/*","../package.json", "../package-lock.json"],
+      "resources": ["../dist-react/*", "../dist/*","../package.json", "../package-lock.json"],
       "shortDescription": "",
       "targets": "all",
       "windows": {

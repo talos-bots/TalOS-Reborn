@@ -28,7 +28,7 @@ export interface User {
 
 interface UserContextValue {
     user: User | null;
-    login: (username: string, password: string) => Promise<void>;
+    login: (username: string, password: string) => Promise<boolean>;
     logout: () => Promise<void>;
     fetchUserData: () => Promise<void>;
     signUp: (username: string, password: string, displayName: string) => Promise<void>;
@@ -101,13 +101,19 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         }
     };
 
-    const login = async (username: string, password: string) => {
+    const login = async (username: string, password: string): Promise<boolean> => {
         try {
-            await axios.post('/api/login', { username, password });
-            await fetchUserData();
-            connectWebSocket();
+            const response = await axios.post('/api/login', { username, password })
+            if(response.status === 200) {
+                await fetchUserData();
+                connectWebSocket();
+                return true;
+            }else {
+                throw new Error('Invalid login');
+            }
         } catch (error) {
             console.error('Login error:', error);
+            return false;
         }
     };
 

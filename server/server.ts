@@ -424,13 +424,15 @@ function checkIfTauriAppIsOpen() {
 }
 let numberOfTries = 0;
 
+expressApp.use(express.static(path.join(__dirname, '../dist-react')));
+
+expressApp.use('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist-react', 'index.html'));
+});
+
+
+
 if(!dev){
-    expressApp.use(express.static(path.join(__dirname, '/_up_/dist')));
-
-    expressApp.use('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '/_up_/dist', 'index.html'));
-    });
-
     setInterval(() => {
         checkIfTauriAppIsOpen().then((isOpen) => {
             numberOfTries++;
@@ -440,21 +442,4 @@ if(!dev){
             }
         });
     }, 5000);
-
-}else{
-    checkIfTauriAppIsOpen().then((isOpen) => {
-        if(isOpen){
-            expressApp.use(express.static(path.join(__dirname, '/target/debug/_up_/dist')));
-
-            expressApp.use('*', (req, res) => {
-                res.sendFile(path.join(__dirname, '/target/debug/_up_/dist', 'index.html'));
-            });
-        } else {
-            expressApp.use(express.static(path.join(__dirname, '../dist')));
-
-            expressApp.use('*', (req, res) => {
-                res.sendFile(path.join(__dirname, '../dist', 'index.html'));
-            });
-        }
-    });
 }

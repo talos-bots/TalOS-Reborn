@@ -39,9 +39,16 @@ const LoginPage = () => {
         if (!validate()) return;
         localStorage.setItem('rememberMe', doRemember ? 'true' : 'false');
         localStorage.setItem('username', username);
-        login(username, password).then(() => {
-            navigate(locationRedirect || '/home');
+        login(username, password).then((result) => {
+            if(!result){
+                setError(true);
+                return;
+            } else {
+                setError(false);
+                navigate(locationRedirect || '/home');
+            }
         }).catch((err) => {
+            console.log(err);
             setError(true);
         });
     }

@@ -29,32 +29,42 @@ fn main() {
         .invoke_handler(tauri::generate_handler![open_external])
         .invoke_handler(tauri::generate_handler![my_simple_command])
         .setup(|app| {
-            let path_to_server = app.path_resolver().resource_dir()
+            let path_to_server_folder = app.path_resolver().resource_dir()
                 .expect("Failed to resolve resource directory")
-                .join("/_up_/dist-server/main.js");
-            let node_path = app.path_resolver().resource_dir()
-                .expect("Failed to resolve resource directory")
-                .join("/_up_/bin/node/node.exe");
-            
-            let npm_path = app.path_resolver().resource_dir()
-                .expect("Failed to resolve resource directory")
-                .join("/_up_/bin/node/npm.cmd");
+                .join("/_up_/dist/");
 
-            // run npm install
-            let _ = Command::new(npm_path)
-                .arg("install")
-                .current_dir(app.path_resolver().resource_dir().unwrap().join("/_up_/"))
+            let resource_dir = app.path_resolver().resource_dir()
+            .expect("Failed to resolve resource directory");
+            let up_dir = resource_dir.join("_up_");
+            let npm_install_dir = up_dir.join("dist");
+
+            // Debugging: Print the directory path
+            println!("npm install directory: {:?}", npm_install_dir);
+
+            // Check if the directory exists
+            if !npm_install_dir.exists() {
+                panic!("npm install directory does not exist: {:?}", npm_install_dir);
+            }
+
+            // npm install command
+            match Command::new("cmd")
+                .args(&["/C", "npm", "install"])
+                .current_dir(npm_install_dir) // Set the correct directory
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .stdin(Stdio::null())
                 .creation_flags(CREATE_NO_WINDOW)
-                .spawn()
-                .expect("Failed to run npm install");
+                .spawn() {
+                    Ok(_) => println!("npm install started successfully"),
+                    Err(e) => panic!("Failed to run npm install: {:?}", e),
+                };
+        
 
             // Start the Node server and keep a handle to the process
             let server_process = Arc::new(Mutex::new(
-                Command::new(node_path)
-                    .arg(path_to_server)
+                Command::new("node")
+                    .arg("server.js") // Specify just the file name here
+                    .current_dir(&path_to_server_folder) // Change the working directory
                     .stdout(Stdio::null())
                     .stderr(Stdio::null())
                     .stdin(Stdio::null())
