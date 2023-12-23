@@ -89,17 +89,16 @@ export class StoredChatLog {
         return this.messages[1];
     }
 
-    toCompletionRequest(model: string = "mythomax", lorebook: string = "", preset: string = "StoryWriter"): CompletionRequest {
+    toCompletionRequest(model?: string, lorebook?: string): CompletionRequest {
         return {
-            model: model,
+            connectionid: model,
             lorebookid: lorebook,
             character: this.characters[0],
-            preset: preset,
             messages: this.messages.map((message) => message.toMessage())
         }
     }
 
-    async continueChatLogFromNewMessage(persona: UserPersona, message: string, character: Character){
+    async continueChatLogFromNewMessage(message: string, character: Character, persona?: UserPersona){
         if(!this.characters.includes(character._id)){
             this.addCharacter(character._id);
         }
@@ -134,7 +133,7 @@ export class StoredChatLog {
         this.messages[index].addSwipe(swipe);
     }
 
-    public async generateNewSwipe(persona: UserPersona, character: Character) {
+    public async generateNewSwipe(character: Character, persona?: UserPersona) {
         // Reverse a copy of the array to search from the end
         const reversedMessages = [...this.messages].reverse();
         const reversedIndex = reversedMessages.findIndex((message) => message.role === 'Assistant' && message.userId === character._id);

@@ -4,7 +4,7 @@ import path from "path";
 import dotenv from 'dotenv';
 dotenv.config();
 import { appSettingsPath, settingsPath } from "../server.js";
-import { SettingsInterface } from './connections.js';
+import { InstructMode, SettingsInterface } from './connections.js';
 import { DefaultSettings } from '../defaults/settings.js';
 
 export const settingsRouter = express.Router();
@@ -106,6 +106,26 @@ export interface AppSettingsInterface {
     enableZeroShotClassification: boolean;
     enableYesNoMaybe: boolean;
     jwtSecret: string;
+}
+
+export interface UsageArguments {
+    overrideSettings: string | null;
+    overrideConnection: string | null;
+    overrideInstruct: InstructMode | null;
+    humanReplyChance: number | null;
+    humanMentionReplyChance: number | null;
+    botReplyChance: number | null;
+    botMentionReplyChance: number | null;
+    doThoughts: boolean | null;
+    doSelfies: boolean | null;
+    doEmotions: boolean | null;
+    doSprites: boolean | null;
+    doBackgrounds: boolean | null;
+    doAnimations: boolean | null;
+    doSounds: boolean | null;
+    badWords: string[] | null;
+    modelOverride: string | null;
+    floatingGuidance: string | null;
 }
 
 // get all appSettings from the ../data/appSettings.json file

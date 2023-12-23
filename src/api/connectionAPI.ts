@@ -192,7 +192,7 @@ export async function fetchOpenAIModels(key?: string){
     }
 }
 
-export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona: UserPersona, connectionid?: string, settingsid?: string){
+export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona?: UserPersona, connectionid?: string, settingsid?: string){
     const newRequest: CompletionRequest = {
         lorebookid: 'mancer',
         messages,

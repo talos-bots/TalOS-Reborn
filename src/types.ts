@@ -77,12 +77,33 @@ export type Message = {
 };
 
 export type CompletionRequest = {
-    lorebookid: string;
-    connectionid: string | null;
+    lorebookid?: string;
+    connectionid?: string | null;
     character: CharacterInterface | string;
-    settingsid: string | null;
+    settingsid?: string | null;
     messages: Message[];
-    persona: UserPersona;
+    persona?: UserPersona;
+    args?: UsageArguments;
+}
+
+export interface UsageArguments {
+    overrideSettings: string | null;
+    overrideConnection: string | null;
+    overrideInstruct: InstructMode | null;
+    humanReplyChance: number | null;
+    humanMentionReplyChance: number | null;
+    botReplyChance: number | null;
+    botMentionReplyChance: number | null;
+    doThoughts: boolean | null;
+    doSelfies: boolean | null;
+    doEmotions: boolean | null;
+    doSprites: boolean | null;
+    doBackgrounds: boolean | null;
+    doAnimations: boolean | null;
+    doSounds: boolean | null;
+    badWords: string[] | null;
+    modelOverride: string | null;
+    floatingGuidance: string | null;
 }
 
 export type TokenType = 'SentencePiece' | 'GPT';

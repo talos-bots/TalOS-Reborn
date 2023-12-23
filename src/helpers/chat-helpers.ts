@@ -1,31 +1,30 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { sendCompletionRequest } from "../api/connectionAPI";
 import { Character } from "../global_classes/Character";
 import { Message } from "../global_classes/CompletionRequest";
 
 export async function continueConversation(messages: Message[], character: Character){
-    // const model = localStorage.getItem('modelid') || 'mythomax';
-    // const preset = localStorage.getItem('preset') || 'storywriter';
-    // const unparsedResponse = await sendCompletionRequest(model, messages, character, preset, 'lorebookid').then((response) => {
-    //     console.log(response);
-    //     return response;
-    // }).catch((error) => {
-    //     console.log(error);
-    // });
-    // if(unparsedResponse === null){
-    //     return null;
-    // }
-    // const value = unparsedResponse?.completion?.choices[0]?.text.trim();
-    // console.log(value);
-    // const refinedResponse = breakUpCommands(character.name, value, 'Test User', null, false);
-    // const assistantResponse: Message = {
-    //     userId: character._id,
-    //     fallbackName: character.name,
-    //     swipes: [refinedResponse],
-    //     currentIndex: 0,
-    //     role: 'Assistant',
-    //     thought: false,
-    // };
-    // return assistantResponse;
+    const unparsedResponse = await sendCompletionRequest(messages, character).then((response) => {
+        console.log(response);
+        return response;
+    }).catch((error) => {
+        console.log(error);
+    });
+    if(unparsedResponse === null){
+        return null;
+    }
+    const value = unparsedResponse?.completion?.choices[0]?.text.trim();
+    console.log(value);
+    const refinedResponse = breakUpCommands(character.name, value, 'You', null, false);
+    const assistantResponse: Message = {
+        userId: character._id,
+        fallbackName: character.name,
+        swipes: [refinedResponse],
+        currentIndex: 0,
+        role: 'Assistant',
+        thought: false,
+    };
+    return assistantResponse;
 }
 
 export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = false): string {

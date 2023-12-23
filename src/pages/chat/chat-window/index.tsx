@@ -94,7 +94,7 @@ const chatWindow = (props: ChatWindowProps) => {
         const newMessage = StoredChatMessage.fromUserPersonaAndString(persona, newMessageText);
         setChatMessages([...chatMessages, newMessage]);
         setShowTypingIndicator(true);
-        const returnedLog: StoredChatLog = await chatLog.continueChatLogFromNewMessage(persona, newMessageText, character).then((returnedLog) => {
+        const returnedLog: StoredChatLog = await chatLog.continueChatLogFromNewMessage(newMessageText, character, persona).then((returnedLog) => {
             return returnedLog;
         }).catch((error) => {
             console.log(error);

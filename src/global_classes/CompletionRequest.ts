@@ -8,7 +8,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // eslint-disable-next-line object-curly-spacing
 
-import {Character} from "./Character";
+import { UsageArguments } from "../types";
+import { Character, UserPersona } from "./Character";
 
 export type Role = "System" | "Assistant" | "User";
 export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme";
@@ -22,9 +23,11 @@ export type Message = {
 };
 
 export type CompletionRequest = {
-    model: string;
-    lorebookid: string;
+    lorebookid?: string;
+    connectionid?: string | null;
     character: Character | string;
-    preset: string;
+    settingsid?: string | null;
     messages: Message[];
+    persona?: UserPersona;
+    args?: UsageArguments;
 }

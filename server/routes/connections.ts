@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { connectionsPath } from '../server.js';
 import { CharacterInterface } from './characters.js';
+import { UsageArguments } from './settings.js';
 dotenv.config();
 
 export type Role = "System" | "Assistant" | "User";
@@ -45,12 +46,13 @@ export type Message = {
 };
 
 export type CompletionRequest = {
-    lorebookid: string;
-    connectionid: string | null;
+    lorebookid?: string;
+    connectionid?: string | null;
     character: CharacterInterface | string;
-    settingsid: string | null;
+    settingsid?: string | null;
     messages: Message[];
-    persona: UserPersona;
+    persona?: UserPersona;
+    args?: UsageArguments;
 }
 
 export type TokenType = 'SentencePiece' | 'GPT';
