@@ -83,10 +83,19 @@ export async function fetchConnectionModels(url: string, key?: string): Promise<
         }else{
             console.log(data);
             if(!data?.data){
+                if(!Array.isArray(data)){
+                    return null;
+                }
                 return data.map((model: any) => model.id);
             }else if(data?.data?.data){
+                if(!Array.isArray(data.data.data)){
+                    return null;
+                }
                 return data.data.data.map((model: any) => model.id);
             }else if(data?.data){
+                if(!Array.isArray(data.data)){
+                    return null
+                }
                 return data.data.map((model: any) => model.id);
             }
         }
@@ -105,6 +114,11 @@ export async function fetchMancerModels(key?: string){
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify({ key }),
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.error('Error sending mancer completion request:', error);
+            return null;
         });
         
         if (response.status !== 200) {

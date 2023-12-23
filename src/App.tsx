@@ -14,6 +14,8 @@ import RegisterPage from './pages/register';
 import AccountPage from './pages/account';
 import { useThemeSwapListener, useWebsocketNotificationListener, websocketNotification } from './helpers/events';
 import { TEAlert } from 'tw-elements-react';
+import DataSetCreator from './pages/dataset-creator';
+import { DatasetProvider } from './components/dataset/DatasetProvider';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -84,18 +86,21 @@ export default function App() {
 							{notificationBody}
 						</span>
 					</TEAlert>
-					<Routes>
-						<Route path='/*' element={<Navigate to='/home' />} />
-						<Route path='/create' element={<Navigate to='/characters/create' />} />
-						<Route path='/home' element={<HomePage/>} />
-						<Route path='/chat' element={<ChatPage/>} />
-						<Route path='/characters/:id' element={<CharacterCRUD/>} />
-						<Route path='/characters' element={<CharactersPage/>} />
-						<Route path='/settings' element={<SettingsPage/>} />
-						<Route path='/account' element={<AccountPage/>} />
-						<Route path='/register' element={<RegisterPage/>} />
-						<Route path='/login' element={<LoginPage/>} />
-					</Routes>
+					<DatasetProvider>
+						<Routes>
+							<Route path='/*' element={<Navigate to='/home' />} />
+							<Route path='/create' element={<Navigate to='/characters/create' />} />
+							<Route path='/home' element={<HomePage/>} />
+							<Route path='/chat' element={<ChatPage/>} />
+							<Route path='/characters/:id' element={<CharacterCRUD/>} />
+							<Route path='/characters' element={<CharactersPage/>} />
+							<Route path='/settings' element={<SettingsPage/>} />
+							<Route path='/account' element={<AccountPage/>} />
+							<Route path='/register' element={<RegisterPage/>} />
+							<Route path='/login' element={<LoginPage/>} />
+							<Route path='/dataset' element={<DataSetCreator/>} />
+						</Routes>
+					</DatasetProvider>
 				</div>
 			</Router>
 		</div>

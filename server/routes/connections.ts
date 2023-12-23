@@ -212,24 +212,34 @@ connectionsRouter.delete('/connection/:id', (req, res) => {
 });
 
 async function fetchGenericConnectionModels(url: string, key?: string) {
-    const endpointURLObject = new URL(url);
-    const response = await fetch(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}` + `/v1/models`,
-    {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': (key? key.length > 0? `Bearer ${key}` : '' : '')
+    try{
+        const endpointURLObject = new URL(url);
+        const response = await fetch(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}` + `/v1/models`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': (key? key.length > 0? `Bearer ${key}` : '' : '')
+            }
+        
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.log(error);
+            return error;
+        });
+        console.log(response);
+        if (!response.ok) {
+            console.log('Connection models not found');
+            throw Error(`Error: ${response.status}`);
         }
-    
-    });
-    console.log(response);
-    if (!response.ok) {
-        console.log('Connection models not found');
-        throw new Error(`Error: ${response.status}`);
+        const data = await response.json()
+        console.log(data);
+        return data;
+    }catch(error){
+        console.log(error);
+        return error;
     }
-    const data = await response.json()
-    console.log(data);
-    return data;
 }
 
 connectionsRouter.post('/test/connections', async (req, res) => {
@@ -240,15 +250,29 @@ connectionsRouter.post('/test/connections', async (req, res) => {
 });
 
 async function getMancerModels(key?: string) {
-    const response = await fetch(`https://neuro.mancer.tech/oai/v1/models`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${key?.trim()}`,
-        },
-    });
-    const json = await response.json();
-    return json;
+    try{
+        const response = await fetch(`https://neuro.mancer.tech/oai/v1/models`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key?.trim()}`,
+            },
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.log(error);
+            return error;
+        });
+        if (!response.ok) {
+            console.log('Connection models not found');
+            throw Error(`Error: ${response.status}`);
+        }
+        const json = await response.json();
+        return json;
+    }catch(error){
+        console.log(error);
+        return error;
+    }
 }
 
 connectionsRouter.post('/test/mancer', async (req, res) => {
@@ -258,18 +282,28 @@ connectionsRouter.post('/test/mancer', async (req, res) => {
 });
 
 async function getPalmModels(key?: string){
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    if (!response.ok) {
-        console.log('Connection models not found');
-        throw new Error(`Error: ${response.status}`);
+    try{
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.log(error);
+            return error;
+        });
+        if (!response.ok) {
+            console.log('Connection models not found');
+            throw Error(`Error: ${response.status}`);
+        }
+        const json = await response.json();
+        return json;
+    }catch(error){
+        console.log(error);
+        return error;
     }
-    const json = await response.json();
-    return json;
 }
 
 connectionsRouter.post('/test/palm', async (req, res) => {
@@ -279,15 +313,29 @@ connectionsRouter.post('/test/palm', async (req, res) => {
 });
 
 async function getOpenAI(key?: string) {
-    const response = await fetch(`https://api.openai.com/v1/models`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${key?.trim()}`,
-        },
-    });
-    const json = await response.json();
-    return json;
+    try{
+        const response = await fetch(`https://api.openai.com/v1/models`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key?.trim()}`,
+            },
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.log(error);
+            return error;
+        });
+        if (!response.ok) {
+            console.log('Connection models not found');
+            throw Error(`Error: ${response.status}`);
+        }
+        const json = await response.json();
+        return json;
+    }catch(error){
+        console.log(error);
+        return error;
+    }
 }
 
 connectionsRouter.post('/test/openai', async (req, res) => {
