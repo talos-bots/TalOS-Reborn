@@ -11,7 +11,7 @@ import { Helmet } from 'react-helmet-async';
 function getForwardFacingName(type: DiffusionType): string {
     switch (type) {
         case 'Dalle':
-            return 'OpenAI\'s DALLE';
+            return 'OpenAI\'s Dall-E';
         case 'Auto1111':
             return 'Automatic1111\'s SDWebUI';
         case 'SDAPI':
@@ -207,6 +207,7 @@ const ArtPage = () => {
                         <div className='rounded-box bg-base-200 flex-grow flex flex-col p-4 items-center justify-center gap-2 max-h-full h-full'>
                             {revisedPrompt !== "" && (
                                 <p className='dy-textarea dy-textarea-bordered rounded-box w-full max-h-[40%] overflow-y-auto'>
+                                    <i className=''>(Dall-E Revised Prompt)</i><br/>
                                     {revisedPrompt}
                                 </p>
                             )}
