@@ -211,6 +211,8 @@ connectionsRouter.delete('/connection/:id', (req, res) => {
     res.send({ message: "Connection removed successfully!" });
 });
 
+
+
 async function fetchGenericConnectionModels(url: string, key?: string) {
     try{
         const endpointURLObject = new URL(url);

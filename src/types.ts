@@ -17,6 +17,30 @@ export type GenericCompletionConnectionTemplate = {
     type?: EndpointType;
 }
 
+export type DiffusionType = 'Dalle' | 'Auto1111' | 'SDAPI' | 'Reborn' | 'Google' | 'Stability'
+export type DiffusionCompletionConnectionTemplate = {
+    id: string;
+    key?: string;
+    url?: string;
+    model?: string;
+    name?: string;
+    type?: DiffusionType;
+}
+
+export type DalleModels = "dall-e-2" | "dall-e-3"
+export const dalleModels: DalleModels[] = ["dall-e-2", "dall-e-3"]
+export type DalleSize3 = '1024x1024' | '1792x1024' | '1024x1792'
+export const dalleSizes3: DalleSize3[] = ["1024x1024", "1792x1024", "1024x1792"]
+export type DalleSize2 = '256x256' | '512x512' | '1024x1024'
+export const dalleSizes2: DalleSize2[] = ["256x256", "512x512", "1024x1024"]
+export type DalleStyle = "vivid" | "natural";
+export const dalleStyles: DalleStyle[] = ["vivid", "natural"];
+
+export type DiffusionResponseObject = {
+    url: string;
+    revisedPrompt: string;
+}
+
 export type SettingsInterface = {
     id: string;
     name: string;

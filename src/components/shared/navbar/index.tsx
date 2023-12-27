@@ -91,10 +91,10 @@ const NavBar = (props: NavBarProps) => {
                     </NavLink>
                     {/* <NavLink className="dy-btn dy-btn-ghost" title="Games" to="/games">
                         <Gamepad2 />
-                    </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost" title="Art" to="/art">
-                        <Paintbrush />
                     </NavLink> */}
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Art" to="/art">
+                        <Paintbrush />
+                    </NavLink>
                 </div>
             </div>
 
@@ -115,9 +115,9 @@ const NavBar = (props: NavBarProps) => {
                     {/* <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Games" to="/games">
                         <Gamepad2/>
                     </NavLink> */}
-                    {/* <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Art" to="/art">
+                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Art" to="/art">
                         <Paintbrush/>
-                    </NavLink> */}
+                    </NavLink>
                 </div>
             </div>
             {user?.id ? (

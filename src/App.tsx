@@ -16,6 +16,7 @@ import { useThemeSwapListener, useWebsocketNotificationListener, websocketNotifi
 import { TEAlert } from 'tw-elements-react';
 import DataSetCreator from './pages/dataset-creator';
 import { DatasetProvider } from './components/dataset/DatasetProvider';
+import ArtPage from './pages/art';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -53,7 +54,7 @@ export default function App() {
 		setNotificationTitle(data.title);
 		setNotificationBody(data.body);
 		setShowNotification(true);
-		notificationSound.play().catch((e) => console.error('Error playing sound:', e));
+		// notificationSound.play().catch((e) => console.error('Error playing sound:', e));
 	});
 
 	if(loading) {
@@ -99,6 +100,7 @@ export default function App() {
 							<Route path='/register' element={<RegisterPage/>} />
 							<Route path='/login' element={<LoginPage/>} />
 							<Route path='/dataset' element={<DataSetCreator/>} />
+							<Route path='/art' element={<ArtPage/>} />
 						</Routes>
 					</DatasetProvider>
 				</div>

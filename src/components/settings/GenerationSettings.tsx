@@ -199,8 +199,8 @@ const GenerationSettings = () => {
                     <i className="text-sm">Controls how many 'tokens' are sent to the LLM. This will affect the speed of generation, the cohherrence of conversation flow, and the amount of memory used.
                 (All endpoints, will not override model's max context length)</i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='512' max="8192" step="16" value={maxContextLength} onChange={async (e) => {setMaxContextLength(parseInt(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='512' max="8192" step="16" value={maxContextLength} onChange={async (e) => {setMaxContextLength(parseInt(e.target.value))}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='512' max="8192" step="16" value={maxContextLength} onChange={async (e) => {setMaxContextLength(parseInt(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='512' max="8192" step="16" value={maxContextLength} onChange={async (e) => {setMaxContextLength(parseInt(e.target.value))}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -208,24 +208,24 @@ const GenerationSettings = () => {
                     <i className="text-sm">Controls the maximum amount of return 'tokens' the LLM can send in reply to your prompt. This is <b>not</b> a gaurantor of length, but rather a limit.
                     (All endpoints, will not override model's max generation length)</i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='16' max='512' step="2" value={maxTokens} onChange={async (e) => {setMaxTokens(parseInt(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='dy-input' type="number" min='16' max='512' step="2" value={maxTokens} onChange={async (e) => {setMaxTokens(parseInt(e.target.value))}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='16' max='512' step="2" value={maxTokens} onChange={async (e) => {setMaxTokens(parseInt(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='dy-input' type="number" min='16' max='512' step="2" value={maxTokens} onChange={async (e) => {setMaxTokens(parseInt(e.target.value))}} />
                     </div>
                 </div>
                 <div className="flex flex-col">
                     <span className=" font-semibold">Min Length</span>
                     <i className="text-sm">This controls how many tokens the LLM will always generate. (Ooba, OpenAI, Claude, PaLM)</i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0' max='512' step='2' value={minLength} onChange={async (e) => {setMinLength(parseInt(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0' max='512' step='2' value={minLength} onChange={async (e) => {setMinLength(parseInt(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0' max='512' step='2' value={minLength} onChange={async (e) => {setMinLength(parseInt(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0' max='512' step='2' value={minLength} onChange={async (e) => {setMinLength(parseInt(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
                     <span className=" font-semibold">Temperature</span>
                     <i className="text-sm">Controls the randomness of the LLM. Lower values will make the LLM more predictable, higher values will make the LLM more random. (All endpoints)</i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min="0.10" max="2.00" step="0.01" value={temperature} onChange={async (e) => {setTemperature(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min="0.10" max="2.00" step="0.01" value={temperature} onChange={async (e) => {setTemperature(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min="0.10" max="2.00" step="0.01" value={temperature} onChange={async (e) => {setTemperature(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min="0.10" max="2.00" step="0.01" value={temperature} onChange={async (e) => {setTemperature(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -235,8 +235,8 @@ const GenerationSettings = () => {
                         (Ooba, Kobold, Horde)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" step="0.01" min='1' max="1.50" value={repPen} onChange={async (e) => {setRepPen(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" step="0.01" min='1' max="1.50" id='input-container' type="number" value={repPen} onChange={async (e) => {setRepPen(parseFloat(e.target.value))}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" step="0.01" min='1' max="1.50" value={repPen} onChange={async (e) => {setRepPen(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" step="0.01" min='1' max="1.50" id='input-container' type="number" value={repPen} onChange={async (e) => {setRepPen(parseFloat(e.target.value))}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -246,8 +246,8 @@ const GenerationSettings = () => {
                         (Ooba, Kobold, Horde)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0' step="16" max="8192" value={repPenRange} onChange={async (e) => {setRepPenRange(parseInt(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0' step="16" max="8192" value={repPenRange} onChange={async (e) => {setRepPenRange(parseInt(e.target.value))}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0' step="16" max="8192" value={repPenRange} onChange={async (e) => {setRepPenRange(parseInt(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0' step="16" max="8192" value={repPenRange} onChange={async (e) => {setRepPenRange(parseInt(e.target.value))}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -259,8 +259,8 @@ const GenerationSettings = () => {
                         (Ooba, Kobold, Horde)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.0' max="10" step="0.1" value={repPenSlope} onChange={async (e) => {setRepPenSlope(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.0' max="10" step="0.1" value={repPenSlope} onChange={async (e) => {setRepPenSlope(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.0' max="10" step="0.1" value={repPenSlope} onChange={async (e) => {setRepPenSlope(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.0' max="10" step="0.1" value={repPenSlope} onChange={async (e) => {setRepPenSlope(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -269,8 +269,8 @@ const GenerationSettings = () => {
                         (Ooba, OpenAI)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.00' max="10.00" step="0.05" value={frequencyPenalty} onChange={async (e) => {setFrequencyPenalty(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.00' max="10.00" step="0.05" value={frequencyPenalty} onChange={async (e) => {setFrequencyPenalty(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.00' max="10.00" step="0.05" value={frequencyPenalty} onChange={async (e) => {setFrequencyPenalty(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max="10.00" step="0.05" value={frequencyPenalty} onChange={async (e) => {setFrequencyPenalty(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -279,8 +279,8 @@ const GenerationSettings = () => {
                         (Ooba, OpenAI)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.00' max="10.00" step="0.05" value={presencePenalty} onChange={async (e) => {setPresencePenalty(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.00' max="10.00" step="0.05" value={presencePenalty} onChange={async (e) => {setPresencePenalty(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.00' max="10.00" step="0.05" value={presencePenalty} onChange={async (e) => {setPresencePenalty(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max="10.00" step="0.05" value={presencePenalty} onChange={async (e) => {setPresencePenalty(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -289,8 +289,8 @@ const GenerationSettings = () => {
                         (Ooba, OpenAI)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.00' max="1.00" step="0.01" value={minP} onChange={async (e) => {setMinP(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.00' max="1.00" step="0.01" value={minP} onChange={async (e) => {setMinP(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.00' max="1.00" step="0.01" value={minP} onChange={async (e) => {setMinP(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max="1.00" step="0.01" value={minP} onChange={async (e) => {setMinP(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col">
@@ -300,7 +300,7 @@ const GenerationSettings = () => {
                         (Ooba)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="number" min='0' max="2" step="1" value={mirostatMode} onChange={async (e) => {setMirostatMode(parseInt(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="number" min='0' max="2" step="1" value={mirostatMode} onChange={async (e) => {setMirostatMode(parseInt(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col">
@@ -309,8 +309,8 @@ const GenerationSettings = () => {
                         (Ooba)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0' max="10" step="0.05" value={mirostatTau} onChange={async (e) => {setMirostatTau(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0' max="10" step="0.05" value={mirostatTau} onChange={async (e) => {setMirostatTau(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0' max="10" step="0.05" value={mirostatTau} onChange={async (e) => {setMirostatTau(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0' max="10" step="0.05" value={mirostatTau} onChange={async (e) => {setMirostatTau(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col">
@@ -319,8 +319,8 @@ const GenerationSettings = () => {
                         (Ooba)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0' max="1" step="0.01" value={mirostatEta} onChange={async (e) => {setMirostatEta(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" type="number" min='0' max="1" step="0.01" value={mirostatEta} onChange={async (e) => {setMirostatEta(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0' max="1" step="0.01" value={mirostatEta} onChange={async (e) => {setMirostatEta(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" type="number" min='0' max="1" step="0.01" value={mirostatEta} onChange={async (e) => {setMirostatEta(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -331,8 +331,8 @@ const GenerationSettings = () => {
                         (Ooba, Kobold, Horde)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.00' max="1.00" step="0.01" value={topA} onChange={async (e) => {setTopA(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.00' max="1.00" step="0.01" value={topA} onChange={async (e) => {setTopA(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.00' max="1.00" step="0.01" value={topA} onChange={async (e) => {setTopA(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max="1.00" step="0.01" value={topA} onChange={async (e) => {setTopA(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -344,8 +344,8 @@ const GenerationSettings = () => {
                         (Ooba, Kobold, Horde)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0' max="120" step="1" value={topK} onChange={async (e) => {setTopK(parseInt(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0' max="120" step="1" value={topK} onChange={async (e) => {setTopK(parseInt(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0' max="120" step="1" value={topK} onChange={async (e) => {setTopK(parseInt(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0' max="120" step="1" value={topK} onChange={async (e) => {setTopK(parseInt(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -355,8 +355,8 @@ const GenerationSettings = () => {
                         (OpenAI, Kobold, Horde, Ooba, Claude)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.00' max='1' step='0.01' value={topP} onChange={async (e) => {setTopP(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.00' max='1' step='0.01' value={topP} onChange={async (e) => {setTopP(parseFloat(e.target.value))}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.00' max='1' step='0.01' value={topP} onChange={async (e) => {setTopP(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max='1' step='0.01' value={topP} onChange={async (e) => {setTopP(parseFloat(e.target.value))}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -368,8 +368,8 @@ const GenerationSettings = () => {
                         (Kobold, Horde, Ooba)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.00' max='1' step='0.01' value={typical} onChange={async (e) => {setTypical(parseFloat(e.target.value));}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.00' max='1' step='0.01' value={typical} onChange={async (e) => {setTypical(parseFloat(e.target.value));}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.00' max='1' step='0.01' value={typical} onChange={async (e) => {setTypical(parseFloat(e.target.value));}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max='1' step='0.01' value={typical} onChange={async (e) => {setTypical(parseFloat(e.target.value));}} />
                     </div>
                 </div>
                 <div className="flex flex-col ">
@@ -381,8 +381,8 @@ const GenerationSettings = () => {
                         (Kobold, Horde, Ooba)
                     </i>
                     <div className="w-full flex flex-row gap-2">
-                        <input className="w-2/3 dy-input" type="range" min='0.00' max='1' step='0.01' value={tfs} onChange={async (e) => {setTfs(parseFloat(e.target.value))}} />
-                        <input className="w-1/3 dy-input" id='input-container' type="number" min='0.00' max='1' step='0.01' value={tfs} onChange={async (e) => {setTfs(parseFloat(e.target.value))}} />
+                        <input className="w-2/3 dy-input dy-input-bordered" type="range" min='0.00' max='1' step='0.01' value={tfs} onChange={async (e) => {setTfs(parseFloat(e.target.value))}} />
+                        <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max='1' step='0.01' value={tfs} onChange={async (e) => {setTfs(parseFloat(e.target.value))}} />
                     </div>
                 </div>
                 <div>
@@ -390,7 +390,7 @@ const GenerationSettings = () => {
                 </div>
                 <div className="flex flex-col">
                     <span className=" font-semibold">Sampler Order</span>
-                    <input className="dy-input" type="text" value={samplerOrder.toString()} onChange={async (e) => {setSamplerOrder(e.target.value.split(',').map(Number))}} />
+                    <input className="dy-input dy-input-bordered" type="text" value={samplerOrder.toString()} onChange={async (e) => {setSamplerOrder(e.target.value.split(',').map(Number))}} />
                 </div>
             </div>
         </div>

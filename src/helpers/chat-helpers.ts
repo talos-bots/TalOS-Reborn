@@ -28,13 +28,15 @@ export async function continueConversation(messages: Message[], character: Chara
 }
 
 export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = false): string {
-    const lines = commandString.split('\n');
+    const lines = commandString.split('\n').filter((line) => {
+        return line.trim() !== '';
+    });
     const formattedCommands = [];
     let currentCommand = '';
     let isFirstLine = true;
     
     if (doMultiLine === false){
-        let command = lines[0];
+        let command = lines.join(' ');
         if(command.trim() === ''){
             if(lines.length > 1){
                 command = lines[1];
@@ -81,7 +83,9 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     if (currentCommand !== '') {
         formattedCommands.push(currentCommand.replaceAll(`${charName}:`, ''));
     }
-    
-    const final = formattedCommands.join('\n');
+    const removedEmptyLines = formattedCommands.filter((command) => {
+        return command.trim() !== '';
+    });
+    const final = removedEmptyLines.join('\n');
     return final.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '').replaceAll(`${charName}: `, '');
 }

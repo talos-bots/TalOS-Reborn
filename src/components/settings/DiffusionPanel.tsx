@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react";
-import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
-import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
-import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels } from "../../api/connectionAPI";
-import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
+import React, { useEffect, useState } from 'react';
+import { DiffusionCompletionConnectionTemplate, DiffusionType } from '../../types';
+import { deleteDiffusionConnectionById, fetchAllDiffusionConnections, saveDiffusionConnectionToLocal } from '../../api/diffusionAPI';
+import { getAppSettingsDiffusionConnection, setAppSettingsDiffusion } from '../../api/settingsAPI';
+import RequiredInputField, { RequiredSelectField } from '../../components/shared/required-input-field';
 
-function getForwardFacingName(type: EndpointType): string {
+function getForwardFacingName(type: DiffusionType): string {
     switch (type) {
-        case 'OAI-Compliant-API':
-            return 'Generic OpenAI Completions Endpoint';
-        case 'PaLM':
-            return 'Google Makersuite';
-        case 'OAI':
-            return 'OpenAI Key';
+        case 'Dalle':
+            return 'OpenAI\'s DALLE';
+        case 'Auto1111':
+            return 'Automatic1111\'s SDWebUI';
+        case 'SDAPI':
+            return '"The Stable Diffusion API" Service"';
         default:
             return type;
     }
 }
 
-const ConnectionPanel = () => {
-    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM']
-    const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
-    const [connectionType, setConnectionType] = useState<EndpointType>(connectionTypes[0] as EndpointType)
+const DiffusionPanel = () => {
+    const connectionTypes: DiffusionType[] = ['Dalle', 'Auto1111']
+    const [savedConnections, setSavedConnections] = useState<DiffusionCompletionConnectionTemplate[]>([])
+    const [connectionType, setConnectionType] = useState<DiffusionType>(connectionTypes[0] as DiffusionType)
     const [connectionID, setConnectionID] = useState<string>('' as string)
     const [connectionPassword, setConnectionPassword] = useState<string>('' as string)
     const [connectionURL, setConnectionURL] = useState<string>('' as string)
@@ -32,7 +32,7 @@ const ConnectionPanel = () => {
     const [urlValid, setURLValid] = useState<boolean>(false)
 
     const handleLoadConnections = () => {
-        fetchAllConnections().then((connections) => {
+        fetchAllDiffusionConnections().then((connections) => {
             setSavedConnections(connections)
         })
     }
@@ -46,21 +46,21 @@ const ConnectionPanel = () => {
         if (newID === ''){
             newID = new Date().getTime().toString()
         }
-        const newConnection: GenericCompletionConnectionTemplate = {
+        const newConnection: DiffusionCompletionConnectionTemplate = {
             id: newID,
             key: connectionPassword,
             url: connectionURL,
             name: connectionName,
             model: connectionModel,
             type: connectionType
-        } as GenericCompletionConnectionTemplate
+        } as DiffusionCompletionConnectionTemplate
         if (savedConnections.some((connection) => connection.id === connectionID)) {
             const index = savedConnections.findIndex((connection) => connection.id === connectionID)
             savedConnections[index] = newConnection
         }else{
             setSavedConnections([...savedConnections, newConnection])
         }
-        saveConnectionToLocal(newConnection)
+        saveDiffusionConnectionToLocal(newConnection)
         handleLoadConnections()
     }
 
@@ -68,7 +68,7 @@ const ConnectionPanel = () => {
         const index = savedConnections.findIndex((connection) => connection.id === connectionID)
         savedConnections.splice(index, 1)
         setSavedConnections([...savedConnections])
-        deleteConnectionById(connectionID)
+        deleteDiffusionConnectionById(connectionID)
     }
 
     useEffect(() => {
@@ -81,7 +81,7 @@ const ConnectionPanel = () => {
                 setConnectionName(connection.name)
                 setConnectionModel(connection.model)
             }else{
-                setConnectionType(connectionTypes[0] as EndpointType)
+                setConnectionType(connectionTypes[0] as DiffusionType)
                 setConnectionPassword('')
                 setConnectionURL('')
                 setConnectionName('')
@@ -92,7 +92,7 @@ const ConnectionPanel = () => {
     }, [connectionID])
     
     useEffect(() => {
-        getAppSettingsConnection().then((settings) => {
+        getAppSettingsDiffusionConnection().then((settings) => {
             setConnectionID(settings)
         })
     }, [])
@@ -109,61 +109,24 @@ const ConnectionPanel = () => {
     }
 
     const setDefaultConnection = async () => {
-        await setAppSettingsConnection(connectionID)
+        await setAppSettingsDiffusion(connectionID)
     }
 
     const handleTestConnection = () => {
-        if(connectionType === 'Mancer'){
-            setConnectionStatus('Connecting...')
-            fetchMancerModels(connectionPassword).then((models) => {
-                if(models === null) return
-                setConnectionStatus('Connection Successful!')
-                setConnectionModelList(models)
-            }).catch((error) => {
-                setConnectionStatus('Connection Failed')
-            })
-        }else if (connectionType === 'PaLM'){
-            setConnectionStatus('Connecting...')
-            fetchPalmModels(connectionPassword).then((models) => {
-                if(models === null) return
-                setConnectionStatus('Connection Successful!')
-                setConnectionModelList(models)
-            }).catch((error) => {
-                setConnectionStatus('Connection Failed')
-            })
-        }else if(connectionType === 'OAI'){
-            setConnectionStatus('Connecting...')
-            fetchOpenAIModels(connectionPassword).then((models) => {
-                if(models === null) return
-                setConnectionStatus('Connection Successful!')
-                setConnectionModelList(models)
-            }).catch((error) => {
-                setConnectionStatus('Connection Failed')
-            })
-        
-        }else {
-            setConnectionStatus('Connecting...')
-            fetchConnectionModels(connectionURL).then((models) => {
-                if(models === null) return
-                setConnectionStatus('Connection Successful!')
-                setConnectionModelList(models)
-            }).catch((error) => {
-                setConnectionStatus('Connection Failed')
-            })
-        }
+
     }
 
     return (
-        <div className="flex flex-col gap-2 text-base-content">
+        <div className="text-base-content flex flex-col gap-2">
             <div className="flex flex-row gap-2 w-full items-center justify-center">
                 <RequiredSelectField
-                    label="Connection Profile"
+                    label="Profile"
                     value={connectionID}
                     onChange={(e)=> setConnectionID(e.target.value)}
                     required={false}
                     className={'w-full'}
                 >
-                    <option value={''}>New Connection</option>
+                    <option value={''}>New Diffusion Connection</option>
                     {savedConnections.map((connectionOption, index) => (
                         <option key={index} value={connectionOption.id}>{connectionOption.name}</option>
                     ))}
@@ -173,16 +136,16 @@ const ConnectionPanel = () => {
             </div>
             <RequiredInputField
                 type="text"
-                label="Connection Name"
+                label="Name"
                 value={connectionName}
                 onChange={(e)=> setConnectionName(e.target.value)}
                 required={false}
                 className={''}
             />
             <RequiredSelectField
-                label="Connection Type"
+                label="Type"
                 value={connectionType}
-                onChange={(e)=> setConnectionType(e.target.value as EndpointType)}
+                onChange={(e)=> setConnectionType(e.target.value as DiffusionType)}
                 required={false}
                 className={''}
             >
@@ -190,12 +153,12 @@ const ConnectionPanel = () => {
                     <option key={index} value={connectionOption}>{getForwardFacingName(connectionOption)}</option>
                 ))}
             </RequiredSelectField>
-            {connectionType !== 'Mancer' && connectionType !== 'OAI' && connectionType !== 'Horde' && connectionType !== 'PaLM' && (
+            {connectionType !== 'Dalle' && connectionType !== 'SDAPI' && connectionType !== 'Google' && connectionType !== 'Stability' && (
                 <>
                 <div className="flex flex-row gap-2 w-full items-center justify-center">
                     <RequiredInputField
                         type="text"
-                        label="Connection URL"
+                        label="URL"
                         value={connectionURL}
                         onChange={(e)=> setConnectionURL(e.target.value)}
                         required={false}
@@ -210,7 +173,7 @@ const ConnectionPanel = () => {
             )}
             <RequiredInputField
                 type="password"
-                label="Connection Password (API Key)"
+                label="Password (API Key)"
                 value={connectionPassword}
                 onChange={(e)=> setConnectionPassword(e.target.value)}
                 required={false}
@@ -218,11 +181,11 @@ const ConnectionPanel = () => {
             />
             <button className="dy-btn dy-btn-primary" onClick={handleTestConnection}>Test Connection</button>
             <div className="flex flex-col gap-2">
-                <p className="dy-textarea dy-textarea-bordered p-4 w-full flex flex-row justify-between">
-                    <b>Connection Status</b> {connectionStatus}
+                <p className="dy-textarea dy-textarea-bordered w-full flex flex-row justify-between">
+                    <b>Status</b> {connectionStatus}
                 </p>
                 <RequiredSelectField
-                    label="Connection Model"
+                    label="Model"
                     value={connectionModel}
                     onChange={(e)=> setConnectionModel(e.target.value)}
                     required={false}
@@ -238,5 +201,5 @@ const ConnectionPanel = () => {
             </div>
         </div>
     );
-};
-export default ConnectionPanel;
+}
+export default DiffusionPanel;

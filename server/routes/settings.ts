@@ -105,6 +105,7 @@ export interface AppSettingsInterface {
     enableQuestionAnswering: boolean;
     enableZeroShotClassification: boolean;
     enableYesNoMaybe: boolean;
+    defaultDiffusionConnection: string;
     jwtSecret: string;
 }
 
@@ -340,6 +341,29 @@ settingsRouter.post('/appSettings/enableYesNoMaybe', (req, res) => {
         res.status(404).send({ message: "AppSetting not found" });
     }
 });
+
+// get all defaultDiffusionConnection from the ../data/appSettings.json file
+settingsRouter.get('/appSettings/defaultDiffusionConnection', (req, res) => {
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        res.send(appSettingsData.defaultDiffusionConnection);
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+});
+
+// set the defaultDiffusionConnection in the ../data/appSettings.json file
+settingsRouter.get('/appSettings/defaultDiffusionConnection', (req, res) => {
+    const diffusionID = req.body.diffusionId
+    const appSettingsData = fetchAllAppSettings();
+    if (appSettingsData) {
+        appSettingsData.defaultDiffusionConnection = diffusionID;
+        saveAppSetting(appSettingsData);
+        res.send({ message: "defaultDiffusionConnection set successfully!" });
+    } else {
+        res.status(404).send({ message: "AppSetting not found" });
+    }
+})
 
 //function that checks if the user is an admin
 export function isAdmin(user: string) {

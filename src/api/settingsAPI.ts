@@ -68,6 +68,7 @@ interface AppSettingsInterface {
     enableQuestionAnswering: boolean;
     enableZeroShotClassification: boolean;
     enableYesNoMaybe: boolean;
+    defaultDiffusionConnection: string;
 }
 
 // Fetch all app settings
@@ -116,6 +117,19 @@ export async function getAppSettingsConnection(): Promise<string | null> {
     }
 }
 
+export async function getAppSettingsDiffusionConnection(): Promise<string | null> {
+    try {
+        const response = await api('/api/appSettings/defaultDiffusionConnection');
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
+        }
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching default diffusion connection:", error);
+        return null;
+    }
+}
+
 // Get default settings
 export async function getAppSettingsSettings(): Promise<string | null> {
     try {
@@ -145,6 +159,24 @@ export async function setAppSettingsConnection(connectionId: string): Promise<vo
         }
     } catch (error) {
         console.error("Error setting default connection:", error);
+    }
+}
+
+// set default diffusion connection
+export async function setAppSettingsDiffusion(diffusionId: string): Promise<void> {
+    try {
+        const response = await api('/api/appSettings/defaultDiffusionConnection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({ diffusionId: diffusionId }),
+        });
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
+        }
+    } catch (error) {
+        console.error("Error setting default diffusion connection:", error);
     }
 }
 

@@ -23,6 +23,7 @@ import { llmsRouter } from './routes/llms.js';
 import { transformersRouter } from './helpers/transformers.js';
 import { lorebooksRouter } from './routes/lorebooks.js';
 import WebSocket from 'ws';
+import { diffusionRouter } from './routes/diffusion.js';
 
 const __dirname = path.resolve();
 //get the userData directory
@@ -54,6 +55,7 @@ const defaultAppSettings: AppSettingsInterface = {
     enableQuestionAnswering: false,
     enableZeroShotClassification: false,
     enableYesNoMaybe: false,
+    defaultDiffusionConnection: "",
     jwtSecret: "",
 };
 
@@ -88,7 +90,7 @@ export const spellsPath = `${dataPath}/spells`;
 export const weaponsPath = `${dataPath}/weapons`;
 export const armorsPath = `${dataPath}/armors`;
 export const conversationsPath = `${dataPath}/conversations`;
-
+export const diffusionConnectionsPath = `${dataPath}/diffusion_connections`;
 export const expressApp = express();
 const port = 3003;
 
@@ -129,6 +131,7 @@ fs.mkdirSync(weaponsPath, { recursive: true });
 fs.mkdirSync(armorsPath, { recursive: true });
 fs.mkdirSync(conversationsPath, { recursive: true });
 fs.mkdirSync(connectionsPath, { recursive: true });
+fs.mkdirSync(diffusionConnectionsPath, { recursive: true });
 
 expressApp.use(bodyParser.json({ limit: '1000mb' }));
 expressApp.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
@@ -405,6 +408,7 @@ expressApp.use('/api', connectionsRouter);
 expressApp.use('/api', llmsRouter);
 expressApp.use('/api', lorebooksRouter);
 expressApp.use('/api/transformers', transformersRouter);
+expressApp.use('/api', diffusionRouter);
 
 function checkIfTauriAppIsOpen() {
     return new Promise((resolve, reject) => {
