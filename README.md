@@ -1,2 +1,5 @@
 # TalOS - Reborn
-Tav wanted this.
+### Planned Features:
+- Multiplayer
+- Public Server for AI hosting and configurations between friends
+- Discord Bot with UI configuration
