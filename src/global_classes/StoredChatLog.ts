@@ -107,6 +107,7 @@ export class StoredChatLog {
         let tries = 0;
         let unfinished = true;
         let value = '';
+        let refinedResponse = '';
         while(unfinished && tries < 3){
             const unparsedResponse = await sendCompletionRequest(this.messages, character, persona).then((response) => {
                 console.log(response);
@@ -118,12 +119,12 @@ export class StoredChatLog {
                 return null;
             }
             value = unparsedResponse?.choices[0]?.text.trim();
+            refinedResponse = breakUpCommands(character.name, value, persona?.name ?? 'You', null, false);
             tries++;
-            if(value !== ''){
+            if(refinedResponse !== ''){
                 unfinished = false;
             }
         }
-        const refinedResponse = breakUpCommands(character.name, value, persona?.name ?? 'You', null, false);
         const assistantResponse: Message = {
             userId: character._id,
             fallbackName: character.name,
