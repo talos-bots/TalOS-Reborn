@@ -44,7 +44,7 @@ const defaultAppSettings: AppSettingsInterface = {
     enableZeroShotClassification: false,
     enableYesNoMaybe: false,
     defaultDiffusionConnection: "",
-    jwtSecret: "",
+    jwtSecret: ""
 };
 
 
@@ -91,10 +91,21 @@ args.forEach(arg => {
     }
 });
 
-let appSettings: AppSettingsInterface = defaultAppSettings;
+let appSettings = { ...defaultAppSettings };
 
-if(fs.existsSync(appSettingsPath)) {
-    appSettings = JSON.parse(fs.readFileSync(appSettingsPath, 'utf8'));
+if (fs.existsSync(appSettingsPath)) {
+    try {
+        const settingsData = fs.readFileSync(appSettingsPath, 'utf8');
+        if (settingsData) {
+            console.log('App settings file found. Using settings from file.');
+            appSettings = JSON.parse(settingsData);
+            fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
+        } else {
+            console.error('App settings file is empty. Using default settings.');
+        }
+    } catch (err) {
+        console.error('Error parsing app settings file. Using default settings.', err);
+    }
 }
 
 export let JWT_SECRET = appSettings.jwtSecret;
