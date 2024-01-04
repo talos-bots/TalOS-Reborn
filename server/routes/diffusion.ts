@@ -7,7 +7,7 @@ import path from "path";
 
 import OpenAI from 'openai';
 
-export type DiffusionType = 'Dalle' | 'Auto1111' | 'SDAPI' | 'Reborn'
+export type DiffusionType = 'Dalle' | 'Auto1111' | 'SDAPI' | 'Reborn' | 'Google' | 'Stability' | 'NovelAI'
 export type DiffusionCompletionConnectionTemplate = {
     id: string;
     key?: string;

@@ -135,8 +135,8 @@ const tryParseOldCard = (file: File): Promise<Character | void> => {
                 });
                 
                 if (textChunks.length > 0) {
-                    const decodedString = decodeBase64(textChunks[0].text);
                     try {
+                        const decodedString = decodeBase64(textChunks[0].text);
                         const _json = JSON.parse(decodedString);
                         const construct = await processCharacterData(_json);
                         resolve(construct);

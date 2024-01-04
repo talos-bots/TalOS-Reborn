@@ -34,18 +34,6 @@ const talosDir = path.join(appDataDir, 'TalOS');
 fs.mkdirSync(talosDir, { recursive: true });
 export const appSettingsPath = path.join(talosDir, "/appSettings.json");
 
-function checkForAppSettings() {
-    return new Promise((resolve, reject) => {
-        fs.access(appSettingsPath, fs.constants.F_OK, (err) => {
-            if (err) {
-                resolve(false);
-                return;
-            }
-            resolve(true);
-        });
-    });
-}
-
 const defaultAppSettings: AppSettingsInterface = {
     defaultConnection: "",
     defaultSettings: "1",
@@ -59,17 +47,16 @@ const defaultAppSettings: AppSettingsInterface = {
     jwtSecret: "",
 };
 
-checkForAppSettings().then((exists) => {
-    if (!exists) {
-        fs.writeFile(appSettingsPath, JSON.stringify(defaultAppSettings), (err) => {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            console.log('App settings file created');
-        });
-    }
-});
+
+if (!fs.existsSync(appSettingsPath)) {
+    fs.writeFile(appSettingsPath, JSON.stringify(defaultAppSettings), (err) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.log('App settings file created');
+    });
+}
 
 export const uploadsPath = path.join(talosDir, '/uploads');
 export const dataPath = path.join(talosDir, '/data');

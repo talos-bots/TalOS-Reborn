@@ -84,12 +84,18 @@ const CharacterCRUD = () => {
         setWaitingForImage(true);
     
         const file = files[0];
-
+        const fileName = await uploadFile(file);
+        setAvatar(fileName);
+        setWaitingForImage(false);
         try {
-            const newCharacter = await importTavernCharacter(file);
-            const fileName = await uploadFile(file);
+            const newCharacter = await importTavernCharacter(file).then((character) => {
+                return character;
+            }).catch((error) => {
+                console.log(error);
+                return null;
+            });
             if(!newCharacter) return;
-            characterToForm(newCharacter, fileName);
+            characterToForm(newCharacter);
         } catch (error) {
             console.error("Error resizing image: ", error);
             // Handle the error appropriately
@@ -97,10 +103,12 @@ const CharacterCRUD = () => {
         setWaitingForImage(false);
     };
 
-    const characterToForm = (character: Character, avatarURL?: string) => {
+    const characterToForm = (character: Character) => {
         if(character !== null){
             setName(character?.name);
-            setAvatar(avatarURL ?? character?.avatar);
+            if(character?.avatar !== undefined && character?.avatar !== null && character?.avatar !== ''){
+                setAvatar(character?.avatar);
+            }
             setDescription(character?.description);
             setPersonality(character?.personality);
             setMesExample(character?.mes_example);

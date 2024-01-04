@@ -7,6 +7,7 @@ import { deleteStoredChatLog, getAllStoredChatLogs, getAllStoredChatLogsWithChar
 import { emitCloseSides, emitNewChatLog, emitSelectedChatLogChanged, useChatLogChangedListener } from "../../../helpers/events";
 import { Check, CloudOff, Trash, UploadCloud } from "lucide-react";
 import { confirmModal } from "../../../components/shared/confirm-modal";
+import { convertDiscordLogToMessageLog } from "../../../helpers";
 
 interface ChatLogsProps {
     character: Character | null;
@@ -52,6 +53,26 @@ const ChatLogs = (props: ChatLogsProps) => {
         });
     }
 
+    const uploadJsonLogs = async () => {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = ".json";
+        fileInput.onchange = async (e) => {
+            if(fileInput.files === null) return;
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                if(reader.result === null) return;
+                const logs = JSON.parse(reader.result.toString());
+                const log = convertDiscordLogToMessageLog(logs, character);
+                await log.saveToDB();
+                updateLogs();
+            }
+            reader.readAsText(file);
+        }
+        fileInput.click();
+    }
+
     return (
         <div className="flex flex-col h-full w-full overflow-y-scroll gap-2 p-2">
             {character?.name && (
@@ -59,6 +80,9 @@ const ChatLogs = (props: ChatLogsProps) => {
                     emitNewChatLog();
                 }}>New Chat with {character?.name}</button>
             )}
+            {/* <button className="dy-btn dy-btn-accent dy-btn-sm" onClick={() => {
+                uploadJsonLogs();
+            }}><UploadCloud/> Upload JSON Logs</button> */}
             {chatLogs.sort(
                 (a, b) => {
                     if(a.messages.length === 0) return 1;

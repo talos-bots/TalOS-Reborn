@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Character } from "../global_classes/Character";
 import { StoredChatLog, StoredChatMessage } from "../global_classes/StoredChatLog";
+import { CharacterInterface } from "../types";
 
 export function resizeImage(file: File) {
     return new Promise((resolve, reject) => {
@@ -105,4 +106,28 @@ export function determineModel(model: string){
                 'token_limit': 4096,
             }
     }
+}
+
+export function convertDiscordLogToMessageLog(discordLog: any, character: CharacterInterface): StoredChatLog {
+    const messageLog: StoredChatLog = new StoredChatLog();
+    messageLog._id = discordLog.channel.id
+    messageLog.characters = [character._id]
+    messageLog.messages = []
+    messageLog.name = discordLog.channel.name
+    messageLog.firstMessageDate = discordLog.messages[0].id
+    messageLog.lastMessageDate = discordLog.messages[discordLog.messages.length - 1].id
+    
+    const firstMessager = discordLog.messages[1].author.id
+    for (const message of discordLog.messages) {
+        const newMessage = new StoredChatMessage(
+            message.author.id === firstMessager ? "0" : character._id,
+            message.author.id === firstMessager ? 'Sen': character.name,
+            [message.content],
+            0,
+            message.author.id === firstMessager ? 'User' : "Assistant",
+            false,
+        );
+        messageLog.messages.push(newMessage);
+    }
+    return messageLog;
 }

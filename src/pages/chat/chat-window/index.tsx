@@ -243,8 +243,10 @@ const chatWindow = (props: ChatWindowProps) => {
             >
                 <Sprite character={character?._id} emotion={currentEmotion} position={currentPosition}/>
             </div>
-            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 " + (theaterMode ? `max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]` : 'max-h-[calc(92.5vh-180px)] min-h-[calc(92.5vh-180px)]')}>
-                {chatMessages.map((message, index) => {
+            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll overflow-x-hidden pl-2 pt-2 " + (theaterMode ? `max-h-[calc(25vh-80px)] min-h-[calc(25vh-80px)]` : 'max-h-[calc(92.5vh-180px)] min-h-[calc(92.5vh-180px)]')}>
+                {chatMessages.slice(
+                    Math.max(chatMessages.length - 200, 0)
+                ).map((message, index) => {
                     return (
                         <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
                             <div className="dy-chat-header">

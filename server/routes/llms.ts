@@ -311,7 +311,7 @@ async function formatCompletionRequest(request: CompletionRequest){
     if((request?.persona) && (request?.persona?.description) && (request?.persona?.description.trim() !== "") && (request?.persona?.importance === 'low')){
         prompt += `[${request.persona.description.trim()}]`;
     }
-    const leftoverTokens = settingsInfo.context_length - characterPromptTokens;
+    const leftoverTokens = (settingsInfo.context_length - characterPromptTokens) - 800;
     if(settingsInfo.instruct_mode === "Alpaca"){
         prompt += assembleAlpacaPromptFromLog(request.messages, leftoverTokens , character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
     }
@@ -334,7 +334,11 @@ function getStopSequences(messages: Message[]){
         if(stopSequences.includes(message.fallbackName) || message.role === "System" || message.thought === true || message.role === "Assistant"){
             continue;
         }
-        stopSequences.push(`${message.fallbackName}:`);
+        if(stopSequences.includes(`${message.fallbackName}:`)){
+            continue;
+        }else{
+            stopSequences.push(`${message.fallbackName}:`);
+        }
     }
     return stopSequences;
 }

@@ -131,6 +131,17 @@ export async function fetchMancerModels(key?: string){
             console.error('Error fetching mancer models:', data.error);
             return null;
         }else{
+            if(!data?.data){
+                if(!Array.isArray(data)){
+                    return null;
+                }
+                return data.map((model: any) => model.id);
+            }else if(data?.data?.data){
+                if(!Array.isArray(data.data.data)){
+                    return null;
+                }
+                return data.data.data.map((model: any) => model.id);
+            }
             return data.data.map((model: any) => model.id);
         }
     } catch (error) {

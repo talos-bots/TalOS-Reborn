@@ -17,7 +17,8 @@ export type GenericCompletionConnectionTemplate = {
     type?: EndpointType;
 }
 
-export type DiffusionType = 'Dalle' | 'Auto1111' | 'SDAPI' | 'Reborn' | 'Google' | 'Stability'
+export type DiffusionType = 'Dalle' | 'Auto1111' | 'SDAPI' | 'Reborn' | 'Google' | 'Stability' | 'NovelAI'
+export const diffusionTypes: DiffusionType[] = ["Dalle", "Auto1111", "SDAPI", "Reborn", "Google", "Stability", "NovelAI"]
 export type DiffusionCompletionConnectionTemplate = {
     id: string;
     key?: string;
