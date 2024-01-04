@@ -91,7 +91,11 @@ args.forEach(arg => {
     }
 });
 
-const appSettings: AppSettingsInterface = JSON.parse(fs.readFileSync(appSettingsPath, 'utf-8'));
+let appSettings: AppSettingsInterface = defaultAppSettings;
+
+if(fs.existsSync(appSettingsPath)) {
+    appSettings = JSON.parse(fs.readFileSync(appSettingsPath, 'utf8'));
+}
 
 export let JWT_SECRET = appSettings.jwtSecret;
 
