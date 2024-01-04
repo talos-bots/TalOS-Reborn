@@ -108,7 +108,7 @@ export class StoredChatLog {
         let unfinished = true;
         let value = '';
         let refinedResponse = '';
-        while(unfinished && tries < 3){
+        while(unfinished && tries <= 3){
             const unparsedResponse = await sendCompletionRequest(this.messages, character, persona).then((response) => {
                 console.log(response);
                 return response;
@@ -124,6 +124,9 @@ export class StoredChatLog {
             if(refinedResponse !== ''){
                 unfinished = false;
             }
+        }
+        if(refinedResponse === ''){
+            return null;
         }
         const assistantResponse: Message = {
             userId: character._id,
