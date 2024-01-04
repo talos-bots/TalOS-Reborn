@@ -9,7 +9,7 @@ import multer from 'multer';
 import bodyParser from 'body-parser';
 import fs from "fs";
 import path from "path";
-import db from './routes/database.js';
+import db, { clearUsers } from './routes/database.js';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
@@ -110,12 +110,13 @@ if (fs.existsSync(appSettingsPath)) {
 
 export let JWT_SECRET = appSettings.jwtSecret;
 
-if(!JWT_SECRET) {
+if(!JWT_SECRET && JWT_SECRET !== "") {
     const generateSecret = () => crypto.randomBytes(64).toString('hex');
     const secret = generateSecret()
     appSettings.jwtSecret = secret;
     fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
     JWT_SECRET = secret;
+    clearUsers();
 }
 
 fs.mkdirSync(uploadsPath, { recursive: true });

@@ -104,17 +104,25 @@ export class StoredChatLog {
         }
         const newUserMessage = StoredChatMessage.fromUserPersonaAndString(persona, message);
         this.addMessage(newUserMessage);
-        const unparsedResponse = await sendCompletionRequest(this.messages, character, persona).then((response) => {
-            console.log(response);
-            return response;
-        }).catch((error) => {
-            console.log(error);
-        });
-        if(unparsedResponse === null){
-            return null;
+        let tries = 0;
+        let unfinished = true;
+        let value = '';
+        while(unfinished && tries < 3){
+            const unparsedResponse = await sendCompletionRequest(this.messages, character, persona).then((response) => {
+                console.log(response);
+                return response;
+            }).catch((error) => {
+                console.log(error);
+            });
+            if(unparsedResponse === null){
+                return null;
+            }
+            value = unparsedResponse?.choices[0]?.text.trim();
+            tries++;
+            if(value !== ''){
+                unfinished = false;
+            }
         }
-        const value = unparsedResponse?.choices[0]?.text.trim();
-        console.log(value);
         const refinedResponse = breakUpCommands(character.name, value, persona?.name ?? 'You', null, false);
         const assistantResponse: Message = {
             userId: character._id,

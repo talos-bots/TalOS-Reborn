@@ -51,4 +51,8 @@ db.serialize(() => {
     )`);
 });
 
+export async function clearUsers() {
+    db.run(`DELETE FROM users`);
+}
+
 export default db;
