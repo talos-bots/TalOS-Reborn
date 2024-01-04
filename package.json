@@ -23,6 +23,7 @@
     "@mui/icons-material": "^5.14.18",
     "@mui/material": "^5.14.18",
     "@mui/styled-engine-sc": "^6.0.0-alpha.6",
+    "@popperjs/core": "^2.11.8",
     "@tauri-apps/api": "^1.5.2",
     "@xenova/transformers": "^2.11.0",
     "algoliasearch": "^4.20.0",
