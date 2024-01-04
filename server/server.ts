@@ -47,17 +47,6 @@ const defaultAppSettings: AppSettingsInterface = {
     jwtSecret: ""
 };
 
-
-if (!fs.existsSync(appSettingsPath)) {
-    fs.writeFile(appSettingsPath, JSON.stringify(defaultAppSettings), (err) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-        console.log('App settings file created');
-    });
-}
-
 export const uploadsPath = path.join(talosDir, '/uploads');
 export const dataPath = path.join(talosDir, '/data');
 export const modelsPath = path.join(talosDir, '/models');
@@ -99,7 +88,6 @@ if (fs.existsSync(appSettingsPath)) {
         if (settingsData) {
             console.log('App settings file found. Using settings from file.');
             appSettings = JSON.parse(settingsData);
-            fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
         } else {
             console.error('App settings file is empty. Using default settings.');
         }
@@ -109,16 +97,17 @@ if (fs.existsSync(appSettingsPath)) {
 }
 
 export let JWT_SECRET = appSettings.jwtSecret;
-
-if(!JWT_SECRET && JWT_SECRET !== "") {
+console.log("JWT secret: ", JWT_SECRET);
+if((JWT_SECRET.trim() === "") || (JWT_SECRET === undefined) || (JWT_SECRET === null)) {
     const generateSecret = () => crypto.randomBytes(64).toString('hex');
     const secret = generateSecret()
     appSettings.jwtSecret = secret;
-    fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
     JWT_SECRET = secret;
     clearUsers();
+    console.log("JWT secret not found. Generated new secret.");
 }
-
+console.log("JWT secret: ", JWT_SECRET);
+fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
 fs.mkdirSync(uploadsPath, { recursive: true });
 fs.mkdirSync(profilePicturesPath, { recursive: true });
 fs.mkdirSync(backgroundsPath, { recursive: true });
@@ -159,7 +148,7 @@ const userConnections = new Map<string, string>();
 export const expressAppIO = new Server(server, {
 	cors: corsOptions
 });
-
+fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
 // Graceful shutdown function
 function gracefulShutdown() {
 	console.log('Shutting down gracefully...');
@@ -398,7 +387,7 @@ function getActiveUsers() {
 }
 
 expressApp.get('/api/stats/users', authenticateToken, async (req, res) => {
-    const users = await getAllUsers();
+    const users = getAllUsers();
     const activeUsers = getActiveUsers();
     res.json({ users: users, activeUsers: activeUsers });
 });
@@ -436,8 +425,6 @@ expressApp.use(express.static(path.join(__dirname, '../dist-react')));
 expressApp.use('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist-react', 'index.html'));
 });
-
-
 
 if(!dev){
     setInterval(() => {

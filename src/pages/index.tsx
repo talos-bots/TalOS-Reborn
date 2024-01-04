@@ -98,7 +98,6 @@ const HomePage = () => {
                         </p>
                     </div>
                 </div>
-
             </div>
         </div>
     )
