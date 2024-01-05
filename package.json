@@ -58,6 +58,7 @@
     "sqlite3": "^5.1.6",
     "styled-components": "^6.1.1",
     "theme-change": "^2.5.0",
+    "tslib": "^2.6.2",
     "tw-elements": "^1.0.0",
     "tw-elements-react": "^1.0.0-alpha2"
   },

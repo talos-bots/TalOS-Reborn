@@ -2,7 +2,7 @@
 /* eslint-disable no-async-promise-executor */
 import path from 'path';
 import { unlink, writeFile } from 'fs/promises';
-import { Pipeline } from '@xenova/transformers';
+import { FeatureExtractionPipeline, Pipeline, QuestionAnsweringOutput, QuestionAnsweringPipeline, TextClassificationOutput, TextClassificationPipeline, ZeroShotClassificationOutput, ZeroShotClassificationPipeline } from '@xenova/transformers';
 import { modelsPath, uploadsPath, wasmPath } from '../server.js';
 import express from 'express';
 import { authenticateToken } from '../routes/authenticate-token.js';
@@ -40,7 +40,7 @@ export async function getModels(){
     }
 }
 
-const modelPromise: Promise<Pipeline> = new Promise(async (resolve, reject) => {
+const modelPromise: Promise<TextClassificationPipeline> = new Promise(async (resolve, reject) => {
     try {
         const { pipeline, env } = await import('@xenova/transformers');
 
@@ -69,7 +69,7 @@ const captionPromise: Promise<Pipeline> = new Promise(async (resolve, reject) =>
     }
 });
 
-const embeddingPromise: Promise<Pipeline> = new Promise(async (resolve, reject) => {
+const embeddingPromise: Promise<FeatureExtractionPipeline> = new Promise(async (resolve, reject) => {
     try{
         const { pipeline, env } = await import('@xenova/transformers');
 
@@ -84,7 +84,7 @@ const embeddingPromise: Promise<Pipeline> = new Promise(async (resolve, reject) 
     }
 });
 
-const questionPromise: Promise<Pipeline> = new Promise(async (resolve, reject) => {
+const questionPromise: Promise<QuestionAnsweringPipeline> = new Promise(async (resolve, reject) => {
     try{
         const { pipeline, env } = await import('@xenova/transformers');
 
@@ -99,7 +99,7 @@ const questionPromise: Promise<Pipeline> = new Promise(async (resolve, reject) =
     }
 });
 
-const zeroShotPromise: Promise<Pipeline> = new Promise(async (resolve, reject) => {
+const zeroShotPromise: Promise<ZeroShotClassificationPipeline> = new Promise(async (resolve, reject) => {
     try{
         const { pipeline, env } = await import('@xenova/transformers');
 
@@ -116,7 +116,7 @@ const zeroShotPromise: Promise<Pipeline> = new Promise(async (resolve, reject) =
 
 async function getClassification(text: string): Promise<any> {
     const model = await modelPromise;
-    const results = await model(text);
+    const results = await model(text) as TextClassificationOutput;
     return results[0].label;
 }
 
@@ -154,13 +154,13 @@ async function getEmbeddingSimilarity(text1: string, text2: string): Promise<any
     const { cos_sim } = await import('@xenova/transformers');
     const results1 = await model(text1, { pooling: 'mean', normalize: true });
     const results2 = await model(text2, { pooling: 'mean', normalize: true });
-    const similarity = cos_sim(results1.data, results2.data);
+    const similarity = cos_sim(results1.data as number[], results2.data as number[]);
     return similarity;
 }
 
 async function getQuestionAnswering(context: string, question: string): Promise<any> {
     const model = await questionPromise;
-    const results = await model(question, context);
+    const results = await model(question, context) as QuestionAnsweringOutput
     return results.answer;
 }
 
@@ -173,7 +173,7 @@ async function getZeroShotClassification(text: string, labels: string[]): Promis
 async function getYesNoMaybe(text: string): Promise<any> {
     const labels = ['yes', 'no', 'maybe'];
     const model = await zeroShotPromise;
-    const results = await model(text, labels);
+    const results = await model(text, labels) as ZeroShotClassificationOutput
     return results;
 }
 
