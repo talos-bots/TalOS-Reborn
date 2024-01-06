@@ -4,15 +4,47 @@ import { Helmet } from "react-helmet-async";
 import IconImage from "../assets/icon.png";
 import { invoke } from '@tauri-apps/api/tauri';
 import { User } from "../components/shared/auth-provider";
-import { getFirstAdminProfile } from "../api/characterAPI";
+import { getAllUsers, getFirstAdminProfile } from "../api/characterAPI";
 
 const HomePage = () => {
     const [adminUser, setAdminUser] = React.useState<User>(null);
+    const [onlineUsers, setOnlineUsers] = React.useState<User[]>([]);
 
     useEffect(() => {
         getFirstAdminProfile().then((user) => {
             setAdminUser(user as User);
         });
+    }, []);
+
+    useEffect(() => {
+        getAllUsers().then((users) => {
+            const onlineUsers: User[] = [];
+            if(users === null) return;
+            const allUsers = users.users
+            const activeUsers = users.activeUsers
+            for(let i = 0; i < activeUsers.length; i++) {
+                const user = allUsers.find((u) => u.id === activeUsers[i].userId);
+                if(user !== undefined) onlineUsers.push(user);
+            }
+            setOnlineUsers(onlineUsers);
+        });
+        setInterval(() => {
+            getAllUsers().then((users) => {
+                const onlineUsers: User[] = [];
+                if(users === null) return;
+                const allUsers = users.users
+                const activeUsers = users.activeUsers
+                for(let i = 0; i < activeUsers.length; i++) {
+                    const user = allUsers.find((u) => u.id === activeUsers[i].userId);
+                    if(user !== undefined) onlineUsers.push(user);
+                }
+                setOnlineUsers(onlineUsers);
+            });
+        }, 10000);
+
+        return () => {
+            setOnlineUsers([]);
+        }
     }, []);
 
     const openExternalLink = async (url: string) => {
@@ -46,7 +78,20 @@ const HomePage = () => {
             <Helmet>
                 <title>TalOS | Home</title>
             </Helmet>
-            <div className="grid grid-rows-[auto]">
+            <div className="grid grid-rows-[auto] gap-2">
+                <div className="flex flex-col rounded-box bg-base-300 p-4">
+                    <h3 className="text-center font-extrabold">Online Users</h3>
+                    <div className="flex flex-row gap-2 overflow-x-scroll overflow-y-hidden w-full max-h-[90px] h-[90px]">
+                        {onlineUsers.map((user, index) => {
+                            return (
+                                <div className="flex flex-row gap-2 max-w-[188px] h-fit rounded-box p-2" style={{ backgroundImage: `url("${user?.backgroundPic}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                                    <img src={user?.profilePic} alt="Admin Profile Picture" className="w-[64px] h-[64px] rounded-full"/>
+                                    <h4 className="text-black font-extrabold rounded-box p-2 w-full glass overflow-ellipsis text-center justify-center flex flex-col">{user?.displayName}</h4>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
                 <div className="w-full rounded-box bg-base-300 p-4 flex flex-col gap-2">
                     <h1>Welcome to TalOS: Reborn!</h1>
                     <div className="flex flex-col md:flex-row justify-between w-full gap-2 row-span-1">

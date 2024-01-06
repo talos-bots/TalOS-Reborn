@@ -114,16 +114,42 @@ export async function getAllUserdata(): Promise<any> {
     return data;
 }
 
+interface UserConnection {
+    userId: string;
+    socketId: string;
+}
+
+interface UserStatsResponse {
+    users: User[];
+    activeUsers: UserConnection[];
+}
+
 // get all users
-export async function getAllUsers(): Promise<any> {
+export async function getAllUsers(): Promise<UserStatsResponse> {
     const response = await api(`/api/stats/users`);
 
     if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
 
-    const data = await response.data
-    return data;
+    const data = await response.data;
+    const users = data.users.map((user: any) => {
+        const newUser: User = {
+            id: user.id,
+            username: user.username,
+            profilePic: user.profile_pic,
+            displayName: user.display_name,
+            tagline: user.tagline,
+            bio: user.bio,
+            backgroundPic: user.background_pic,
+        };
+        return newUser;
+    });
+    const assembledData: UserStatsResponse = {
+        users: users,
+        activeUsers: data.activeUsers,
+    };
+    return assembledData;
 }
 
 // Fetch admins

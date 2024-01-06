@@ -235,24 +235,20 @@ usersRouter.get('/profile/:id', (req, res) => {
     });
 });
 
-export function getAllUsers(){
-    try{
-        const query = `SELECT id, username, profile_pic, display_name, bio, background_pic, tagline FROM users`;
-
-        db.all(query, [], (err: any, users: any) => {
-            if(err){
-                throw new Error(`Error: ${err.message}`);
+export function getAllUsers(): Promise<any> {
+    return new Promise((resolve, reject) => {
+        db.all('SELECT id, username, profile_pic, display_name, bio, background_pic, tagline FROM users', [], (err, rows: any) => {
+            if (err) {
+                reject(err);
+                return;
             }
-            return JSON.parse(JSON.stringify(users));
+            resolve(rows);
         });
-    } catch (error) {
-        console.error("Error fetching users:", error);
-        return null;
-    }
+    });
 }
 // get all users
-usersRouter.get('/profiles', (req, res) => {
-    const users = getAllUsers();
+usersRouter.get('/profiles', async (req, res) => {
+    const users = await getAllUsers();
     if(users){
         res.json(users);
     } else {

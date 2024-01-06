@@ -143,7 +143,12 @@ expressApp.use('/sprites', express.static(spritesPath));
 
 const server = createServer(expressApp);
 
-const userConnections = new Map<string, string>();
+let userConnections: UserConnection[] = []
+
+interface UserConnection {
+    userId: string;
+    socketId: string;
+}
 
 export const expressAppIO = new Server(server, {
 	cors: corsOptions
@@ -182,7 +187,7 @@ expressAppIO.sockets.on('connection', (socket) => {
         // Implement your authentication logic here
         const userId = authenticateTokenSocket(token); // Replace with your auth logic
         if (userId) {
-            userConnections.set(userId, socket.id);
+            userConnections.push({ userId: userId, socketId: socket.id });
             fetchUserByID(userId).then((user) => {
                 socket.emit('notification', { message: `Authenticated successfully, Welcome to TalOS, ${user?.display_name}.` });
                 console.log(`User ${user?.display_name} authenticated with socket ${socket.id}`);
@@ -192,18 +197,14 @@ expressAppIO.sockets.on('connection', (socket) => {
 
     // Handle disconnection
     socket.on('disconnect', () => {
-        userConnections.forEach((socketId, userId) => {
-            if (socketId === socket.id) {
-                userConnections.delete(userId);
-                console.log(`User ${userId} disconnected`);
-            }
-        });
+        console.log('Client disconnected:', socket.id);
+        userConnections = userConnections.filter((user) => user.socketId !== socket.id);
     });
 
 });
 
 function sendNotificationToUser(userId: string, notification: any) {
-    const socketId = userConnections.get(userId);
+    const socketId = userConnections.find((user) => user.userId === userId)?.socketId;
     if (socketId) {
         expressAppIO.sockets.to(socketId).emit('notification', notification);
     }
@@ -214,9 +215,9 @@ function sendNotificationToAll(notification: any) {
 }
 
 function sendNotificationToAllExcept(userId: string, notification: any) {
-    userConnections.forEach((socketId, id) => {
-        if (id !== userId) {
-            expressAppIO.sockets.to(socketId).emit('notification', notification);
+    userConnections.forEach((user) => {
+        if (user.userId !== userId) {
+            expressAppIO.sockets.to(user.socketId).emit('notification', notification);
         }
     });
 }
@@ -224,8 +225,8 @@ function sendNotificationToAllExcept(userId: string, notification: any) {
 // create a function that gets all of the profile data for connected users
 function getConnectedUsers() {
     const connectedUsers: any[] = [];
-    userConnections.forEach((socketId, userId) => {
-        connectedUsers.push(userId);
+    userConnections.forEach((user) => {
+        connectedUsers.push(user.userId);
     });
     return connectedUsers;
 }
@@ -372,24 +373,9 @@ async function fetchUserByID(id: string): Promise<any> {
     });
 }
 
-function getActiveUsers() {
-    const activeUsers: any[] = [];
-    userConnections.forEach((socketId, userId) => {
-        activeUsers.push(userId);
-    });
-    const userDetails: any[] = [];
-    activeUsers.forEach((userId) => {
-        fetchUserByID(userId).then((user) => {
-            userDetails.push(user);
-        });
-    });
-    return userDetails;
-}
-
-expressApp.get('/api/stats/users', authenticateToken, async (req, res) => {
-    const users = getAllUsers();
-    const activeUsers = getActiveUsers();
-    res.json({ users: users, activeUsers: activeUsers });
+expressApp.get('/api/stats/users', async (req, res) => {
+    const users = await getAllUsers();
+    res.json({ users: users, activeUsers: userConnections });
 });
 
 expressApp.use('/api', settingsRouter);
