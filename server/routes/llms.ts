@@ -466,6 +466,7 @@ async function getGenericCompletion(request: CompletionRequest){
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${modelInfo.key?.trim()}`,
+                'x-api-key': (modelInfo.key? modelInfo.key.length > 0? `${modelInfo.key.trim()}` : '' : ''),
             },
         });
         const json = await response.json();

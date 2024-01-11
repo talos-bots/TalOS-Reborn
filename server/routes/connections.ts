@@ -221,7 +221,8 @@ async function fetchGenericConnectionModels(url: string, key?: string) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': (key? key.length > 0? `Bearer ${key}` : '' : '')
+                'Authorization': (key? key.length > 0? `Bearer ${key.trim()}` : '' : ''),
+                'x-api-key': (key? key.length > 0? `${key.trim()}` : '' : ''),
             }
         
         }).then((response) => {
