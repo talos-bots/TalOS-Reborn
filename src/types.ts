@@ -166,3 +166,48 @@ export interface DiscordGlobalConfig {
     currentConfig: string;
     autoRestart: boolean;
 }
+
+export type tagCategory = 'formatting' | 'gender' | 'species' | 'personality' | 'physical' | 'role' | 'fandom' | 'setting' | 'fetish' | 'pov' | 'plot' | 'genre' | 'other' | 'none' | 'job' | 'relationship' | 'chatiness';
+
+export type Tag = {
+    name: string;
+    description: string;
+    category: tagCategory;
+}
+
+export const characterTags: Tag[] = [
+    { name: "Human", description: "Human characters", category: "species" },
+    { name: "Anthro", description: "Anthropomorphic characters", category: "species" },
+    { name: "Neko", description: "Catgirls and catboys", category: "species" },
+    { name: "First Person", description: "Characters who speak in first person", category: "pov" },
+    { name: "Second Person", description: "Characters who speak in second person", category: "pov" },
+    { name: "Third Person", description: "Characters who speak in third person", category: "pov" },
+    { name: "Female", description: "Female characters", category: "gender" },
+    { name: "Heroic", description: "Characters with heroic qualities", category: "personality" },
+    { name: "Tall", description: "Characters who are notably tall", category: "physical" },
+    { name: "Villain", description: "Characters serving as antagonists", category: "role" },
+    { name: "Sci-Fi", description: "Characters from science fiction", category: "genre" },
+    { name: "Horror", description: "Characters from horror", category: "genre" },
+    { name: "Comedy", description: "Characters from comedy", category: "genre" },
+    { name: "Romance", description: "Characters from romance", category: "genre" },
+    { name: "Action", description: "Characters from action", category: "genre" },
+    { name: "Adventure", description: "Characters from adventure", category: "genre" },
+    { name: "Fantasy", description: "Characters from fantasy", category: "genre" },
+    { name: "Urban", description: "Characters suited for urban settings", category: "setting" },
+    { name: "Mystery", description: "Characters involved in mystery plots", category: "genre" },
+    { name: "Fantasy", description: "Characters from fantasy genres", category: "genre" },
+    { name: "Time-Traveler", description: "Characters capable of time travel", category: "other" },
+    { name: "Historical", description: "Characters from historical settings", category: "setting" },
+    { name: "Magical", description: "Characters with magical abilities", category: "other" },
+    { name: "Furry", description: "Characters with animal features", category: "species" },
+    { name: "Short", description: "Characters who are notably short", category: "physical" },
+    { name: "Motherly", description: "Characters who are motherly", category: "personality" },
+    { name: "Fatherly", description: "Characters who are fatherly", category: "personality" },
+    { name: "Sisterly", description: "Characters who are sisterly", category: "personality" },
+    { name: "Brotherly", description: "Characters who are brotherly", category: "personality" },
+    { name: "Maid", description: "Characters who are maids", category: "job" },
+    { name: "Butler", description: "Characters who are butlers", category: "job" },
+    { name: "Nurse", description: "Characters who are nurses", category: "job" },
+    { name: "Doctor", description: "Characters who are doctors", category: "job" },
+    { name: "Teacher", description: "Characters who are teachers", category: "job" },
+]
