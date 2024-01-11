@@ -24,15 +24,7 @@ import { transformersRouter } from './helpers/transformers.js';
 import { lorebooksRouter } from './routes/lorebooks.js';
 import WebSocket from 'ws';
 import { diffusionRouter } from './routes/diffusion.js';
-
-const __dirname = path.resolve();
-//get the userData directory
-const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
-//get the talos directory
-const talosDir = path.join(appDataDir, 'TalOS');
-//get the uploads directory
-fs.mkdirSync(talosDir, { recursive: true });
-export const appSettingsPath = path.join(talosDir, "/appSettings.json");
+import { discordConfigRoute } from './routes/discordConfig.js';
 
 const defaultAppSettings: AppSettingsInterface = {
     defaultConnection: "",
@@ -47,6 +39,17 @@ const defaultAppSettings: AppSettingsInterface = {
     jwtSecret: ""
 };
 
+const __dirname = path.resolve();
+//get the userData directory
+const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
+//get the talos directory
+const talosDir = path.join(appDataDir, 'TalOS');
+//get the uploads directory
+fs.mkdirSync(talosDir, { recursive: true });
+
+// get the paths for the files and directories
+export const appSettingsPath = path.join(talosDir, "/appSettings.json");
+export const discordSettingsPath = path.join(talosDir, "/discordSettings.json");
 export const uploadsPath = path.join(talosDir, '/uploads');
 export const dataPath = path.join(talosDir, '/data');
 export const modelsPath = path.join(talosDir, '/models');
@@ -67,47 +70,9 @@ export const weaponsPath = `${dataPath}/weapons`;
 export const armorsPath = `${dataPath}/armors`;
 export const conversationsPath = `${dataPath}/conversations`;
 export const diffusionConnectionsPath = `${dataPath}/diffusion_connections`;
-export const expressApp = express();
-const port = 3003;
+export const discordConfigPath = path.join(talosDir, "/discordConfigs");
 
-let dev = false;
-
-const args = process.argv.slice(2);
-
-args.forEach(arg => {
-    if (arg.startsWith('--dev')) {
-        dev = true;
-    }
-});
-
-let appSettings = { ...defaultAppSettings };
-
-if (fs.existsSync(appSettingsPath)) {
-    try {
-        const settingsData = fs.readFileSync(appSettingsPath, 'utf8');
-        if (settingsData) {
-            console.log('App settings file found. Using settings from file.');
-            appSettings = JSON.parse(settingsData);
-        } else {
-            console.error('App settings file is empty. Using default settings.');
-        }
-    } catch (err) {
-        console.error('Error parsing app settings file. Using default settings.', err);
-    }
-}
-
-export let JWT_SECRET = appSettings.jwtSecret;
-console.log("JWT secret: ", JWT_SECRET);
-if((JWT_SECRET.trim() === "") || (JWT_SECRET === undefined) || (JWT_SECRET === null)) {
-    const generateSecret = () => crypto.randomBytes(64).toString('hex');
-    const secret = generateSecret()
-    appSettings.jwtSecret = secret;
-    JWT_SECRET = secret;
-    clearUsers();
-    console.log("JWT secret not found. Generated new secret.");
-}
-console.log("JWT secret: ", JWT_SECRET);
-fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
+// create the directories if they don't exist
 fs.mkdirSync(uploadsPath, { recursive: true });
 fs.mkdirSync(profilePicturesPath, { recursive: true });
 fs.mkdirSync(backgroundsPath, { recursive: true });
@@ -124,6 +89,81 @@ fs.mkdirSync(armorsPath, { recursive: true });
 fs.mkdirSync(conversationsPath, { recursive: true });
 fs.mkdirSync(connectionsPath, { recursive: true });
 fs.mkdirSync(diffusionConnectionsPath, { recursive: true });
+fs.mkdirSync(discordConfigPath, { recursive: true });
+
+// create the express app
+export const expressApp = express();
+const port = 3003;
+
+let dev = false;
+
+const args = process.argv.slice(2);
+
+args.forEach(arg => {
+    if (arg.startsWith('--dev')) {
+        dev = true;
+    }
+});
+
+let appSettings = { ...defaultAppSettings };
+
+let discordSettings: DiscordGlobalConfig = {
+    currentConfig: "",
+    autoRestart: false,
+};
+
+export interface DiscordGlobalConfig {
+    currentConfig: string;
+    autoRestart: boolean;
+}
+
+if(!fs.existsSync(discordSettingsPath)) {
+    fs.writeFileSync(discordSettingsPath, JSON.stringify(discordSettings));
+}
+
+if(fs.existsSync(discordSettingsPath)) {
+    try {
+        const settingsData = fs.readFileSync(discordSettingsPath, 'utf8');
+        if (settingsData) {
+            console.log('Discord settings file found. Using settings from file.');
+            //merge the default settings with the settings from the file
+            discordSettings = { ...discordSettings, ...JSON.parse(settingsData) };
+        } else {
+            console.error('Discord settings file is empty. Using default settings.');
+        }
+    } catch (err) {
+        console.error('Error parsing discord settings file. Using default settings.', err);
+    }
+}
+
+// Check if app settings file exists
+if (fs.existsSync(appSettingsPath)) {
+    try {
+        const settingsData = fs.readFileSync(appSettingsPath, 'utf8');
+        if (settingsData) {
+            console.log('App settings file found. Using settings from file.');
+            //merge the default settings with the settings from the file
+            appSettings = { ...defaultAppSettings, ...JSON.parse(settingsData) };
+        } else {
+            console.error('App settings file is empty. Using default settings.');
+        }
+    } catch (err) {
+        console.error('Error parsing app settings file. Using default settings.', err);
+    }
+}
+fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
+fs.writeFileSync(discordSettingsPath, JSON.stringify(discordSettings));
+export let JWT_SECRET = appSettings.jwtSecret;
+console.log("JWT secret: ", JWT_SECRET);
+if((JWT_SECRET.trim() === "") || (JWT_SECRET === undefined) || (JWT_SECRET === null)) {
+    const generateSecret = () => crypto.randomBytes(64).toString('hex');
+    const secret = generateSecret()
+    appSettings.jwtSecret = secret;
+    JWT_SECRET = secret;
+    clearUsers();
+    console.log("JWT secret not found. Generated new secret.");
+}
+console.log("JWT secret: ", JWT_SECRET);
 
 expressApp.use(bodyParser.json({ limit: '1000mb' }));
 expressApp.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
@@ -387,6 +427,7 @@ expressApp.use('/api', llmsRouter);
 expressApp.use('/api', lorebooksRouter);
 expressApp.use('/api/transformers', transformersRouter);
 expressApp.use('/api', diffusionRouter);
+expressApp.use('/api', discordConfigRoute);
 
 function checkIfTauriAppIsOpen() {
     return new Promise((resolve, reject) => {

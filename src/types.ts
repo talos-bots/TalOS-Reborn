@@ -136,3 +136,33 @@ export type TokenType = 'SentencePiece' | 'GPT';
 export type EndpointType = 'Kobold' | 'OAI' | 'Horde' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'OAI-Compliant-API' | 'Mancer'
 
 export type CompletionType = 'Chat' | 'Text';
+
+export interface DiscordConfig {
+    id: string;
+    apiKey: string;
+    applicationId: string;
+    photoUrl: string;
+    name: string;
+    configChannelId: string;
+    logChannelId: string;
+    sendLogMessages: boolean;
+    sendReadyMessages: boolean;
+    sendReminderMessages: boolean;
+    allowDiffusion: boolean;
+    allowChannelManagement: boolean;
+    allowRoleManagement: boolean;
+    allowUserManagement: boolean;
+    allowDirectMessages: boolean;
+    adminUsers: string[];
+    adminRoles: string[];
+    bannedUsers: string[];
+    bannedRoles: string[];
+    sendIsTyping: boolean;
+    allowMultiCharacter: boolean;
+    defaultCharacter: string;
+}
+
+export interface DiscordGlobalConfig {
+    currentConfig: string;
+    autoRestart: boolean;
+}

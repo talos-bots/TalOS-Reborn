@@ -1,9 +1,12 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction, Message } from "discord.js";
 
 export type Alias = {
-    _id: string;
-    name: string;
-    location: string;
+    discordAuthorId: string;
+    userId: string;
+    roomId: string;
+    personaId: string;
+    name?: string;
+    avatarUrl?: string;
 }
 
 export type AuthorsNote = {
@@ -37,3 +40,38 @@ export interface SlashCommand {
 }
 
 export type ValidStatus = 'online' | 'dnd' | 'idle' | 'invisible';
+
+export type RoomMessage = {
+    _id: string;
+    text: string;
+    timestamp: number;
+    attachments: any[];
+    embeds: any[];
+    discordMessageId: string;
+    discordChannelId: string;
+    discordGuildId: string;
+    userId: string;
+}
+
+export interface Room {
+    _id: string;
+    name: string;
+    description: string;
+    createdBy: string;
+    channelId: string;
+    guildId: string;
+    isPrivate: boolean;
+    isLocked: boolean;
+    createdAt: Date;
+    lastModified: Date;
+    messages: RoomMessage[];
+    bannedUsers: string[];
+    bannedPhrases: string[];
+    whitelistUsers: string[];
+    characters: string[];
+    aliases: Alias[];
+    authorsNotes: AuthorsNote[];
+    authorsNoteDepth: number;
+    allowRegeneration: boolean;
+    allowDeletion: boolean;
+}
