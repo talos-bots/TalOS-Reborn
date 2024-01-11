@@ -143,7 +143,7 @@ const ConnectionPanel = () => {
         
         }else {
             setConnectionStatus('Connecting...')
-            fetchConnectionModels(connectionURL).then((models) => {
+            fetchConnectionModels(connectionURL, connectionPassword).then((models) => {
                 if(models === null) return
                 setConnectionStatus('Connection Successful!')
                 setConnectionModelList(models)

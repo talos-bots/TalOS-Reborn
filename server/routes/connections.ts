@@ -246,6 +246,7 @@ async function fetchGenericConnectionModels(url: string, key?: string) {
 }
 
 connectionsRouter.post('/test/connections', async (req, res) => {
+    console.log(req.body);
     const url = req.body.url;
     const key = req.body.key;
     const data = await fetchGenericConnectionModels(url as string, key as string);
