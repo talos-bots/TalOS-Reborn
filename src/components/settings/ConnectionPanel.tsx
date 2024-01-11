@@ -216,7 +216,10 @@ const ConnectionPanel = () => {
                 required={false}
                 className={''}
             />
-            <button className="dy-btn dy-btn-primary" onClick={handleTestConnection}>Test Connection</button>
+            <div className="flex flex-row gap-2 w-full items-center justify-center">
+                <button className="dy-btn dy-btn-primary" onClick={handleTestConnection}>Test Connection</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSaveConnection}>Save</button>
+            </div>
             <div className="flex flex-col gap-2">
                 <p className="dy-textarea dy-textarea-bordered p-4 w-full flex flex-row justify-between">
                     <b>Connection Status</b> {connectionStatus}
@@ -235,6 +238,7 @@ const ConnectionPanel = () => {
             </div>
             <div className="flex flex-row gap-2 w-full items-center justify-center">
                 <button className="dy-btn dy-btn-primary" onClick={setDefaultConnection}>Set as Default</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSaveConnection}>Save</button>
             </div>
         </div>
     );

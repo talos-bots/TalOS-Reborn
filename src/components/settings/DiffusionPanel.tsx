@@ -179,7 +179,10 @@ const DiffusionPanel = () => {
                 required={false}
                 className={''}
             />
-            <button className="dy-btn dy-btn-primary" onClick={handleTestConnection}>Test Connection</button>
+            <div className="flex flex-row gap-2 w-full items-center justify-center">
+                <button className="dy-btn dy-btn-primary" onClick={handleTestConnection}>Test Connection</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSaveConnection}>Save</button>
+            </div>
             <div className="flex flex-col gap-2">
                 <p className="dy-textarea dy-textarea-bordered w-full flex flex-row justify-between">
                     <b>Status</b> {connectionStatus}
@@ -198,6 +201,7 @@ const DiffusionPanel = () => {
             </div>
             <div className="flex flex-row gap-2 w-full items-center justify-center">
                 <button className="dy-btn dy-btn-primary" onClick={setDefaultConnection}>Set as Default</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSaveConnection}>Save</button>
             </div>
         </div>
     );

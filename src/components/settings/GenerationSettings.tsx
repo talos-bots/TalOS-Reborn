@@ -192,6 +192,7 @@ const GenerationSettings = () => {
             </RequiredSelectField>
             <div className="flex flex-row gap-2 w-full items-center justify-center">
                 <button className="dy-btn dy-btn-primary" onClick={setPresetDefault}>Set As Default</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset}>Save</button>
             </div>
             <div className="flex flex-col w-full overflow-y-auto text-left themed-box max-h-[600px]">
                 <div className="flex flex-col ">
