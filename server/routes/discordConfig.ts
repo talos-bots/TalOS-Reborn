@@ -123,3 +123,8 @@ discordConfigRoute.post('/save/discordDefaults', (req, res) => {
     setGlobalConfig(globalConfig);
     res.send({ message: "globalConfig saved successfully!" });
 });
+
+discordConfigRoute.get('/discordDefaults', (req, res) => {
+    const globalConfig = getGlobalConfig();
+    res.send(globalConfig);
+});

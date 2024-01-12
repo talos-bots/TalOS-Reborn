@@ -257,6 +257,32 @@ export class DiscordBotService {
         return this.client?.guilds.cache.get(guildId)?.members.cache.get(userId);
     }
 
+    public getAllUsers(): any[] {
+        const guilds = this.client?.guilds.cache;
+        const users: any[] = [];
+        if(!guilds) return users;
+        for(const guild of guilds){
+            const members = guild[1].members.cache;
+            for(const member of members){
+                users.push(member[1]);
+            }
+        }
+        return users;
+    }
+
+    public getAllChannels(): any[] {
+        const guilds = this.client?.guilds.cache;
+        const channels: any[]  = []
+        if(!guilds) return channels;
+        for(const guild of guilds){
+            const guildChannels = guild[1].channels.cache;
+            for(const channel of guildChannels){
+                channels.push(channel[1]);
+            }
+        }
+        return channels;
+    }
+    
     public getChannels(guildId: Snowflake): Collection<Snowflake, any> {
         return this.client?.guilds.cache.get(guildId)?.channels.cache || new Collection();
     }

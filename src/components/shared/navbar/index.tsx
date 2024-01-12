@@ -9,6 +9,8 @@ import { useUser } from '../auth-provider';
 import { QuestionMark } from "@mui/icons-material";
 import { themes } from '../../../App';
 import { themeOptions} from '../../../helpers/constants';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 interface NavBarProps {
     theme: themes;
     setTheme: (theme: themes) => void;
@@ -86,15 +88,18 @@ const NavBar = (props: NavBarProps) => {
                     <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Chat" to="/chat">
                         <MessageCircle />
                     </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Art" to="/art">
+                        <Paintbrush />
+                    </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Discord" to="/discord">
+                        <FontAwesomeIcon icon={faDiscord} />
+                    </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Settings" to="/settings">
                         <Cog />
                     </NavLink>
                     {/* <NavLink className="dy-btn dy-btn-ghost" title="Games" to="/games">
                         <Gamepad2 />
                     </NavLink> */}
-                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Art" to="/art">
-                        <Paintbrush />
-                    </NavLink>
                 </div>
             </div>
 
@@ -109,15 +114,18 @@ const NavBar = (props: NavBarProps) => {
                     <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Chat" to="/chat">
                         <MessageCircle/>
                     </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Art" to="/art">
+                        <Paintbrush/>
+                    </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Discord" to="/discord">
+                        <FontAwesomeIcon icon={faDiscord} size='lg'/>
+                    </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Settings" to="/settings">
                         <Cog />
                     </NavLink>
                     {/* <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Games" to="/games">
                         <Gamepad2/>
                     </NavLink> */}
-                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Art" to="/art">
-                        <Paintbrush/>
-                    </NavLink>
                 </div>
             </div>
             {user?.id ? (

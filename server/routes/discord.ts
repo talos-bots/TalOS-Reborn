@@ -66,13 +66,12 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
     processMessage();
 }
 
-export async function startDiscordRoutes(server: Application){
+export async function startDiscordRoutes(){
     activeDiscordClient = new DiscordBotService();
     const globalConfig = getGlobalConfig();
     if(globalConfig.autoRestart){
         await activeDiscordClient.start()
     }
-    server.use('/api/discordManagement', DiscordManagementRouter);
 }
 
 const isDiscordRunning = (req: Request, res: Response, next: NextFunction) => {
@@ -83,7 +82,7 @@ const isDiscordRunning = (req: Request, res: Response, next: NextFunction) => {
     next();
 }
 
-const DiscordManagementRouter = Router();
+export const DiscordManagementRouter = Router();
 
 DiscordManagementRouter.post('/start', async (req, res) => {
     let config;
@@ -103,7 +102,7 @@ DiscordManagementRouter.post('/refreshProfile', isDiscordRunning, async (req, re
     res.send(activeDiscordClient?.isLoggedIntoDiscord());
 });
 
-DiscordManagementRouter.get('/isConnected', isDiscordRunning, (req, res) => {
+DiscordManagementRouter.get('/isConnected', (req, res) => {
     res.send(activeDiscordClient?.isLoggedIntoDiscord());
 });
 
@@ -127,5 +126,15 @@ DiscordManagementRouter.post('/channels', isDiscordRunning, async (req, res) => 
         return;
     }
     const channels = activeDiscordClient?.getChannels(req.body.guildId);
+    res.send(channels);
+});
+
+DiscordManagementRouter.post('/users/all', isDiscordRunning, async (req, res) => {
+    const users = activeDiscordClient?.getAllUsers();
+    res.send(users);
+});
+
+DiscordManagementRouter.post('/channels/all', isDiscordRunning, async (req, res) => {
+    const channels = activeDiscordClient?.getAllChannels();
     res.send(channels);
 });

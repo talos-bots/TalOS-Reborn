@@ -17,6 +17,7 @@ import { TEAlert } from 'tw-elements-react';
 import DataSetCreator from './pages/dataset-creator';
 import { DatasetProvider } from './components/dataset/DatasetProvider';
 import ArtPage from './pages/art';
+import DiscordPage from './pages/discord';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -89,7 +90,7 @@ export default function App() {
 					</TEAlert>
 					<DatasetProvider>
 						<Routes>
-							<Route path='/*' element={<Navigate to='/home' />} />
+							<Route path='*' element={<Navigate to='/home' />} />
 							<Route path='/create' element={<Navigate to='/characters/create' />} />
 							<Route path='/home' element={<HomePage/>} />
 							<Route path='/chat' element={<ChatPage/>} />
@@ -101,6 +102,7 @@ export default function App() {
 							<Route path='/login' element={<LoginPage/>} />
 							<Route path='/dataset' element={<DataSetCreator/>} />
 							<Route path='/art' element={<ArtPage/>} />
+							<Route path='/discord' element={<DiscordPage/>} />
 						</Routes>
 					</DatasetProvider>
 				</div>

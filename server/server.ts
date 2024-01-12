@@ -25,7 +25,7 @@ import { lorebooksRouter } from './routes/lorebooks.js';
 import WebSocket from 'ws';
 import { diffusionRouter } from './routes/diffusion.js';
 import { discordConfigRoute } from './routes/discordConfig.js';
-import { startDiscordRoutes } from './routes/discord.js';
+import { DiscordManagementRouter, startDiscordRoutes } from './routes/discord.js';
 
 const defaultAppSettings: AppSettingsInterface = {
     defaultConnection: "",
@@ -431,7 +431,8 @@ expressApp.use('/api', lorebooksRouter);
 expressApp.use('/api/transformers', transformersRouter);
 expressApp.use('/api', diffusionRouter);
 expressApp.use('/api', discordConfigRoute);
-startDiscordRoutes(expressApp);
+expressApp.use('/api/discordManagement', DiscordManagementRouter)
+startDiscordRoutes();
 
 function checkIfTauriAppIsOpen() {
     return new Promise((resolve, reject) => {

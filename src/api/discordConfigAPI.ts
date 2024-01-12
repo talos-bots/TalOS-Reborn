@@ -38,3 +38,13 @@ export async function setGlobalDiscordConfig(globalConfig: DiscordGlobalConfig):
         .then(response => response.data)
         .catch(error => console.error('Error setting global Discord config:', error));
 }
+
+// Function to fetch global Discord config
+export async function fetchGlobalDiscordConfig(): Promise<DiscordGlobalConfig | null> {
+    return await axios.get('/api/discordDefaults')
+        .then(response => response.data)
+        .catch(error => {
+            console.error('Error fetching global Discord config:', error);
+            return null;
+        });
+}

@@ -38,3 +38,7 @@ export const { useWebsocketNotificationListener, emitWebsocketNotification } = c
 export const { useThemeSwapListener, emitThemeSwap } = createEvent('themeSwap')<themes>(
     { crossTab: true }
 )
+
+export const { useDiscordBotConnectionListener, emitDiscordBotConnection } = createEvent('discordBotConnection')(
+    { crossTab: true }
+);

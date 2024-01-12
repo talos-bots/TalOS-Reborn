@@ -46,3 +46,15 @@ export const getChannels = async (guildId: string) => {
         .then(response => response.data)
         .catch(error => console.error(error));
 };
+
+export const getAllChannels = async (guildId: string) => {
+    return apiClient.post('/channels/all', { guildId })
+        .then(response => response.data)
+        .catch(error => console.error(error));
+};
+
+export const getAllUsers = async () => {
+    return apiClient.post('/users/all')
+        .then(response => response.data)
+        .catch(error => console.error(error));
+};
