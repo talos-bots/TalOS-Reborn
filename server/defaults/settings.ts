@@ -1,4 +1,4 @@
-import { SettingsInterface } from "../routes/connections.js";
+import { SettingsInterface } from "../typings/types.js";
 
 export const DefaultSettings: SettingsInterface[] = [
     {

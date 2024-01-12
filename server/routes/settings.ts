@@ -4,8 +4,8 @@ import path from "path";
 import dotenv from 'dotenv';
 dotenv.config();
 import { appSettingsPath, settingsPath } from "../server.js";
-import { InstructMode, SettingsInterface } from './connections.js';
 import { DefaultSettings } from '../defaults/settings.js';
+import { SettingsInterface, AppSettingsInterface } from '../typings/types.js';
 
 export const settingsRouter = express.Router();
 
@@ -95,39 +95,6 @@ settingsRouter.delete('/settings/:id', (req, res) => {
     removeSettingById(id);
     res.send({ message: "Setting removed successfully!" });
 });
-
-export interface AppSettingsInterface {
-    defaultConnection: string;
-    defaultSettings: string;
-    admins: string[];
-    enableCaptioning: boolean;
-    enableEmbedding: boolean;
-    enableQuestionAnswering: boolean;
-    enableZeroShotClassification: boolean;
-    enableYesNoMaybe: boolean;
-    defaultDiffusionConnection: string;
-    jwtSecret: string;
-}
-
-export interface UsageArguments {
-    overrideSettings: string | null;
-    overrideConnection: string | null;
-    overrideInstruct: InstructMode | null;
-    humanReplyChance: number | null;
-    humanMentionReplyChance: number | null;
-    botReplyChance: number | null;
-    botMentionReplyChance: number | null;
-    doThoughts: boolean | null;
-    doSelfies: boolean | null;
-    doEmotions: boolean | null;
-    doSprites: boolean | null;
-    doBackgrounds: boolean | null;
-    doAnimations: boolean | null;
-    doSounds: boolean | null;
-    badWords: string[] | null;
-    modelOverride: string | null;
-    floatingGuidance: string | null;
-}
 
 // get all appSettings from the ../data/appSettings.json file
 export function fetchAllAppSettings() {

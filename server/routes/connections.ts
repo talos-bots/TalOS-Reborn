@@ -1,121 +1,8 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import fs from "fs";
 import path from "path";
 import { connectionsPath } from '../server.js';
-import { CharacterInterface } from './characters.js';
-import { UsageArguments } from './settings.js';
-dotenv.config();
-
-export type Role = "System" | "Assistant" | "User";
-
-export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme";
-
-export class UserPersona{
-    _id: string = (new Date().getTime()).toString();
-    name: string = '';
-    avatar: string = '';
-    description: string = '';
-    importance: 'high' | 'low' = 'high';
-
-    constructor(name: string, avatar: string, description: string, importance: 'high' | 'low'){
-        this.name = name;
-        this.avatar = avatar;
-        this.description = description;
-        this.importance = importance;
-    }
-
-    toJSON(): any {
-        return {
-            _id: this._id,
-            name: this.name,
-            avatar: this.avatar,
-            description: this.description,
-            importance: this.importance,
-        };
-    }
-}
-
-export type Message = {
-    userId: string;
-    fallbackName: string;
-    swipes: string[];
-    currentIndex: number;
-    role: Role;
-    thought: boolean;
-};
-
-export type CompletionRequest = {
-    lorebookid?: string;
-    connectionid?: string | null;
-    character: CharacterInterface | string;
-    settingsid?: string | null;
-    messages: Message[];
-    persona?: UserPersona;
-    args?: UsageArguments;
-}
-
-export type TokenType = 'SentencePiece' | 'GPT';
-
-export type EndpointType = 'Kobold' | 'OAI' | 'Horde' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'OAI-Compliant-API' | 'Mancer'
-
-export type CompletionType = 'Chat' | 'Text';
-
-export type GenericCompletionConnectionTemplate = {
-    id: string;
-    key?: string;
-    url?: string;
-    model?: string;
-    name?: string;
-    legacy?: boolean;
-    type?: EndpointType;
-}
-
-export type SettingsInterface = {
-    id: string;
-    name: string;
-    rep_pen: number;
-    rep_pen_range: number;
-    rep_pen_slope: number;
-    temperature: number;
-    sampler_order: number[];
-    top_k: number;
-    top_p: number;
-    top_a: number;
-    min_p: number;
-    presence_penalty: number;
-    frequency_penalty: number;
-    tfs: number;
-    typical: number;
-    singleline: boolean;
-    sampler_full_determinism: boolean;
-    min_tokens: number;
-    context_length: number;
-    max_tokens: number;
-    mirostat_mode: number;
-    mirostat_tau: number;
-    mirostat_eta: number;
-    instruct_mode: InstructMode;
-}
-
-export type MancerSettingsInterface = {
-    max_tokens: number;
-    min_tokens: number;
-    stream: boolean;
-    temperature: number;
-    top_p: number;
-    top_k: number;
-    top_a: number;
-    typical_p: number;
-    tff: number;
-    repetition_penalty: number;
-    ban_eos_token: boolean;
-    frequency_penalty: number;
-    presence_penalty: number;
-    mirostat_mode: number;
-    mirostat_tau: number;
-    mirostat_eta: number;
-}
+import { SettingsInterface, MancerSettingsInterface, GenericCompletionConnectionTemplate } from '../typings/types.js';
 
 export function SettingsInterfaceToMancerSettings(settings: SettingsInterface): MancerSettingsInterface {
     return {
@@ -210,8 +97,6 @@ connectionsRouter.delete('/connection/:id', (req, res) => {
     removeConnectionById(id);
     res.send({ message: "Connection removed successfully!" });
 });
-
-
 
 async function fetchGenericConnectionModels(url: string, key?: string) {
     try{

@@ -1,9 +1,7 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import fs from "fs";
 import path from "path";
 import { lorebooksPath } from '../server.js';
-dotenv.config();
 
 export const lorebooksRouter = express.Router();
 

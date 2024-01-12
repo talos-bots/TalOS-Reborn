@@ -5,7 +5,6 @@ import fs from 'fs';
 import path from 'path';
 import { Message } from "discord.js";
 import { RoomMessage } from "../typings/discordBot.js";
-import { Role } from "../routes/connections.js";
 
 export async function base642Buffer(base64: string): Promise<string| Buffer> {
 	let buffer: Buffer;

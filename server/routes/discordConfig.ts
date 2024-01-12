@@ -1,36 +1,10 @@
 import express from 'express';
 import fs from "fs";
 import path from "path";
-import dotenv from 'dotenv';
-dotenv.config();
 import { DiscordGlobalConfig, discordConfigPath, discordSettingsPath } from "../server.js";
+import { DiscordConfig } from '../typings/types.js';
 
 export const discordConfigRoute = express.Router();
-
-export interface DiscordConfig {
-    id: string;
-    apiKey: string;
-    applicationId: string;
-    photoUrl: string;
-    name: string;
-    configChannelId: string;
-    logChannelId: string;
-    sendLogMessages: boolean;
-    sendReadyMessages: boolean;
-    sendReminderMessages: boolean;
-    allowDiffusion: boolean;
-    allowChannelManagement: boolean;
-    allowRoleManagement: boolean;
-    allowUserManagement: boolean;
-    allowDirectMessages: boolean;
-    adminUsers: string[];
-    adminRoles: string[];
-    bannedUsers: string[];
-    bannedRoles: string[];
-    sendIsTyping: boolean;
-    allowMultiCharacter: boolean;
-    defaultCharacter: string;
-}
 
 export function getGlobalConfig(): DiscordGlobalConfig {
     if(fs.existsSync(discordSettingsPath)){

@@ -1,27 +1,7 @@
-export type CharacterInterface = {
-    _id: string;
-    name: string;
-    avatar: string;
-    description: string;
-    personality: string;
-    mes_example: string;
-    creator_notes: string;
-    system_prompt: string;
-    post_history_instructions: string;
-    tags: string[];
-    creator: string;
-    visual_description: string;
-    thought_pattern: string;
-    first_mes: string;
-    alternate_greetings: string[];
-    scenario: string;
-}
-
 import express from 'express';
-import dotenv from 'dotenv';
 import db from './database.js';
 import { authenticateToken } from './authenticate-token.js';
-dotenv.config();
+import { CharacterInterface } from '../typings/types.js';
 
 export const charactersRouter = express.Router();
 

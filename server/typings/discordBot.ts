@@ -1,6 +1,5 @@
-import { CommandInteraction, Message } from "discord.js";
-import { Role } from "../routes/connections.js";
-import { UsageArguments } from "../routes/settings.js";
+import { CommandInteraction, Message, Role } from "discord.js";
+import { UsageArguments } from "./types.js";
 
 export type Alias = {
     userId: string;
@@ -47,7 +46,7 @@ export type ChatMessage = {
     fallbackName: string;
     swipes: string[];
     currentIndex: number;
-    role: Role;
+    role: Role | string;
     thought: boolean;
 };
 

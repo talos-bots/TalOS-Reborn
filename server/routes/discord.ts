@@ -1,13 +1,14 @@
 import { Message } from "discord.js";
 import { RoomPipeline } from "../services/discordBot/roomPipeline.js";
 import { DiscordBotService } from "../services/discordBot.js";
-import { CharacterInterface, fetchCharacterById } from "./characters.js";
+import { fetchCharacterById } from "./characters.js";
 import { getGlobalConfig } from "./discordConfig.js";
 import { Request, Response, Application, NextFunction, Router } from "express";
+import { CharacterInterface } from "../typings/types.js";
 
 const activePipelines: RoomPipeline[] = [];
 
-let activeDiscordClient: DiscordBotService | null = null;
+const activeDiscordClient: DiscordBotService = new DiscordBotService();
 
 export async function processMessage(){
     if(!activeDiscordClient?.isLoggedIntoDiscord()){
@@ -67,7 +68,6 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
 }
 
 export async function startDiscordRoutes(){
-    activeDiscordClient = new DiscordBotService();
     const globalConfig = getGlobalConfig();
     if(globalConfig.autoRestart){
         await activeDiscordClient.start()

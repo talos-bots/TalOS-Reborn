@@ -1,8 +1,7 @@
 import sqlite3 from 'sqlite3';
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
-dotenv.config();
+
 //get the userData directory
 const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
 //get the talos directory
@@ -15,7 +14,6 @@ const db = new sqlite3.Database(dbFile, (err: any) => {
     if (err) {
         console.error(err.message);
     }
-    console.log('Connected to the SQLite database.');
 });
 
 db.serialize(() => {

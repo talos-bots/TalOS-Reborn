@@ -3,11 +3,10 @@ import { Alias, AuthorsNote, CharacterSettingsOverride, ChatMessage, Room, RoomM
 import { roomsPath } from "../../server.js";
 import fs from 'fs';
 import path from 'path';
-import { CompletionRequest } from "../../routes/connections.js";
 import { fetchCharacterById } from "../../routes/characters.js";
 import { handleCompletionRequest } from "../../routes/llms.js";
 import { breakUpCommands } from "../../helpers/index.js";
-import { UsageArguments } from "../../routes/settings.js";
+import { CompletionRequest, Role, UsageArguments } from "../../typings/types.js";
 
 export class RoomPipeline implements Room {
     public _id: string = '';
@@ -81,7 +80,7 @@ export class RoomPipeline implements Room {
                 fallbackName: alias?.name || message.author.username,
                 swipes: [message.cleanContent],
                 currentIndex: 0,
-                role: 'User',
+                role: 'User' as Role,
                 thought: false
             }
         }
@@ -293,7 +292,7 @@ export class RoomPipeline implements Room {
                 fallbackName: character.name,
                 swipes: [refinedResponse],
                 currentIndex: 0,
-                role: 'Assistant',
+                role: 'Assistant' as Role,
                 thought: false,
             }
         };

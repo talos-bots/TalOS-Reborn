@@ -1,11 +1,13 @@
 import llamaTokenizer from '../helpers/llama-tokenizer-modified.js';
-import { CharacterInterface, fetchCharacterById } from './characters.js';
-import { CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, Message, Role, SettingsInterface, SettingsInterfaceToMancerSettings, UserPersona, fetchConnectionById } from './connections.js';
+import { fetchCharacterById } from './characters.js';
+import { SettingsInterfaceToMancerSettings, fetchConnectionById } from './connections.js';
 import { fetchAllAppSettings, fetchSettingById } from './settings.js';
 import express from 'express';
 import { authenticateToken } from './authenticate-token.js';
 import axios from 'axios';
 import { DefaultSettings } from '../defaults/settings.js';
+import { CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, OpenAIMessage, OpenAIRole, SettingsInterface, UserPersona } from '../typings/types.js';
+import { ChatMessage } from '../typings/discordBot.js';
 export const llmsRouter = express.Router();
 
 function getTokens(text: string){
@@ -13,26 +15,19 @@ function getTokens(text: string){
     return llamaTokenizer.encode(text).length;
 }
 
-type OpenAIRole = 'system' | 'assistant' | 'system';
-
-interface OpenAIMessage {
-    role: OpenAIRole;
-    content: string;    
-}
-
-function messagesToOpenAIChat(messages: Message[]){
+function messagesToOpenAIChat(messages: ChatMessage[]){
     const formattedMessages: OpenAIMessage[] = [];
-    messages.map((message: Message) => {
+    messages.map((message: ChatMessage) => {
         const newMessage: OpenAIMessage = {
             'content': `${message.fallbackName}: ${message.swipes[message.currentIndex]}`,
-            'role': message.role.toLowerCase() as OpenAIRole
+            'role': (message.role as string).toLowerCase() as OpenAIRole
         }
         formattedMessages.push(newMessage)
     })
     return formattedMessages
 }
 
-function getInstructTokens(message: Message, instructFormat: InstructMode){
+function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
     switch(instructFormat){
         case "Alpaca":
             if(message.role === "System"){
@@ -90,8 +85,8 @@ function getInstructTokens(message: Message, instructFormat: InstructMode){
     }
 }
 
-function fillChatContextToLimit(chatLog: Message[], tokenLimit: number, instructFormat: InstructMode = "None"){
-    const messagesToInclude: Message[] = [];
+function fillChatContextToLimit(chatLog: ChatMessage[], tokenLimit: number, instructFormat: InstructMode = "None"){
+    const messagesToInclude: ChatMessage[] = [];
     let tokenCount = 0;
     for(let i = chatLog.length - 1; i >= 0; i--){
         const message = chatLog[i];
@@ -106,7 +101,7 @@ function fillChatContextToLimit(chatLog: Message[], tokenLimit: number, instruct
     return messagesToInclude;
 }
 
-function assemblePromptFromLog(messages: Message[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
 	let prompt = "";
 	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
 	for(let i = 0; i < newMessages.length; i++){
@@ -142,7 +137,7 @@ function assemblePromptFromLog(messages: Message[], contextLength: number = 4048
 	return prompt;
 }
 
-function assembleAlpacaPromptFromLog(messages: Message[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
     let prompt = "";
     const newMessages = fillChatContextToLimit(messages, contextLength, "Alpaca");
     for(let i = 0; i < newMessages.length; i++){
@@ -178,7 +173,7 @@ function assembleAlpacaPromptFromLog(messages: Message[], contextLength: number 
     return prompt;
 }
 
-function assembleVicunaPromptFromLog(messages: Message[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
     let prompt = "";
     const newMessages = fillChatContextToLimit(messages, contextLength, "Vicuna");
     for(let i = 0; i < newMessages.length; i++){
@@ -218,7 +213,7 @@ function assembleVicunaPromptFromLog(messages: Message[], contextLength: number 
     return prompt;
 }
 
-function assembleMetharmePromptFromLog(messages: Message[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
     let prompt = "";
     const newMessages = fillChatContextToLimit(messages, contextLength, "Metharme");
     for(let i = 0; i < newMessages.length; i++){
@@ -301,6 +296,7 @@ async function formatCompletionRequest(request: CompletionRequest){
     if(!settingsid){
         settingsid = appSettings?.defaultSettings ?? "1";
     }
+    if(!settingsid) return;
     if(settingsid?.length < 1){
         settingsid = "1";
     }
@@ -327,7 +323,7 @@ async function formatCompletionRequest(request: CompletionRequest){
     return prompt.replace(new RegExp('{{user}}', 'g'), `${request?.persona?.name ?? 'You'}`).replace(new RegExp('{{char}}', 'g'), `${character.name}`);
 }
 
-function getStopSequences(messages: Message[]){
+function getStopSequences(messages: ChatMessage[]){
     const stopSequences: string[] = [];
     for(let i = 0; i < messages.length; i++){
         const message = messages[i];
@@ -360,6 +356,7 @@ async function getMancerCompletion(request: CompletionRequest){
     if(!settingsid){
         settingsid = appSettings?.defaultSettings ?? "1";
     }
+    if(!settingsid) return;
     if(settingsid?.length < 1){
         settingsid = "1";
     }
@@ -429,6 +426,7 @@ async function getGenericCompletion(request: CompletionRequest){
     if(!settingsid){
         settingsid = appSettings?.defaultSettings ?? "1";
     }
+    if(!settingsid) return;
     if(settingsid?.length < 1){
         settingsid = "1";
     }
@@ -538,6 +536,7 @@ async function getPaLMCompletion(request: CompletionRequest){
     if(!settingsid){
         settingsid = appSettings?.defaultSettings ?? "1";
     }
+    if(!settingsid) return;
     if(settingsid?.length < 1){
         settingsid = "1";
     }
@@ -655,6 +654,7 @@ async function getGeminiCompletion(request: CompletionRequest){
     if(!settingsid){
         settingsid = appSettings?.defaultSettings ?? "1";
     }
+    if(!settingsid) return;
     if(settingsid?.length < 1){
         settingsid = "1";
     }
@@ -760,6 +760,7 @@ async function getOpenAICompletion(request: CompletionRequest){
     if(!settingsid){
         settingsid = appSettings?.defaultSettings ?? "1";
     }
+    if(!settingsid) return;
     if(settingsid?.length < 1){
         settingsid = "1";
     }

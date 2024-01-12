@@ -1,10 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import express from 'express';
-import dotenv from 'dotenv';
 import fs from "fs";
 import path from "path";
 import { conversationsPath } from '../server.js';
-dotenv.config();
 
 export const conversationsRouter = express.Router();
 

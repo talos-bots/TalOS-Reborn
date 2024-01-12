@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import cors from 'cors';
 import { createServer } from "node:http";
 import { Server } from 'socket.io';
@@ -13,7 +10,7 @@ import db, { clearUsers } from './routes/database.js';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
-import { AppSettingsInterface, settingsRouter } from './routes/settings.js';
+import { settingsRouter } from './routes/settings.js';
 import { getAllUsers, usersRouter } from './routes/users.js';
 import { charactersRouter } from './routes/characters.js';
 import { authenticateToken } from './routes/authenticate-token.js';
@@ -26,6 +23,8 @@ import WebSocket from 'ws';
 import { diffusionRouter } from './routes/diffusion.js';
 import { discordConfigRoute } from './routes/discordConfig.js';
 import { DiscordManagementRouter, startDiscordRoutes } from './routes/discord.js';
+import { roomsRouter } from './routes/rooms.js';
+import { AppSettingsInterface } from './typings/types.js';
 
 const defaultAppSettings: AppSettingsInterface = {
     defaultConnection: "",
@@ -128,7 +127,6 @@ if(fs.existsSync(discordSettingsPath)) {
     try {
         const settingsData = fs.readFileSync(discordSettingsPath, 'utf8');
         if (settingsData) {
-            console.log('Discord settings file found. Using settings from file.');
             //merge the default settings with the settings from the file
             discordSettings = { ...discordSettings, ...JSON.parse(settingsData) };
         } else {
@@ -144,7 +142,6 @@ if (fs.existsSync(appSettingsPath)) {
     try {
         const settingsData = fs.readFileSync(appSettingsPath, 'utf8');
         if (settingsData) {
-            console.log('App settings file found. Using settings from file.');
             //merge the default settings with the settings from the file
             appSettings = { ...defaultAppSettings, ...JSON.parse(settingsData) };
         } else {
@@ -157,7 +154,6 @@ if (fs.existsSync(appSettingsPath)) {
 fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
 fs.writeFileSync(discordSettingsPath, JSON.stringify(discordSettings));
 export let JWT_SECRET = appSettings.jwtSecret;
-console.log("JWT secret: ", JWT_SECRET);
 if((JWT_SECRET.trim() === "") || (JWT_SECRET === undefined) || (JWT_SECRET === null)) {
     const generateSecret = () => crypto.randomBytes(64).toString('hex');
     const secret = generateSecret()
@@ -166,7 +162,6 @@ if((JWT_SECRET.trim() === "") || (JWT_SECRET === undefined) || (JWT_SECRET === n
     clearUsers();
     console.log("JWT secret not found. Generated new secret.");
 }
-console.log("JWT secret: ", JWT_SECRET);
 
 expressApp.use(bodyParser.json({ limit: '1000mb' }));
 expressApp.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
@@ -183,7 +178,8 @@ expressApp.use('/images', express.static(uploadsPath));
 expressApp.use('/pfp', express.static(profilePicturesPath));
 expressApp.use('/backgrounds', express.static(backgroundsPath));
 expressApp.use('/sprites', express.static(spritesPath));
-
+expressApp.use(express.static(path.join(__dirname, '../dist-react')));
+expressApp.use('*', (req, res) => res.sendFile(path.join(__dirname, '../dist-react', 'index.html')));
 const server = createServer(expressApp);
 
 let userConnections: UserConnection[] = []
@@ -224,8 +220,6 @@ process.on('SIGINT', gracefulShutdown);
 
 //enable * on CORS for socket.io
 expressAppIO.sockets.on('connection', (socket) => {
-	console.log('Client connected:', socket.id);
-
     socket.on('authenticate', (token: string) => {
         // Implement your authentication logic here
         const userId = authenticateTokenSocket(token); // Replace with your auth logic
@@ -240,7 +234,6 @@ expressAppIO.sockets.on('connection', (socket) => {
 
     // Handle disconnection
     socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
         userConnections = userConnections.filter((user) => user.socketId !== socket.id);
     });
 
@@ -276,6 +269,7 @@ function getConnectedUsers() {
 
 server.listen(port, () => {
 	console.log(`Server started on http://localhost:${port}`);
+    console.log(`Frontend runs by default on http://localhost:5173`);
 });
 
 const storage = multer.diskStorage({
@@ -432,6 +426,7 @@ expressApp.use('/api/transformers', transformersRouter);
 expressApp.use('/api', diffusionRouter);
 expressApp.use('/api', discordConfigRoute);
 expressApp.use('/api/discordManagement', DiscordManagementRouter)
+expressApp.use('/api/rooms', roomsRouter);
 startDiscordRoutes();
 
 function checkIfTauriAppIsOpen() {
@@ -450,14 +445,8 @@ function checkIfTauriAppIsOpen() {
         });
     });
 }
+
 let numberOfTries = 0;
-
-expressApp.use(express.static(path.join(__dirname, '../dist-react')));
-
-expressApp.use('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist-react', 'index.html'));
-});
-
 if(!dev){
     setInterval(() => {
         checkIfTauriAppIsOpen().then((isOpen) => {

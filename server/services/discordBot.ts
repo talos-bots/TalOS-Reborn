@@ -1,11 +1,11 @@
 import { ActivityType, Client, GatewayIntentBits, Collection, REST, Routes, Partials, TextChannel, DMChannel, NewsChannel, Snowflake, Webhook, Message, CommandInteraction, Events, PartialGroupDMChannel, Channel } from 'discord.js';
-import { CharacterInterface } from '../routes/characters.js';
 import { base642Buffer } from '../helpers/index.js';
 import { SlashCommand } from '../typings/discordBot.js';
 import { DefaultCommands } from './discordBot/commands.js';
-import { DiscordConfig, fetchdiscordConfigById, getGlobalConfig } from '../routes/discordConfig.js';
+import { fetchdiscordConfigById, getGlobalConfig } from '../routes/discordConfig.js';
 import { RoomPipeline } from './discordBot/roomPipeline.js';
 import { processMessage } from '../routes/discord.js';
+import { DiscordConfig, CharacterInterface } from '../typings/types.js';
 
 const intents = { 
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, 

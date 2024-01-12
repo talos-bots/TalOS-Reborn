@@ -1,7 +1,6 @@
 /* eslint-disable no-case-declarations */
 import { diffusionConnectionsPath } from "../server.js";
 import express from 'express';
-import dotenv from 'dotenv';
 import fs from "fs";
 import path from "path";
 
