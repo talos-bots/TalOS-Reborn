@@ -7,30 +7,31 @@ import { CompletionRequest } from "../../routes/connections.js";
 import { fetchCharacterById } from "../../routes/characters.js";
 import { handleCompletionRequest } from "../../routes/llms.js";
 import { breakUpCommands } from "../../helpers/index.js";
+import { UsageArguments } from "../../routes/settings.js";
 
 export class RoomPipeline implements Room {
-    _id: string = '';
-    name: string = '';
-    description: string = '';
-    createdBy: string = '';
-    channelId: string = '';
-    guildId: string = '';
-    isPrivate: boolean = false;
-    isLocked: boolean = false;
-    createdAt: Date = new Date();
-    lastModified: Date = new Date();
-    messages: RoomMessage[] = [];
-    bannedUsers: string[] = [];
-    bannedPhrases: string[] = [];   
-    whitelistUsers: string[] = [];
-    characters: string[] = [];
-    aliases: Alias[] = [];
-    authorsNotes: AuthorsNote[] = [];
-    authorsNoteDepth: number = 0;
-    allowRegeneration: boolean = false;
-    allowDeletion: boolean = false;
-    overrides: CharacterSettingsOverride[] = [];
-    users: string[] = [];
+    public _id: string = '';
+    public name: string = '';
+    public description: string = '';
+    public createdBy: string = '';
+    public channelId: string = '';
+    public guildId: string = '';
+    public isPrivate: boolean = false;
+    public isLocked: boolean = false;
+    public createdAt: Date = new Date();
+    public lastModified: Date = new Date();
+    public messages: RoomMessage[] = [];
+    public bannedUsers: string[] = [];
+    public bannedPhrases: string[] = [];   
+    public whitelistUsers: string[] = [];
+    public characters: string[] = [];
+    public aliases: Alias[] = [];
+    public authorsNotes: AuthorsNote[] = [];
+    public authorsNoteDepth: number = 0;
+    public allowRegeneration: boolean = false;
+    public allowDeletion: boolean = false;
+    public overrides: CharacterSettingsOverride[] = [];
+    public users: string[] = [];
 
     constructor(room: Room) {
         this._id = room._id;
@@ -210,6 +211,21 @@ export class RoomPipeline implements Room {
         }
     }
 
+    public static getRoomByChannelId(channelId: string): RoomPipeline | undefined {
+        const roomFiles = fs.readdirSync(roomsPath);
+        const rooms = [];
+        for(const fileName of roomFiles) {
+            const room = JSON.parse(fs.readFileSync(path.join(roomsPath, fileName), 'utf8')) as Room;
+            rooms.push(room);
+        }
+        const room = rooms.find(room => room.channelId === channelId);
+        if (room) {
+            return new RoomPipeline(room);
+        } else {
+            return undefined;
+        }
+    }
+
     getStopList(): string[] {
         const stopList: string[] = [];
         for (let i = 0; i < this.messages.length; i++) {
@@ -284,6 +300,18 @@ export class RoomPipeline implements Room {
         this.addRoomMessage(characterResponse);
         this.saveToFile();
         return characterResponse;
+    }
+
+    public getUsageArgumentsForCharacter(characterId: string): UsageArguments | undefined {
+        const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
+        if(!characterSettingsOverride){
+            return;
+        }
+        const args = characterSettingsOverride.args;
+        if(!args){
+            return;
+        }
+        return args;
     }
 
 }

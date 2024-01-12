@@ -4,6 +4,8 @@ import { base642Buffer } from '../helpers/index.js';
 import { SlashCommand } from '../typings/discordBot.js';
 import { DefaultCommands } from './discordBot/commands.js';
 import { DiscordConfig, fetchdiscordConfigById, getGlobalConfig } from '../routes/discordConfig.js';
+import { RoomPipeline } from './discordBot/roomPipeline.js';
+import { processMessage } from '../routes/discord.js';
 
 const intents = { 
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, 
@@ -21,6 +23,9 @@ export class DiscordBotService {
     private commands: SlashCommand[] = [...DefaultCommands];
     private adminUsers: string[] = [];
     private adminRoles: string[] = [];
+    public messageQueue: Message[] = [];
+    public processingQueue: boolean = false;
+    public currentConfigId: string = "";
 
     constructor() {
         this.client = new Client(intents);
@@ -33,6 +38,7 @@ export class DiscordBotService {
             const global = getGlobalConfig();
             if(global.currentConfig === "") return;
             const settings = fetchdiscordConfigById(global.currentConfig);
+            this.currentConfigId = global.currentConfig;
             if(!settings) return;
             if(settings.apiKey === "") return;
             this.token = settings.apiKey;
@@ -41,6 +47,7 @@ export class DiscordBotService {
             if(settings.adminUsers) this.adminUsers = settings.adminUsers;
             if(settings.adminRoles) this.adminRoles = settings.adminRoles;
         }else {
+            this.currentConfigId = config.id;
             if(config.apiKey === "") return;
             this.token = config.apiKey;
             if(config.applicationId === "") return;
@@ -106,7 +113,31 @@ export class DiscordBotService {
             console.warn('Discord client rate limit:', rateLimitInfo);
         });
 
+        this.client.on('messageCreate', async (message) => {
+            if(message.author.bot) return;
+            if(message.channel instanceof DMChannel || message.channel instanceof NewsChannel || message.channel instanceof TextChannel){
+                const hasRoom = RoomPipeline.doesRoomExistByChannelId(message.channel.id);
+                if(hasRoom){
+                    this.addMessageToQueue(message);
+                }
+            }
+        });
+
         await this.client.login(this.token);
+    }
+
+    public removeMessageFromQueue(message: Message){
+        const index = this.messageQueue.indexOf(message);
+        if(index > -1){
+            this.messageQueue.splice(index, 1);
+        }
+    }
+
+    public addMessageToQueue(message: Message){
+        if(!this.messageQueue.includes(message)){
+            this.messageQueue.push(message);
+        }
+        processMessage();
     }
 
     public async stop(): Promise<void> {
