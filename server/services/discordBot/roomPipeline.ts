@@ -3,6 +3,7 @@ import { Alias, AuthorsNote, CharacterSettingsOverride, ChatMessage, Room, RoomM
 import { roomsPath } from "../../server.js";
 import fs from 'fs';
 import path from 'path';
+import { CompletionRequest } from "../../routes/connections.js";
 
 export class RoomPipeline implements Room {
     _id: string = '';
@@ -212,6 +213,15 @@ export class RoomPipeline implements Room {
             messages.push(roomMessage);
             this.addRoomMessage(roomMessage);
         }
+        const processedMessages = [];
+        for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
+            const alias = this.aliases.find(alias => alias.userId === message.message.userId);
+            message.message.fallbackName = alias?.name || message.message.fallbackName;
+            processedMessages.push(message);
+        }
+        this.messages = processedMessages;
+        const requestMessages = this.roomMessagesToChatMessages();
         return this.toRoom();
     }
 

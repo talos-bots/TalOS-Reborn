@@ -1,5 +1,6 @@
 import { CommandInteraction, Message } from "discord.js";
 import { Role } from "../routes/connections.js";
+import { UsageArguments } from "../routes/settings.js";
 
 export type Alias = {
     userId: string;
@@ -87,7 +88,5 @@ export interface Room {
 
 export interface CharacterSettingsOverride {
     characterId: string;
-    settingsId?: string;
-    connectionId?: string;
-    model?: string;
+    args: UsageArguments;
 }

@@ -262,7 +262,5 @@ export interface Room {
 
 export interface CharacterSettingsOverride {
     characterId: string;
-    settingsId?: string;
-    connectionId?: string;
-    model?: string;
+    args: UsageArguments;
 }
