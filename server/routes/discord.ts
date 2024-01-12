@@ -72,7 +72,7 @@ export async function startDiscordRoutes(server: Application){
     if(globalConfig.autoRestart){
         await activeDiscordClient.start()
     }
-    server.use('/discordManagement', DiscordManagementRouter);
+    server.use('/api/discordManagement', DiscordManagementRouter);
 }
 
 const isDiscordRunning = (req: Request, res: Response, next: NextFunction) => {
@@ -91,6 +91,15 @@ DiscordManagementRouter.post('/start', async (req, res) => {
         config = req.body.config;
     }
     await activeDiscordClient?.start(config);
+    res.send(activeDiscordClient?.isLoggedIntoDiscord());
+});
+
+DiscordManagementRouter.post('/refreshProfile', isDiscordRunning, async (req, res) => {
+    let config;
+    if(req.body.config){
+        config = req.body.config;
+    }
+    await activeDiscordClient?.setNameAndAvatar(config);
     res.send(activeDiscordClient?.isLoggedIntoDiscord());
 });
 

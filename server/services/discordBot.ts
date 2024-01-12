@@ -539,4 +539,23 @@ export class DiscordBotService {
             console.error(error);
         }
     }
+
+    public async setNameAndAvatar(config?: DiscordConfig){
+        if(!this.client) return;
+        let currentConfig: DiscordConfig | undefined;
+        if(!config){
+            if(this.currentConfigId === "") return;
+            const settings = fetchdiscordConfigById(this.currentConfigId);
+            if(!settings) return;
+            currentConfig = settings;
+        }
+        if(!currentConfig) return;
+        if(currentConfig.photoUrl){
+            const avatar = await base642Buffer(currentConfig.photoUrl);
+            this.client.user?.setAvatar(avatar);
+        }
+        if(currentConfig.name){
+            this.client.user?.setUsername(currentConfig.name);
+        }
+    }
 }
