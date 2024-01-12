@@ -331,12 +331,9 @@ function getStopSequences(messages: Message[]){
     const stopSequences: string[] = [];
     for(let i = 0; i < messages.length; i++){
         const message = messages[i];
-        if(stopSequences.includes(message.fallbackName) || message.role === "System" || message.thought === true || message.role === "Assistant"){
+        if(stopSequences.includes(`${message.fallbackName}:`) || message.role === "System" || message.thought === true || message.role === "Assistant"){
             continue;
-        }
-        if(stopSequences.includes(`${message.fallbackName}:`)){
-            continue;
-        }else{
+        } else {
             stopSequences.push(`${message.fallbackName}:`);
         }
     }
@@ -821,7 +818,7 @@ async function getOpenAICompletion(request: CompletionRequest){
     }
 }
 
-async function handleCompletionRequest(request: CompletionRequest){
+export async function handleCompletionRequest(request: CompletionRequest){
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
     let connectionid = request.connectionid;

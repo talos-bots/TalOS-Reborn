@@ -4,6 +4,9 @@ import { roomsPath } from "../../server.js";
 import fs from 'fs';
 import path from 'path';
 import { CompletionRequest } from "../../routes/connections.js";
+import { fetchCharacterById } from "../../routes/characters.js";
+import { handleCompletionRequest } from "../../routes/llms.js";
+import { breakUpCommands } from "../../helpers/index.js";
 
 export class RoomPipeline implements Room {
     _id: string = '';
@@ -207,7 +210,18 @@ export class RoomPipeline implements Room {
         }
     }
 
-    generateResponse(roomMessage: RoomMessage): Room {
+    getStopList(): string[] {
+        const stopList: string[] = [];
+        for (let i = 0; i < this.messages.length; i++) {
+            const message = this.messages[i];
+            if(!stopList.includes(`${message.message.fallbackName}:`)){
+                stopList.push(`${message.message.fallbackName}:`);
+            }
+        }
+        return stopList;
+    }
+
+    async generateResponse(roomMessage: RoomMessage, characterId: string): Promise<RoomMessage> {
         const messages = this.messages;
         if(!this.messages.includes(roomMessage)){
             messages.push(roomMessage);
@@ -222,7 +236,54 @@ export class RoomPipeline implements Room {
         }
         this.messages = processedMessages;
         const requestMessages = this.roomMessagesToChatMessages();
-        return this.toRoom();
+        const character = await fetchCharacterById(characterId);
+        if (!character) {
+            throw new Error(`Character not found: ${characterId}`);
+        }
+        const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
+        const completionRequest: CompletionRequest = {
+            messages: requestMessages,
+            character: characterId,
+            args: characterSettingsOverride?.args || undefined
+        }
+        let tries = 0;
+        let unfinished = true;
+        let value = '';
+        let refinedResponse = '';
+        while(unfinished && tries <= 3){
+            const unparsedResponse = await handleCompletionRequest(completionRequest);
+            if(unparsedResponse === null){
+                throw new Error('Failed to generate response');
+            }
+            value = unparsedResponse?.choices[0]?.text.trim();
+            refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), false);
+            tries++;
+            if(refinedResponse !== ''){
+                unfinished = false;
+            }
+        }
+        if(refinedResponse === ''){
+            throw new Error('Failed to generate response');
+        }
+        const characterResponse: RoomMessage = {
+            _id: new Date().getTime().toString(),
+            timestamp: new Date().getTime(),
+            attachments: [],
+            embeds: [],
+            discordChannelId: this.channelId,
+            discordGuildId: this.guildId,
+            message: {
+                userId: character._id,
+                fallbackName: character.name,
+                swipes: [refinedResponse],
+                currentIndex: 0,
+                role: 'Assistant',
+                thought: false,
+            }
+        };
+        this.addRoomMessage(characterResponse);
+        this.saveToFile();
+        return characterResponse;
     }
 
 }
