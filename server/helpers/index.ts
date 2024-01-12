@@ -3,6 +3,9 @@ import { uploadsPath } from "../server.js";
 import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
+import { Message } from "discord.js";
+import { RoomMessage } from "../typings/discordBot.js";
+import { Role } from "../routes/connections.js";
 
 export async function base642Buffer(base64: string): Promise<string| Buffer> {
 	let buffer: Buffer;
@@ -63,4 +66,23 @@ export async function getImageFromURL(url: string): Promise<string> {
 
     const buffer = await fs.promises.readFile(filePath);
     return buffer.toString('base64');
+}
+
+export function convertDiscordMessageToRoomMessage(message: Message): RoomMessage {
+    return {
+        _id: message.id,
+        timestamp: message.createdTimestamp,
+        attachments: message.attachments.toJSON(),
+        embeds: message.embeds,
+        discordChannelId: message.channel.id,
+        discordGuildId: message.guild?.id || '',
+        message: {
+            userId: message.author.id,
+            fallbackName: message.author.username,
+            swipes: [message.cleanContent],
+            currentIndex: 0,
+            role: 'User',
+            thought: false
+        }
+    }
 }

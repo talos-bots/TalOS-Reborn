@@ -211,3 +211,58 @@ export const characterTags: Tag[] = [
     { name: "Doctor", description: "Characters who are doctors", category: "job" },
     { name: "Teacher", description: "Characters who are teachers", category: "job" },
 ]
+
+export type Alias = {
+    userId: string;
+    personaId: string;
+    name?: string;
+    avatarUrl?: string;
+}
+
+export type AuthorsNote = {
+    _id: string;
+    note: string;
+    location: string;
+}
+
+export type RoomMessage = {
+    _id: string;
+    timestamp: number;
+    attachments: any[];
+    embeds: any[];
+    discordChannelId: string;
+    discordGuildId: string;
+    message: Message;
+}
+
+export interface Room {
+    _id: string;
+    name: string;
+    description: string;
+    createdBy: string;
+    channelId: string;
+    guildId: string;
+    isPrivate: boolean;
+    isLocked: boolean;
+    createdAt: Date;
+    lastModified: Date;
+    messages: RoomMessage[];
+    bannedUsers: string[];
+    bannedPhrases: string[];
+    whitelistUsers: string[];
+    characters: string[];
+    aliases: Alias[];
+    authorsNotes: AuthorsNote[];
+    authorsNoteDepth: number;
+    allowRegeneration: boolean;
+    allowDeletion: boolean;
+    users: string[];
+    overrides: CharacterSettingsOverride[];
+}
+
+export interface CharacterSettingsOverride {
+    characterId: string;
+    settingsId?: string;
+    connectionId?: string;
+    model?: string;
+}

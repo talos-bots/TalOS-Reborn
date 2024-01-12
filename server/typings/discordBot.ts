@@ -1,9 +1,8 @@
 import { CommandInteraction, Message } from "discord.js";
+import { Role } from "../routes/connections.js";
 
 export type Alias = {
-    discordAuthorId: string;
     userId: string;
-    roomId: string;
     personaId: string;
     name?: string;
     avatarUrl?: string;
@@ -27,7 +26,7 @@ export type ChannelConfigInterface = {
 export interface SlashCommandOption {
     name: string;
     description: string;
-    type: number;  // Changed this from 'STRING' | 'INTEGER' ... to number
+    type: number; // 1 = subcommand, 2 = subcommand group, 3 = string, 4 = integer, 5 = boolean, 6 = user, 7 = channel, 8 = role, 9 = mentionable, 10 = number
     required?: boolean;
     choices?: { name: string; value: string | number }[];
 }
@@ -35,22 +34,30 @@ export interface SlashCommandOption {
 export interface SlashCommand {
     name: string;
     description: string;
+    requiresAdmin: boolean;
     options?: SlashCommandOption[];
     execute: (interaction: CommandInteraction) => void | Promise<void>;
 }
 
 export type ValidStatus = 'online' | 'dnd' | 'idle' | 'invisible';
 
+export type ChatMessage = {
+    userId: string;
+    fallbackName: string;
+    swipes: string[];
+    currentIndex: number;
+    role: Role;
+    thought: boolean;
+};
+
 export type RoomMessage = {
     _id: string;
-    text: string;
     timestamp: number;
     attachments: any[];
     embeds: any[];
-    discordMessageId: string;
     discordChannelId: string;
     discordGuildId: string;
-    userId: string;
+    message: ChatMessage;
 }
 
 export interface Room {
@@ -74,4 +81,13 @@ export interface Room {
     authorsNoteDepth: number;
     allowRegeneration: boolean;
     allowDeletion: boolean;
+    users: string[];
+    overrides: CharacterSettingsOverride[];
+}
+
+export interface CharacterSettingsOverride {
+    characterId: string;
+    settingsId?: string;
+    connectionId?: string;
+    model?: string;
 }

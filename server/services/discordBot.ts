@@ -19,7 +19,9 @@ export class DiscordBotService {
     private token: string;
     private applicationID: string;
     private commands: SlashCommand[] = [...DefaultCommands];
-    
+    private adminUsers: string[] = [];
+    private adminRoles: string[] = [];
+
     constructor() {
         this.client = new Client(intents);
         this.token = '';
@@ -36,11 +38,15 @@ export class DiscordBotService {
             this.token = settings.apiKey;
             if(settings.applicationId === "") return;
             this.applicationID = settings.applicationId;
+            if(settings.adminUsers) this.adminUsers = settings.adminUsers;
+            if(settings.adminRoles) this.adminRoles = settings.adminRoles;
         }else {
             if(config.apiKey === "") return;
             this.token = config.apiKey;
             if(config.applicationId === "") return;
             this.applicationID = config.applicationId;
+            if(config.adminUsers) this.adminUsers = config.adminUsers;
+            if(config.adminRoles) this.adminRoles = config.adminRoles;
         }
         if (!this.applicationID) {
             throw new Error('Discord application ID is not set!');
@@ -61,6 +67,13 @@ export class DiscordBotService {
             if (!interaction.isCommand()) return;
             const command = this.commands.find(cmd => cmd.name === interaction.commandName);
             if (!command) return;
+            if(command.requiresAdmin){
+                const isAdministrator = await this.isAdministrator(interaction.user.id);
+                if(!isAdministrator){
+                    await interaction.reply({ content: 'You do not have permission to use this command!', ephemeral: true });
+                    return;
+                }
+            }
             try {
                 await command.execute(interaction);
             } catch (error) {
@@ -114,6 +127,23 @@ export class DiscordBotService {
 
     public async getChannel(channelId: string): Promise<TextChannel | DMChannel | NewsChannel | PartialGroupDMChannel | Channel | null> {
         return await this.client.channels.fetch(channelId);
+    }
+
+    public async isAdministrator(userId: string): Promise<boolean> {
+        if(!this.client) return false;
+        if(this.adminUsers.includes(userId)) return true;
+        const user = await this.client.users.fetch(userId);
+        if(!user) return false;
+        const guilds = this.client.guilds.cache;
+        for(const guild of guilds){
+            const member = await guild[1].members.fetch(userId);
+            if(!member) continue;
+            const roles = member.roles.cache;
+            for(const role of roles){
+                if(this.adminRoles.includes(role[0])) return true;
+            }
+        }
+        return false;
     }
 
     public async getWebhooksForChannel(channelID: Snowflake): Promise<string[]> {

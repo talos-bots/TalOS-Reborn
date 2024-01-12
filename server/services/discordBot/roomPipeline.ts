@@ -1,1 +1,218 @@
- 
+import { Message } from "discord.js";
+import { Alias, AuthorsNote, CharacterSettingsOverride, ChatMessage, Room, RoomMessage } from "../../typings/discordBot.js";
+import { roomsPath } from "../../server.js";
+import fs from 'fs';
+import path from 'path';
+
+export class RoomPipeline implements Room {
+    _id: string = '';
+    name: string = '';
+    description: string = '';
+    createdBy: string = '';
+    channelId: string = '';
+    guildId: string = '';
+    isPrivate: boolean = false;
+    isLocked: boolean = false;
+    createdAt: Date = new Date();
+    lastModified: Date = new Date();
+    messages: RoomMessage[] = [];
+    bannedUsers: string[] = [];
+    bannedPhrases: string[] = [];   
+    whitelistUsers: string[] = [];
+    characters: string[] = [];
+    aliases: Alias[] = [];
+    authorsNotes: AuthorsNote[] = [];
+    authorsNoteDepth: number = 0;
+    allowRegeneration: boolean = false;
+    allowDeletion: boolean = false;
+    overrides: CharacterSettingsOverride[] = [];
+    users: string[] = [];
+
+    constructor(room: Room) {
+        this._id = room._id;
+        this.name = room.name;
+        this.description = room.description;
+        this.createdBy = room.createdBy;
+        this.channelId = room.channelId;
+        this.guildId = room.guildId;
+        this.isPrivate = room.isPrivate;
+        this.isLocked = room.isLocked;
+        this.createdAt = room.createdAt;
+        this.lastModified = room.lastModified;
+        this.messages = room.messages;
+        this.bannedUsers = room.bannedUsers;
+        this.bannedPhrases = room.bannedPhrases;
+        this.whitelistUsers = room.whitelistUsers;
+        this.characters = room.characters;
+        this.aliases = room.aliases;
+        this.authorsNotes = room.authorsNotes;
+        this.authorsNoteDepth = room.authorsNoteDepth;
+        this.allowRegeneration = room.allowRegeneration;
+        this.allowDeletion = room.allowDeletion;
+        this.overrides = room.overrides;
+        this.users = room.users;
+    }
+
+    updateLastModified(): void {
+        this.lastModified = new Date();
+    }
+
+    addRoomMessage(roomMessage: RoomMessage): void {
+        this.messages.push(roomMessage);
+        this.updateLastModified();
+    }
+
+    processDiscordMessage(message: Message): RoomMessage {
+        const alias = this.aliases.find(alias => alias.userId === message.author.id);
+        const roomMessage: RoomMessage = {
+            _id: message.id,
+            timestamp: message.createdTimestamp,
+            attachments: message.attachments.toJSON(),
+            embeds: message.embeds,
+            discordChannelId: message.channel.id,
+            discordGuildId: message.guild?.id || '',
+            message: {
+                userId: message.author.id,
+                fallbackName: alias?.name || message.author.username,
+                swipes: [message.cleanContent],
+                currentIndex: 0,
+                role: 'User',
+                thought: false
+            }
+        }
+        this.addRoomMessage(roomMessage);
+        return roomMessage;
+    }
+
+    getRoomMessage(messageId: string): RoomMessage | undefined {
+        return this.messages.find(message => message._id === messageId);
+    }
+
+    getRoomMessageIndex(messageId: string): number {
+        return this.messages.findIndex(message => message._id === messageId);
+    }
+
+    getRoomMessageByIndex(index: number): RoomMessage | undefined {
+        return this.messages[index];
+    }
+
+    replaceCharacter(newCharacterId: string): void {
+        this.characters = [newCharacterId];
+        this.updateLastModified();
+    }
+
+    addCharacter(newCharacterId: string): void {
+        this.characters.push(newCharacterId);
+        this.updateLastModified();
+    }
+
+    removeCharacter(characterId: string): void {
+        this.characters = this.characters.filter(id => id !== characterId);
+        this.updateLastModified();
+    }
+
+    addAlias(alias: Alias): void {
+        this.aliases.push(alias);
+        this.updateLastModified();
+    }
+
+    removeAlias(aliasId: string): void {
+        this.aliases = this.aliases.filter(alias => alias.userId !== aliasId);
+        this.updateLastModified();
+    }
+
+    createAlias(userId: string, personaId: string, name?: string, avatarUrl?: string): Alias {
+        const alias: Alias = {
+            userId,
+            personaId,
+            name,
+            avatarUrl
+        }
+        this.addAlias(alias);
+        return alias;
+    }
+
+    getAlias(aliasId: string): Alias | undefined {
+        return this.aliases.find(alias => alias.userId === aliasId);
+    }
+
+    roomMessagesToChatMessages(): ChatMessage[] {
+        return this.messages.map(message => message.message);
+    }
+
+    toRoom(): Room {
+        return {
+            _id: this._id,
+            name: this.name,
+            description: this.description,
+            createdBy: this.createdBy,
+            channelId: this.channelId,
+            guildId: this.guildId,
+            isPrivate: this.isPrivate,
+            isLocked: this.isLocked,
+            createdAt: this.createdAt,
+            lastModified: this.lastModified,
+            messages: this.messages,
+            bannedUsers: this.bannedUsers,
+            bannedPhrases: this.bannedPhrases,
+            whitelistUsers: this.whitelistUsers,
+            characters: this.characters,
+            aliases: this.aliases,
+            authorsNotes: this.authorsNotes,
+            authorsNoteDepth: this.authorsNoteDepth,
+            allowRegeneration: this.allowRegeneration,
+            allowDeletion: this.allowDeletion,
+            overrides: this.overrides,
+            users: this.users
+        }
+    }
+
+    saveToFile(): void {
+        try {
+            fs.writeFileSync(path.join(roomsPath, `${this._id}.json`), JSON.stringify(this.toRoom(), null, 4));
+        } catch (error) {
+            console.error('Failed to save room to file:', error);
+        }
+    }
+
+    public static loadFromFile(roomId: string): RoomPipeline {
+        if (!fs.existsSync(path.join(roomsPath, `${roomId}.json`))) {
+            throw new Error(`Room not found: ${roomId}`);
+        }
+        const room = JSON.parse(fs.readFileSync(path.join(roomsPath, `${roomId}.json`), 'utf8')) as Room;
+        return new RoomPipeline(room);
+    }
+
+    public static doesRoomExist(roomId: string): boolean {
+        if (!fs.existsSync(path.join(roomsPath, `${roomId}.json`))) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public static doesRoomExistByChannelId(channelId: string): boolean {
+        const roomFiles = fs.readdirSync(roomsPath);
+        const rooms = [];
+        for(const fileName of roomFiles) {
+            const room = JSON.parse(fs.readFileSync(path.join(roomsPath, fileName), 'utf8')) as Room;
+            rooms.push(room);
+        }
+        const room = rooms.find(room => room.channelId === channelId);
+        if (room) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    generateResponse(roomMessage: RoomMessage): Room {
+        const messages = this.messages;
+        if(!this.messages.includes(roomMessage)){
+            messages.push(roomMessage);
+            this.addRoomMessage(roomMessage);
+        }
+        return this.toRoom();
+    }
+
+}
