@@ -297,6 +297,7 @@ const DiscordPanel = ({ discordOnline, setDiscordOnline }: DiscordPanelProps) =>
                 required={false}
                 className={''}
             />
+            <a href={`https://discord.com/oauth2/authorize?client_id=${configApplicationID}&scope=bot&permissions=41389525433936`} target="_blank" rel="noreferrer" className="dy-btn dy-btn-primary">Invite Bot</a>
             <div className="flex flex-row gap-2 w-full items-center justify-center">
                 <button className="dy-btn dy-btn-primary" onClick={setDefaultConfig}>Set as Default</button>
                 <button className="dy-btn dy-btn-primary" onClick={handleSaveConfig}>Save</button>

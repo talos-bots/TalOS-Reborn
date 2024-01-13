@@ -42,6 +42,7 @@ export async function processMessage(){
 
 async function handleMessageProcessing(room: RoomPipeline, message: Message){
     if(!activeDiscordClient?.isLoggedIntoDiscord()) return isProcessing = false;
+    if(message.content.startsWith('.') && !message.content.startsWith('...')) return isProcessing = false;
     const roomMessage = room.processDiscordMessage(message);
     if(!roomMessage) return isProcessing = false;
     room.saveToFile();
