@@ -445,6 +445,9 @@ async function getGenericCompletion(request: CompletionRequest){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
     }
+    if(modelInfo.model === ''){
+        throw new Error('No valid response from LLM.');
+    }
     const body = {
         'model': modelInfo.model,
         'prompt': prompt,
@@ -768,8 +771,9 @@ async function getOpenAICompletion(request: CompletionRequest){
     if(!settingsInfo){
         settingsInfo = DefaultSettings[0];
     }
-    console.log(settingsInfo);
-    console.log(modelInfo);
+    if(modelInfo.model === ''){
+        throw new Error('No valid response from LLM.');
+    }
     const response = await axios('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -857,6 +861,9 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
     if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
+    }
+    if(modelInfo.model === ''){
+        throw new Error('No valid response from LLM.');
     }
     const body = {
         'model': modelInfo.model,

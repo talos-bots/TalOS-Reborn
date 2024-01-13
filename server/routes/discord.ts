@@ -9,38 +9,44 @@ import { CharacterInterface } from "../typings/types.js";
 const activePipelines: RoomPipeline[] = [];
 
 const activeDiscordClient: DiscordBotService = new DiscordBotService();
+let isProcessing = false;
 
 export async function processMessage(){
-    if(!activeDiscordClient?.isLoggedIntoDiscord()){
+    if(!activeDiscordClient?.isLoggedIntoDiscord() || isProcessing){
         return;
     }
-    if(activeDiscordClient.processingQueue === true){
-        return;
-    }
-    activeDiscordClient.processingQueue = true;
-    const message = activeDiscordClient.messageQueue.shift();
-    if(!message) return;
-    let roomPipeline = activePipelines.find((pipeline) => {
-        return pipeline.channelId === message.channel.id;
-    });
-    if(!roomPipeline){
-        const newPipeline = RoomPipeline.getRoomByChannelId(message.channel.id);
-        if(!newPipeline){
-            return;
+    isProcessing = true;
+
+    try {
+        const message = activeDiscordClient.messageQueue.shift();
+        if(!message) return;
+        let roomPipeline = activePipelines.find(pipeline => pipeline.channelId === message.channel.id);
+        if(!roomPipeline){
+            const newPipeline = RoomPipeline.getRoomByChannelId(message.channel.id);
+            if(!newPipeline){
+                return;
+            }
+            roomPipeline = newPipeline;
+            activePipelines.push(newPipeline);
         }
-        roomPipeline = newPipeline;
-        activePipelines.push(newPipeline);
+        await handleMessageProcessing(roomPipeline, message);
+    } catch (error) {
+        console.error('Error during message processing:', error);
+    } finally {
+        isProcessing = false;
+        if(activeDiscordClient?.messageQueue.length > 0){
+            processMessage();
+        }
     }
-    handleMessageProcessing(roomPipeline, message);
 }
 
 async function handleMessageProcessing(room: RoomPipeline, message: Message){
-    if(!activeDiscordClient?.isLoggedIntoDiscord()) return;
+    if(!activeDiscordClient?.isLoggedIntoDiscord()) return isProcessing = false;
     const roomMessage = room.processDiscordMessage(message);
-    if(!roomMessage) return;
+    if(!roomMessage) return isProcessing = false;
     room.saveToFile();
     activeDiscordClient.removeMessageFromQueue(message);
-    if(roomMessage.message.swipes[0].startsWith('-')) return;
+    if(roomMessage.message.swipes[0].startsWith('-')) return isProcessing = false;
     const characters: CharacterInterface[] = [];
     for(let i = 0; i < room.characters.length; i++){
         const characterId = room.characters[i];
@@ -63,7 +69,7 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
             await activeDiscordClient?.sendMessageAsCharacter(room.channelId, character, responseMessage);
         }
     }
-    activeDiscordClient.processingQueue = false;
+    isProcessing = false;
     processMessage();
 }
 

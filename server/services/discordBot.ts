@@ -288,7 +288,7 @@ export class DiscordBotService {
     }
 
     public isLoggedIntoDiscord(): boolean {
-        return !!this.client?.readyAt;
+        return this.client?.isReady() || false;
     }
     
     public doGlobalNicknameChange(newName: string){
@@ -577,11 +577,32 @@ export class DiscordBotService {
         }
         if(!currentConfig) return;
         if(currentConfig.photoUrl){
-            const avatar = await base642Buffer(currentConfig.photoUrl);
-            this.client.user?.setAvatar(avatar);
+            try {
+                const avatar = await base642Buffer(currentConfig.photoUrl);
+                this.client.user?.setAvatar(avatar);
+            } catch (error) {
+                console.error(error);
+            }
+
         }
         if(currentConfig.name){
-            this.client.user?.setUsername(currentConfig.name);
+            try {
+                this.client.user?.setUsername(currentConfig.name);
+            } catch (error) {
+                console.error(error);
+            }
         }
+    }
+
+    turnOffProcessing(){
+        this.processingQueue = false;
+    }
+
+    turnOnProcessing(){
+        this.processingQueue = true;
+    }
+
+    getProcessingStatus(){
+        return this.processingQueue;
     }
 }

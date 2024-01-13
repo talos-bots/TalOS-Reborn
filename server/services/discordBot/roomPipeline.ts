@@ -266,15 +266,23 @@ export class RoomPipeline implements Room {
         let value = '';
         let refinedResponse = '';
         while(unfinished && tries <= 3){
-            const unparsedResponse = await handleCompletionRequest(completionRequest);
-            if(unparsedResponse === null){
-                throw new Error('Failed to generate response');
-            }
-            value = unparsedResponse?.choices[0]?.text.trim();
-            refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), false);
-            tries++;
-            if(refinedResponse !== ''){
-                unfinished = false;
+            try {
+                const unparsedResponse = await handleCompletionRequest(completionRequest);
+                if(unparsedResponse === null){
+                    throw new Error('Failed to generate response');
+                }
+                console.log(unparsedResponse);
+                if(unparsedResponse?.choices[0]?.text === undefined){
+                    throw new Error('Failed to generate response');
+                }
+                value = unparsedResponse?.choices[0]?.text.trim();
+                refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), false);
+                tries++;
+                if(refinedResponse !== ''){
+                    unfinished = false;
+                }
+            } catch (error) {
+                console.error(error);
             }
         }
         if(refinedResponse === ''){
@@ -313,4 +321,9 @@ export class RoomPipeline implements Room {
         return args;
     }
 
+    clearMessages(): void {
+        this.messages = [];
+        this.updateLastModified();
+        this.saveToFile();
+    }
 }

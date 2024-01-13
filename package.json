@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "concurrently \"npm build react && vite --host\" \"cd ./server && npm run dev\"",
     "dev": "concurrently \"vite --host\" \"cd ./server && npm run dev\"",
     "dev-react": "vite --host",
     "start-server": "cd ./server && npm run start",

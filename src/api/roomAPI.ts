@@ -18,7 +18,10 @@ async function saveRoom(roomData: Room) {
 }
 
 async function removeRoomById(id: string) {
-    return await apiClient.delete(`/${id}`).then(response => response.data).catch(err => console.error(err));
+    return await apiClient.delete(`/${id}`).then(response => (
+        console.log(response.data),
+        response.data
+    )).catch(err => console.error(err));
 }
 
 export { getRooms, getRoomById, saveRoom, removeRoomById };
