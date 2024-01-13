@@ -133,7 +133,7 @@ export interface UsageArguments {
 
 export type TokenType = 'SentencePiece' | 'GPT';
 
-export type EndpointType = 'Kobold' | 'OAI' | 'Horde' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'OAI-Compliant-API' | 'Mancer'
+export type EndpointType = 'Kobold' | 'OAI' | 'Horde' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'OAI-Compliant-API' | 'Mancer' | 'OpenRouter'
 
 export type CompletionType = 'Chat' | 'Text';
 

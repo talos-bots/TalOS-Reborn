@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
-import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels } from "../../api/connectionAPI";
+import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels, fetchOpenRouterModels } from "../../api/connectionAPI";
 import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
 function getForwardFacingName(type: EndpointType): string {
@@ -18,7 +18,7 @@ function getForwardFacingName(type: EndpointType): string {
 }
 
 const ConnectionPanel = () => {
-    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM']
+    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM', 'OpenRouter']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
     const [connectionType, setConnectionType] = useState<EndpointType>(connectionTypes[0] as EndpointType)
     const [connectionID, setConnectionID] = useState<string>('' as string)
@@ -122,7 +122,7 @@ const ConnectionPanel = () => {
             }).catch((error) => {
                 setConnectionStatus('Connection Failed')
             })
-        }else if (connectionType === 'PaLM'){
+        } else if (connectionType === 'PaLM'){
             setConnectionStatus('Connecting...')
             fetchPalmModels(connectionPassword).then((models) => {
                 if(models === null) return
@@ -131,7 +131,7 @@ const ConnectionPanel = () => {
             }).catch((error) => {
                 setConnectionStatus('Connection Failed')
             })
-        }else if(connectionType === 'OAI'){
+        } else if(connectionType === 'OAI'){
             setConnectionStatus('Connecting...')
             fetchOpenAIModels(connectionPassword).then((models) => {
                 if(models === null) return
@@ -141,7 +141,25 @@ const ConnectionPanel = () => {
                 setConnectionStatus('Connection Failed')
             })
         
-        }else {
+        } else if (connectionType === 'OAI-Compliant-API'){
+            setConnectionStatus('Connecting...')
+            fetchConnectionModels(connectionURL, connectionPassword).then((models) => {
+                if(models === null) return
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            })
+        } else if (connectionType === 'OpenRouter'){
+            setConnectionStatus('Connecting...')
+            fetchOpenRouterModels(connectionPassword).then((models) => {
+                if(models === null) return
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            });
+        } else {
             setConnectionStatus('Connecting...')
             fetchConnectionModels(connectionURL, connectionPassword).then((models) => {
                 if(models === null) return
@@ -190,7 +208,7 @@ const ConnectionPanel = () => {
                     <option key={index} value={connectionOption}>{getForwardFacingName(connectionOption)}</option>
                 ))}
             </RequiredSelectField>
-            {connectionType !== 'Mancer' && connectionType !== 'OAI' && connectionType !== 'Horde' && connectionType !== 'PaLM' && (
+            {connectionType !== 'Mancer' && connectionType !== 'OAI' && connectionType !== 'Horde' && connectionType !== 'PaLM' && connectionType !== 'OpenRouter' && (
                 <>
                 <div className="flex flex-row gap-2 w-full items-center justify-center">
                     <RequiredInputField

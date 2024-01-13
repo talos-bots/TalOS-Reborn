@@ -434,14 +434,14 @@ async function getGenericCompletion(request: CompletionRequest){
     if(!settingsInfo){
         settingsInfo = DefaultSettings[0];
     }
-    if(modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
+    if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
         stopSequences.push("###");
     }
-    if(modelInfo.model?.includes("synthia-70b") || modelInfo.model?.includes("goliath-120b")){
+    if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
         stopSequences.push("USER:");
         stopSequences.push("ASSISTANT:");
     }
-    if(modelInfo.model?.includes("mythalion")){
+    if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
     }
@@ -819,6 +819,98 @@ async function getOpenAICompletion(request: CompletionRequest){
     }
 }
 
+export async function getOpenRouterCompletion(request: CompletionRequest){
+    const prompt = await formatCompletionRequest(request);
+    const stopSequences = getStopSequences(request.messages);
+    const appSettings = fetchAllAppSettings();
+    console.log(appSettings);
+    let connectionid = request.connectionid;
+    if(!connectionid){
+        connectionid = appSettings?.defaultConnection ?? "";
+    }
+    if(!connectionid){
+        return null;
+    }
+    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = appSettings?.defaultSettings ?? "1";
+    }
+    if(!settingsid) return;
+    if(settingsid?.length < 1){
+        settingsid = "1";
+    }
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    if(!settingsInfo){
+        settingsInfo = DefaultSettings[0];
+    }
+    if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
+        stopSequences.push("###");
+    }
+    if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    const body = {
+        'model': modelInfo.model,
+        'prompt': prompt,
+        'stop': stopSequences,
+        'stream': false,
+        'temperature': (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
+        'max_tokens': settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
+        'top_p': (settingsInfo.top_p !== undefined && settingsInfo.top_k <= 1) ? settingsInfo.top_p : 0.9,
+        'top_k': (settingsInfo.top_k !== undefined && settingsInfo.top_k >= 1) ? settingsInfo.top_k : 1,
+        'frequency_penalty': (settingsInfo.frequency_penalty !== undefined && settingsInfo.frequency_penalty <= 2) ? settingsInfo.frequency_penalty : 1,
+        'presence_penalty': (settingsInfo.presence_penalty !== undefined && settingsInfo.presence_penalty <= 2) ? settingsInfo.presence_penalty : 1,
+    }
+    console.log(body);
+    const response = await axios('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${modelInfo.key?.trim()}`,
+        },
+        data: body,
+    }).then((response) => {
+        return response;
+    }).catch((error) => {
+        return error.response;
+    });
+    console.log(response.data);
+    if(!response){
+        return null;
+    }
+    if (response.status !== 200) {
+        console.error('Error generating completion:', response.statusText);
+        return null;
+    }
+    const openAIReply = await response.data;
+    if (openAIReply?.error) {
+        throw new Error(openAIReply.error.message);
+    }
+    const text = openAIReply?.choices[0]?.message.content.trim();
+    if(!text){
+        throw new Error('No valid response from LLM.');
+    }
+    return {
+        choices: [
+            {
+                text: text,
+                index: 0,
+                logprobs: openAIReply?.choices[0]?.logprobs,
+                finish_reason: openAIReply?.choices[0]?.finish_reason,
+            }
+        ]
+    }
+}
+
 export async function handleCompletionRequest(request: CompletionRequest){
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
@@ -840,6 +932,8 @@ export async function handleCompletionRequest(request: CompletionRequest){
             return await getGoogleCompletion(request);
         case 'OAI':
             return await getOpenAICompletion(request);
+        case 'OpenRouter':
+            return await getOpenRouterCompletion(request);
         default:
             return await getGenericCompletion(request);
     }

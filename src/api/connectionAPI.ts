@@ -217,6 +217,34 @@ export async function fetchOpenAIModels(key?: string){
     }
 }
 
+export async function fetchOpenRouterModels(key?: string){
+    try {
+        const response = await api(`/api/test/openrouter`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({ key }),
+        });
+        
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
+        }
+        const data = await response.data.data;
+        if(data.error) {
+            console.error('Error fetching openrouter models:', data.error);
+            return null;
+        }else{
+            console.log(data.data);
+            return data.data.map((model: any) => model.id);
+        }
+    } catch (error) {
+        console.error('Error in fetchOpenRouterModels:', error);
+        return null;
+    }
+}
+
 export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona?: UserPersona, connectionid?: string, settingsid?: string){
     const newRequest: CompletionRequest = {
         lorebookid: 'mancer',

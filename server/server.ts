@@ -179,7 +179,6 @@ expressApp.use('/pfp', express.static(profilePicturesPath));
 expressApp.use('/backgrounds', express.static(backgroundsPath));
 expressApp.use('/sprites', express.static(spritesPath));
 expressApp.use(express.static(path.join(__dirname, '../dist-react')));
-expressApp.use('*', (req, res) => res.sendFile(path.join(__dirname, '../dist-react', 'index.html')));
 const server = createServer(expressApp);
 
 let userConnections: UserConnection[] = []
@@ -458,3 +457,5 @@ if(!dev){
         });
     }, 5000);
 }
+
+expressApp.use('*', (req, res) => res.sendFile(path.join(__dirname, '../dist-react', 'index.html')));

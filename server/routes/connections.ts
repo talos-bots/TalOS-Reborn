@@ -232,3 +232,35 @@ connectionsRouter.post('/test/openai', async (req, res) => {
     const data = await getOpenAI(request);
     res.send({data});
 });
+
+async function getOpenRouter(key?: string) {
+    try {
+        const response = await fetch(`https://openrouter.ai/api/v1/models`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key?.trim()}`,
+            },
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.log(error);
+            return error;
+        });
+        if (!response.ok) {
+            console.log('Connection models not found');
+            throw Error(`Error: ${response.status}`);
+        }
+        const json = await response.json();
+        return json;
+
+    } catch (error) {
+        return error;
+    }
+}
+
+connectionsRouter.post('/test/openrouter', async (req, res) => {
+    const request = req.body.key;
+    const data = await getOpenRouter(request);
+    res.send({data});
+});
