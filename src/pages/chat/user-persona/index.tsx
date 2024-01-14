@@ -37,6 +37,12 @@ const UserPersonaWindow = (props: UserPersonaProps) => {
         }else if(selectedPersona === 'display-info') {
             setName(user?.displayName || 'User');
             setAvatar(user?.profilePic || '');
+            setPersona({
+                name: user?.displayName || 'User',
+                description: '',
+                importance: 'low',
+                avatar: user?.profilePic || '',
+            } as UserPersona);
         }
     }, [selectedPersona]);
     

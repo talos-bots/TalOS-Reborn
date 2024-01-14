@@ -90,15 +90,15 @@ const BackgroundSelector = (props: BackgroundSelectorProps) => {
                 ))}
                 <label htmlFor="backgroundSelector" className="rounded-box flex items-center bg-base-200 justify-center w-[120px] h-[80px] hover:cursor-pointer">
                     <Image size={60}/>
-                    <input
-                        id="backgroundSelector"
-                        type="file"
-                        name="background"
-                        accept=".png,.jpg,.jpeg"
-                        className="absolute inset-0 opacity-0 cursor-pointer w-[120px] h-[80px]"
-                        onChange={handleBackgroundChange}
-                    />
                 </label>
+                <input
+                    id="backgroundSelector"
+                    type="file"
+                    name="background"
+                    accept=".png,.jpg,.jpeg"
+                    className="hidden"
+                    onChange={handleBackgroundChange}
+                />
             </div>
         </div>
     );
