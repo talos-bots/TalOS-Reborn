@@ -62,7 +62,7 @@ const RoomManager = ({ discordOnline } : RoomManagerProps) => {
         <div className='grid grid-cols-1 md:grid-cols-6 md:gap-2 h-full w-full'>
             <div className='flex flex-col gap-2 md:col-span-4 h-full max-h-full'>
                 <label className="font-bold w-full text-left">Rooms</label>
-                <div className='dy-textarea dy-textarea-bordered flex-grow flex flex-col items-center md:grid md:grid-cols-3 overflow-y-scroll justify-center'>
+                <div className='dy-textarea dy-textarea-bordered flex-grow flex flex-col items-center md:items-baseline md:grid md:grid-cols-3 overflow-y-scroll justify-center'>
                     <div className='flex flex-col justify-between rounded-box dy-textarea dy-textarea-bordered max-w-[256px] w-[256px] max-h-[256px] h-[256px]'>
                         <h3 className='text-center  font-semibold'>What is a Room?</h3>
                         <p className='text-center'>A room is a digital space where humans and language models can interact. Rooms are available through discord, and through the TalOS: Reborn Rooms page.</p>
