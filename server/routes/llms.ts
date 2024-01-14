@@ -125,13 +125,13 @@ function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 
         }
         if(persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]`);
+                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
             }
         }
         prompt = lines.join("\n");
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== "Assistant") {
+    if (newMessages.length > 0) {
         prompt += `${constructName}:`;
     }
 	return prompt;
@@ -161,12 +161,12 @@ function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: num
         }
         if(i === newMessages.length - 3 && persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                prompt += `[${persona.description.trim()}]`;
+                prompt += `[${persona.description.trim()}]\n`;
             }
         }
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== "Assistant") {
+    if (newMessages.length > 0) {
         prompt += `### Response:\n${constructName}:`;
     }
 
@@ -200,13 +200,13 @@ function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: num
         }
         if(persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]`);
+                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
             }
         }
         prompt = lines.join("\n");
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== "Assistant") {
+    if (newMessages.length > 0) {
         prompt += `ASSISTANT: ${constructName}:`;
     }
 
@@ -242,7 +242,7 @@ function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: n
         }
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'User') {
+    if (newMessages.length > 0) {
         prompt += `<|model|>${constructName}:`;
     }
     return prompt;

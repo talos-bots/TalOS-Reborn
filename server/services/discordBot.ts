@@ -61,9 +61,7 @@ export class DiscordBotService {
         if (!this.token) {
             throw new Error('Discord bot token is not set!');
         }
-        if (!this.client) {
-            this.client = new Client(intents);
-        }
+        this.client = new Client(intents);
 
         this.client.on('ready', async () => {
             console.log(`Logged in as ${this.client?.user?.tag}!`);

@@ -56,9 +56,12 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
         characters.push(character);
     }
     let roster: CharacterInterface[] = characters;
+    // shuffle the roster
+    roster = roster.sort(() => Math.random() - 0.5);
     activeDiscordClient.sendTyping(message)
     while(roster.length > 0){
-        const character = characters[0];
+        const character = roster.shift();
+        if(!character) continue;
         const usageArgs = room.getUsageArgumentsForCharacter(character._id);
         if(!usageArgs){
             roster = roster.filter((char) => {
