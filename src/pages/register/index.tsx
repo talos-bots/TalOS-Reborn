@@ -60,7 +60,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="w-full h-screen p-2 md:p-4">
+        <div className="w-full md:h-screen p-2 md:p-4">
             <Helmet>
                 <title>TalOS | Register</title>
             </Helmet>

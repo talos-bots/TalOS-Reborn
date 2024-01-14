@@ -84,8 +84,12 @@ const HomePage = () => {
                     <div className="flex flex-row gap-2 overflow-x-scroll overflow-y-hidden w-full max-h-[90px] h-[90px]">
                         {onlineUsers.map((user, index) => {
                             return (
-                                <div className="flex flex-row gap-2 max-w-[188px] h-fit rounded-box p-2" style={{ backgroundImage: `url("${user?.backgroundPic}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                                    <img src={user?.profilePic} alt="Admin Profile Picture" className="w-[64px] h-[64px] rounded-full"/>
+                                <div className="flex flex-row gap-2 max-w-[188px] h-fit rounded-box p-2" style={{ backgroundImage: `url("${user?.backgroundPic?.length > 1 ? user?.backgroundPic : 'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/DALL%C2%B7E%202023-11-17%2020.33.34%20-%20A%20vibrant%2C%20anime-style%20landscape%20illustration%20of%20the%20Chicago%20skyline.%20The%20view%20showcases%20iconic%20skyscrapers%20and%20the%20Chicago%20River%2C%20with%20a%20dramatic%20sun.png?alt=media&token=a0262aea-1804-49ca-bd96-497b8f55225b'}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                                    {user?.profilePic !== null && user?.profilePic.length > 1 ? (
+                                        <img src={user?.profilePic} className="w-[64px] h-[64px] rounded-full"/>
+                                    ) : (
+                                        <img src={'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/imagegenexample.png?alt=media&token=6d5a83d2-0824-40eb-9b0d-7a2fa861c035'} className="w-[64px] h-[64px] rounded-full"/>
+                                    )}
                                     <h4 className="text-black font-extrabold rounded-box p-2 w-full glass overflow-ellipsis text-center justify-center flex flex-col">{user?.displayName}</h4>
                                 </div>
                             )

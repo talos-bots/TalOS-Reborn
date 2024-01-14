@@ -22,7 +22,7 @@ const LoginPage = () => {
     const [error, setError] = React.useState(false);
 
     useEffect(() => {
-        if(user?.id && locationRedirect.length > 0) {
+        if(user?.id && locationRedirect?.length > 0) {
             navigate(`/${locationRedirect}` || '/home');
         }
     }, [user, navigate, locationRedirect]);
@@ -94,7 +94,7 @@ const LoginPage = () => {
     }
 
     return (
-        <div className='w-full h-screen p-2 md:p-4'>
+        <div className='w-full md:h-screen p-2 md:p-4'>
             <Helmet>
                 <title>TalOS | Login</title>
             </Helmet>
