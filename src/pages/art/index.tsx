@@ -262,9 +262,9 @@ const ArtPage = () => {
                                 </p>
                             )}
                             {!isGenerating ? 
-                                <div className='dy-carousel'>
+                                <div className='dy-carousel min-h-[512px]'>
                                     {images.map((imageData, index) => (
-                                        <div key={imageData.url} id={`slide${index}`} className="dy-carousel-item relative w-full flex-row items-center justify-center">
+                                        <div key={imageData.url} id={`slide${index}`} className="dy-carousel-item relative w-full flex-row items-center justify-center min-h-[512px]">
                                             <img src={imageData.url} className='dy-carousel-item h-auto max-h-[512px] object-cover self-center rounded-box' onClick={() => {imageModal(imageData.url)}}/>
                                             {images.length > 1 && (
                                                 <div className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">

@@ -60,10 +60,6 @@ const DiffusionPanel = () => {
 
     useEffect(() => {
         handleLoadConnections()
-        getAppSettingsDiffusionConnection().then((settings) => {
-            setConnectionID(settings)
-            handleLoadConnection(settings)
-        })
     }, [])
 
     const handleSaveConnection = () => {
