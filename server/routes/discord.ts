@@ -92,6 +92,13 @@ const isDiscordRunning = (req: Request, res: Response, next: NextFunction) => {
     next();
 }
 
+export function clearRoomMessages(roomId: string){
+    let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
+    if(!roomPipeline) return;
+    roomPipeline.clearMessages();
+}
+
 export const DiscordManagementRouter = Router();
 
 export function removeRoomFromActive(id: string){

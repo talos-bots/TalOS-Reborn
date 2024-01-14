@@ -1,5 +1,7 @@
 import { CommandInteraction } from "discord.js";
 import { SlashCommand } from "../../typings/discordBot.js";
+import { RoomPipeline } from "./roomPipeline.js";
+import { clearRoomMessages } from "../../routes/discord.js";
 
 export const DefaultCommands: SlashCommand[] = [
     {
@@ -19,7 +21,18 @@ export const DefaultCommands: SlashCommand[] = [
                 });
                 return;
             }
-            
+            const doesPipelineExist = RoomPipeline.getRoomByChannelId(interaction.channelId);
+            if(!doesPipelineExist){
+                await interaction.editReply({
+                    content: "This channel is not a room.",
+                });
+                return;
+            }
+            clearRoomMessages(doesPipelineExist?._id);
+            await interaction.editReply({
+                content: "Chat log cleared.",
+            });
+            return;
         }
     } as SlashCommand,
 ];
