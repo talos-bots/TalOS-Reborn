@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { roomsPath } from '../server.js';
 import { Room } from '../typings/discordBot.js';
+import { removeRoomFromActive } from './discord.js';
 
 export const roomsRouter = express.Router();
 
@@ -87,6 +88,7 @@ roomsRouter.get('/:id', (req, res) => {
 roomsRouter.delete('/:id', (req, res) => {
     const id = req.params.id;
     const roomData = removeRoomById(id);
+    removeRoomFromActive(id);
     console.log(roomData);
     if (roomData) {
         res.send({ message: "Room deleted successfully!" });

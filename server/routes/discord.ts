@@ -94,6 +94,13 @@ const isDiscordRunning = (req: Request, res: Response, next: NextFunction) => {
 
 export const DiscordManagementRouter = Router();
 
+export function removeRoomFromActive(id: string){
+    const index = activePipelines.findIndex(pipeline => pipeline._id === id);
+    if(index >= 0){
+        activePipelines.splice(index, 1);
+    }
+}
+
 DiscordManagementRouter.post('/start', async (req, res) => {
     let config;
     if(req.body.config){
