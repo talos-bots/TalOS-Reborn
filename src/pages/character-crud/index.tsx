@@ -241,6 +241,8 @@ const CharacterCRUD = () => {
     }
     
     const handleFormSubmit = async (event: React.FormEvent) => {
+        setIsLeftDrawerOpen(false);
+        setIsRightDrawerOpen(false);
         event.preventDefault();
         // Call your submit logic here
         await handleSubmit();
@@ -301,7 +303,7 @@ const CharacterCRUD = () => {
     }, [creator, user]);
 
     return (
-        <div className='w-full h-[92.5vh] md:p-4 flex flex-col text-base-content'>
+        <div className='w-full md:h-[92.5vh] md:p-4 flex flex-col text-base-content'>
             {loading && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
                     <div className="bg-base-300 rounded-box p-2 md:p-6">
@@ -373,7 +375,7 @@ const CharacterCRUD = () => {
                                 onChange={(e) => handleProfilePictureChange(e.target.files)}
                             />
                         </div>
-                        <div className='w-full flex flex-col'>
+                        {/* <div className='w-full flex flex-col'>
                             <div className="dy-form-control">
                                 <label className="font-bold w-full text-left">Visual Style</label>
                                 <select className="dy-input dy-input-bordered" title="Logic Engine"
@@ -414,7 +416,7 @@ const CharacterCRUD = () => {
                                 e.preventDefault();
                                 generateImage()}
                             } type='button'>Generate</button>
-                        </div>
+                        </div> */}
                     </div>
                     <h3 className="text-xl">Prompt Information*</h3>
                     <p className='dy-textarea'>Information within this category, is the only information put inside of the prompt sent to the AI, minus the name. All other information is made optional.</p>
@@ -464,14 +466,14 @@ const CharacterCRUD = () => {
                             required={false}
                             className={"w-full h-full"}
                         />
-                        <StringArrayEditorCards
+                        {/* <StringArrayEditorCards
                             label="Alternate Greetings"
                             disabled={notAuthorized}
                             id="alternate_greetings"
                             value={alternate_greetings}
                             onChange={(e) => setAlternateGreetings(e)}
                             className={"w-full h-full"}
-                        />
+                        /> */}
                         <TokenTextarea
                             disabled={notAuthorized}
                             label="Scenario"
@@ -540,6 +542,7 @@ const CharacterCRUD = () => {
                                 <Save size={36} />
                             </button>
                             <button className='dy-btn dy-btn-warning w-full h-28' type='button' onClick={async () => {
+                                setIsLeftDrawerOpen(false);
                                 if(await confirmModal('Are you sure you want to leave this page?', 'Any unsaved changes will be lost.')){
                                     navigate('/characters')
                                 }

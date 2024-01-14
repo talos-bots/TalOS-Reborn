@@ -24,6 +24,7 @@ const HomePage = () => {
             const activeUsers = users.activeUsers
             for(let i = 0; i < activeUsers.length; i++) {
                 const user = allUsers.find((u) => u.id === activeUsers[i].userId);
+                if(onlineUsers.includes(user)) continue;
                 if(user !== undefined) onlineUsers.push(user);
             }
             setOnlineUsers(onlineUsers);
@@ -74,17 +75,17 @@ const HomePage = () => {
     };
 
     return (
-        <div className="m-auto flex flex-col bg-base-100 w-full min-h-[90vh] p-2 md:p-4 gap-2 text-base-content">
+        <div className="flex flex-col bg-base-100 md:min-h-[90vh] md:p-4 gap-2 text-base-content">
             <Helmet>
                 <title>TalOS | Home</title>
             </Helmet>
-            <div className="grid grid-rows-[auto] gap-2">
-                <div className="flex flex-col rounded-box bg-base-300 p-4">
+            <div className="grid grid-rows-[auto] md:gap-2 max-w-full">
+                <div className="flex flex-col md:rounded-box bg-base-300 p-4">
                     <h3 className="text-center font-extrabold">Online Users</h3>
-                    <div className="flex flex-row gap-2 overflow-x-scroll overflow-y-hidden w-full max-h-[90px] h-[90px]">
+                    <div className="flex flex-row gap-2 overflow-x-scroll overflow-y-hidden max-h-[90px] h-[90px] max-w-[85vw]">
                         {onlineUsers.map((user, index) => {
                             return (
-                                <div className="flex flex-row gap-2 max-w-[188px] h-fit rounded-box p-2" style={{ backgroundImage: `url("${user?.backgroundPic?.length > 1 ? user?.backgroundPic : 'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/DALL%C2%B7E%202023-11-17%2020.33.34%20-%20A%20vibrant%2C%20anime-style%20landscape%20illustration%20of%20the%20Chicago%20skyline.%20The%20view%20showcases%20iconic%20skyscrapers%20and%20the%20Chicago%20River%2C%20with%20a%20dramatic%20sun.png?alt=media&token=a0262aea-1804-49ca-bd96-497b8f55225b'}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                                <div className="flex flex-row gap-2 max-w-[220px] min-w-[220px] h-fit rounded-box p-2" style={{ backgroundImage: `url("${user?.backgroundPic?.length > 1 ? user?.backgroundPic : 'https://firebasestorage.googleapis.com/v0/b/koios-academy.appspot.com/o/DALL%C2%B7E%202023-11-17%2020.33.34%20-%20A%20vibrant%2C%20anime-style%20landscape%20illustration%20of%20the%20Chicago%20skyline.%20The%20view%20showcases%20iconic%20skyscrapers%20and%20the%20Chicago%20River%2C%20with%20a%20dramatic%20sun.png?alt=media&token=a0262aea-1804-49ca-bd96-497b8f55225b'}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
                                     {user?.profilePic !== null && user?.profilePic.length > 1 ? (
                                         <img src={user?.profilePic} className="w-[64px] h-[64px] rounded-full"/>
                                     ) : (
@@ -96,7 +97,7 @@ const HomePage = () => {
                         })}
                     </div>
                 </div>
-                <div className="w-full rounded-box bg-base-300 p-4 flex flex-col gap-2">
+                <div className="w-full md:rounded-box bg-base-300 p-4 flex flex-col gap-2">
                     <h1>Welcome to TalOS: Reborn!</h1>
                     <div className="flex flex-col md:flex-row justify-between w-full gap-2 row-span-1">
                         <div className="h-fit flex flex-col min-w-[256px] md:min-w-[512px] items-center gap-2">
