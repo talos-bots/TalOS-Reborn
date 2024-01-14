@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { DiffusionCompletionConnectionTemplate, DiffusionType } from '../../types';
-import { deleteDiffusionConnectionById, fetchAllDiffusionConnections, saveDiffusionConnectionToLocal } from '../../api/diffusionAPI';
+import { DiffusionCompletionConnectionTemplate, DiffusionType, dalleModels } from '../../types';
+import { deleteDiffusionConnectionById, fetchAllDiffusionConnections, saveDiffusionConnectionToLocal, testDallekey, testNovelAIKey } from '../../api/diffusionAPI';
 import { getAppSettingsDiffusionConnection, setAppSettingsDiffusion } from '../../api/settingsAPI';
 import RequiredInputField, { RequiredSelectField } from '../../components/shared/required-input-field';
 
@@ -12,13 +12,15 @@ function getForwardFacingName(type: DiffusionType): string {
             return 'Automatic1111\'s SDWebUI';
         case 'SDAPI':
             return '"The Stable Diffusion API" Service"';
+        case 'NovelAI':
+            return 'NovelAI\'s Service';
         default:
             return type;
     }
 }
 
 const DiffusionPanel = () => {
-    const connectionTypes: DiffusionType[] = ['Dalle', 'Auto1111']
+    const connectionTypes: DiffusionType[] = ['Dalle', 'Auto1111', 'NovelAI']
     const [savedConnections, setSavedConnections] = useState<DiffusionCompletionConnectionTemplate[]>([])
     const [connectionType, setConnectionType] = useState<DiffusionType>(connectionTypes[0] as DiffusionType)
     const [connectionID, setConnectionID] = useState<string>('' as string)
@@ -37,8 +39,31 @@ const DiffusionPanel = () => {
         })
     }
 
+    const handleLoadConnection = (id:string) => {
+        const connection = savedConnections.find((connection) => connection.id === id)
+        if (connection){
+            console.log(connection)
+            setConnectionType(connection.type)
+            setConnectionPassword(connection.key)
+            setConnectionURL(connection.url)
+            setConnectionName(connection.name)
+            setConnectionModel(connection.model)
+        }else{
+            console.log('no connection found')
+            setConnectionType(connectionTypes[0] as DiffusionType)
+            setConnectionPassword('')
+            setConnectionURL('')
+            setConnectionName('')
+            setConnectionModel('')
+        }
+    }
+
     useEffect(() => {
         handleLoadConnections()
+        getAppSettingsDiffusionConnection().then((settings) => {
+            setConnectionID(settings)
+            handleLoadConnection(settings)
+        })
     }, [])
 
     const handleSaveConnection = () => {
@@ -71,32 +96,6 @@ const DiffusionPanel = () => {
         deleteDiffusionConnectionById(connectionID)
     }
 
-    useEffect(() => {
-        const handleLoadConnection = () => {
-            const connection = savedConnections.find((connection) => connection.id === connectionID)
-            if (connection){
-                setConnectionType(connection.type)
-                setConnectionPassword(connection.key)
-                setConnectionURL(connection.url)
-                setConnectionName(connection.name)
-                setConnectionModel(connection.model)
-            }else{
-                setConnectionType(connectionTypes[0] as DiffusionType)
-                setConnectionPassword('')
-                setConnectionURL('')
-                setConnectionName('')
-                setConnectionModel('')
-            }
-        }
-        handleLoadConnection()
-    }, [connectionID])
-    
-    useEffect(() => {
-        getAppSettingsDiffusionConnection().then((settings) => {
-            setConnectionID(settings)
-        })
-    }, [])
-
     const handleValidateURL = () => {
         //check if a url is a valid url
         try {
@@ -112,8 +111,54 @@ const DiffusionPanel = () => {
         await setAppSettingsDiffusion(connectionID)
     }
 
+    useEffect(() => {
+        if(connectionType == 'Dalle'){
+            setConnectionModelList(dalleModels)
+        } else if(connectionType == 'Auto1111'){
+            setConnectionModelList([])
+        } else if(connectionType == 'NovelAI'){
+            setConnectionModelList(['nai-diffusion', 'safe-diffusion', 'nai-diffusion-furry', 'kandinsky-vanilla', 'nai-diffusion-2', 'nai-diffusion-3'])
+        } else {
+            setConnectionModelList([])
+        }
+    }, [connectionType])
+    
     const handleTestConnection = () => {
-
+        const currentConnection = savedConnections.find((connection) => connection.id === connectionID)
+        if (!currentConnection){
+            setConnectionStatus('Failed')
+            return
+        }
+        switch (connectionType) {
+            case 'Dalle':
+                if (!currentConnection.key){
+                    setConnectionStatus('Failed')
+                    return
+                }
+                testDallekey(currentConnection.key).then((response) => {
+                    if(Array.isArray(response)){
+                        setConnectionStatus('Connected')
+                    }else{
+                        setConnectionStatus('Failed')
+                    }
+                })
+                break;
+            case 'NovelAI':
+                if (!currentConnection.key){
+                    setConnectionStatus('Failed')
+                    return
+                }
+                testNovelAIKey(currentConnection.key).then((response) => {
+                    if (response){
+                        setConnectionStatus('Connected')
+                    } else {
+                        setConnectionStatus('Failed')
+                    }
+                })
+                break;
+            default:
+                break;
+        }
     }
 
     return (
@@ -122,7 +167,7 @@ const DiffusionPanel = () => {
                 <RequiredSelectField
                     label="Profile"
                     value={connectionID}
-                    onChange={(e)=> setConnectionID(e.target.value)}
+                    onChange={(e)=> {setConnectionID(e.target.value); handleLoadConnection(e.target.value);}}
                     required={false}
                     className={'w-full'}
                 >
@@ -153,7 +198,7 @@ const DiffusionPanel = () => {
                     <option key={index} value={connectionOption}>{getForwardFacingName(connectionOption)}</option>
                 ))}
             </RequiredSelectField>
-            {connectionType !== 'Dalle' && connectionType !== 'SDAPI' && connectionType !== 'Google' && connectionType !== 'Stability' && (
+            {connectionType !== 'Dalle' && connectionType !== 'SDAPI' && connectionType !== 'Google' && connectionType !== 'Stability'  && connectionType !== 'NovelAI' && (
                 <>
                 <div className="flex flex-row gap-2 w-full items-center justify-center">
                     <RequiredInputField

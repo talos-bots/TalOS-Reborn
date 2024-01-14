@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import { DiffusionCompletionConnectionTemplate, DiffusionResponseObject } from "../types";
+import { DiffusionCompletionConnectionTemplate, DiffusionResponseObject, NovelAIRequest } from "../types";
 
 const api = axios.create({baseURL: ''});
 
@@ -146,6 +146,31 @@ export async function testDallekey(key: string){
     }
 }
 
+export async function testNovelAIKey(key: string): Promise<boolean>{
+    try {
+        const response = await api(`/api/test-novelai-key`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({ key }),
+        });
+        
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.data;
+        if(data){
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error in fetchDiffusionConnectionModels:', error);
+        return null;
+    }
+}
 export async function generateDalleImage(prompt: string | null, size: string | null, samples: number | null, style: string | null, connectionId: string, model_id: string): Promise<DiffusionResponseObject[]> {
     const response = await api('/api/dalle/generate', {
         method: 'POST',
@@ -160,24 +185,20 @@ export async function generateDalleImage(prompt: string | null, size: string | n
     }
 
     const data = await response.data;
-    console.log(data);
-    switch (model_id) {
-        case "dall-e-3":
-            return data.data.map((image: any) => {
-                return {
-                    url: image.url,
-                    revisedPrompt: image.revised_prompt ?? '',
-                }
-            });
-        case "dall-e-2":
-            return data.data.map((image: any) => {
-                return {
-                    url: image.url,
-                    revisedPrompt: image.revised_prompt ?? '',
-                }
-            });
-        default:
-            return []
+    return data as DiffusionResponseObject[];
+}
+
+export async function generateNovelAIImage(data: NovelAIRequest): Promise<any> {
+    const response = await api('/api/novelai/generate-image', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(data),
+    });
+    console.log(response);
+    if (response.status !== 200) {
+        throw new Error(`Error: ${response.status}`);
     }
-    return data;
+    return response.data as DiffusionResponseObject[];
 }

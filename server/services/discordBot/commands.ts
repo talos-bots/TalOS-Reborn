@@ -1,8 +1,11 @@
-import { CommandInteraction, EmbedBuilder, Message } from "discord.js";
+import { AttachmentBuilder, CommandInteraction, EmbedBuilder, Message } from "discord.js";
 import { Room, SlashCommand } from "../../typings/discordBot.js";
 import { RoomPipeline } from "./roomPipeline.js";
 import { clearRoomMessages } from "../../routes/discord.js";
 import { fetchAllCharacters } from "../../routes/characters.js";
+import { findNovelAIConnection, generateNovelAIImage, novelAIDefaults } from "../../routes/diffusion.js";
+import { NovelAIModels, novelAIUndesiredContentPresets, samplersArray, sizePresets } from "../../typings/novelAI.js";
+import { base642Buffer, getImageFromURL } from "../../helpers/index.js";
 
 function getEmojiByNumber(input: number){
     switch(input){
@@ -220,5 +223,232 @@ export const DefaultCommands: SlashCommand[] = [
                 content: "Room registered.",
             });
         },
+    } as SlashCommand,
+    {
+        name: 'naigenerate',
+        description: 'Makes an image from text.',
+        options: [
+            {
+                name: 'prompt',
+                description: 'Primary prompt',
+                type: 3,  // String type
+                required: true,
+            },
+            {
+                name: 'negativeprompt',
+                description: 'Negative prompt',
+                type: 3,  // String type
+                required: false,
+            },
+            {
+                name: 'model',
+                description: 'Model',
+                type: 3,  // String type
+                required: false,
+                choices: NovelAIModels.map((model, index) => {
+                    return {
+                        name: `${model}`,
+                        value: `${index}`,
+                    }
+                }),
+            },
+            {
+                name: 'steps',
+                description: 'Steps',
+                type: 4,  // Integer type
+                required: false,
+            },
+            {
+                name: 'width',
+                description: 'Width',
+                type: 4,  // Integer type
+                required: false,
+            },
+            {
+                name: 'height',
+                description: 'Height',
+                type: 4,  // Integer type
+                required: false,
+            },
+            {
+                name: 'size',
+                description: 'Size',
+                type: 4,  // Integer type
+                required: false,
+                choices: sizePresets.map((preset, index) => {
+                    return {
+                        name: `${preset.serviceName} ${preset.size} ${preset.ratio} (${preset.width}x${preset.height})`,
+                        value: `${index}`,
+                    }
+                }),
+            },
+            {
+                name: 'undesiredcontent',
+                description: 'Undesired content',
+                type: 4,  // Integer type
+                required: false,
+                choices: novelAIUndesiredContentPresets.map((preset, index) => {
+                    return {
+                        name: `${preset.name}`,
+                        value: `${index}`,
+                    }
+                }),
+            },
+            {
+                name: 'guidance',
+                description: 'Guidance',
+                type: 4,  // Integer type
+                required: false,
+            },
+            {
+                name: 'sampler',
+                description: 'Sampler',
+                type: 4,  // Integer type
+                required: false,
+                choices: samplersArray.map((sampler, index) => {
+                    return {
+                        name: `${sampler}`,
+                        value: `${index}`,
+                    }
+                }),
+            },
+            {
+                name: 'seed',
+                description: 'Seed',
+                type: 4,  // Integer type
+                required: false,
+            },
+            {
+                name: 'hidden',
+                description: 'Whether the prompt data should be hidden.',
+                type: 5,  // Boolean type
+                required: false,
+            }
+        ],
+        execute: async (interaction: CommandInteraction) => {
+            const novelAIConnection = await findNovelAIConnection();
+            if(!novelAIConnection){
+                await interaction.reply({
+                    content: 'No NovelAI connection found.',
+                });
+                return;
+            }
+            await interaction.deferReply({ephemeral: false});
+            const prompt = interaction.options.get('prompt')?.value as string || '';
+            const negativePrompt = interaction.options.get('negativeprompt')?.value as string || '';
+            const steps = interaction.options.get('steps')?.value as number || novelAIDefaults.steps;
+            let width = interaction.options.get('width')?.value as number;
+            let height = interaction.options.get('height')?.value as number
+            const sizePresetIndex = interaction.options.get('size')?.value as number || 0;
+            if(sizePresetIndex !== undefined){
+                width = sizePresets[sizePresetIndex].width;
+                height = sizePresets[sizePresetIndex].height;
+            }
+            const undesiredContentPresetIndex = interaction.options.get('undesiredcontent')?.value as number || novelAIDefaults.ucPreset;
+            const guidance = interaction.options.get('guidance')?.value as number || novelAIDefaults.scale;
+            const sampler = interaction.options.get('sampler')?.value as number || 1;
+            const seed = interaction.options.get('seed')?.value as number || novelAIDefaults.seed;
+            const model = interaction.options.get('model')?.value as string || novelAIDefaults.model;
+            const hidden = interaction.options.get('hidden')?.value as boolean || true;
+            const imageData = await generateNovelAIImage(                    {
+                prompt: prompt,
+                connectionId: novelAIConnection.id,
+                negative_prompt: negativePrompt || undefined,
+                steps: steps || undefined,
+                width: width || undefined,
+                height: height || undefined,
+                guidance: guidance || undefined,
+                sampler: samplersArray[sampler] || undefined,
+                number_of_samples: 1,
+                seed: seed || undefined,
+                ucPreset: novelAIUndesiredContentPresets[undesiredContentPresetIndex]?.value || undefined,
+                model: model || undefined,
+            })
+            if(!imageData){
+                await interaction.editReply({
+                    content: 'An unknown error has occured. Please check your endpoint, settings, and try again.',
+                });
+                return;
+            }
+            const attachments = [];
+            for(const image of imageData){
+                if(!image.url) continue;
+                const base64 = await getImageFromURL(image.url);
+                // get file name from url
+                const name = image.url.split('/').pop();
+                const buffer = Buffer.from(base64, 'base64');
+                const attachment = new AttachmentBuilder(buffer, {name: `${name}`});
+                attachments.push(attachment);
+            }
+            const embed = new EmbedBuilder()
+            .setTitle('Imagine')
+            .setFields([
+                {
+                    name: 'Prompt',
+                    value: prompt || `None provided.`,
+                    inline: false,
+                },
+                {
+                    name: 'Negative Prompt',
+                    value: negativePrompt? negativePrompt : `None provided.`,
+                    inline: false,
+                },
+                {
+                    name: 'Steps',
+                    value: steps? steps.toString() : novelAIDefaults.steps.toString(),
+                    inline: true,
+                },
+                {
+                    name: 'Width',
+                    value: width? width.toString() : novelAIDefaults.width.toString(),
+                    inline: true,
+                },
+                {
+                    name: 'Height',
+                    value: height? height.toString() : novelAIDefaults.height.toString(),
+                    inline: true,
+                },
+                {
+                    name: 'Model',
+                    value: model? model : novelAIDefaults.model,
+                    inline: false,
+                },
+                {
+                    name: 'Undesired Content',
+                    value: novelAIUndesiredContentPresets[undesiredContentPresetIndex].name,
+                    inline: true,
+                },
+                {
+                    name: 'Guidance',
+                    value: guidance? guidance.toString() : novelAIDefaults.scale.toString(),
+                    inline: true,
+                },
+                {
+                    name: 'Sampler',
+                    value: samplersArray[sampler],
+                    inline: true,
+                },
+                {
+                    name: 'Seed',
+                    value: seed? seed.toString() : novelAIDefaults.seed.toString(),
+                    inline: true,
+                }
+            ])
+            .setImage(`attachment://${imageData[0].url?.split('/').pop()}`)
+            .setFooter({text: 'Powered by NovelAI'});
+            if(hidden){
+                await interaction.editReply({
+                    embeds: [],
+                    files: [attachments[0]],
+                });
+                return;
+            }else{
+                await interaction.editReply({
+                    embeds: [embed],
+                    files: [attachments[0]],
+                });
+                return;
+            }
+        }
     } as SlashCommand,
 ];

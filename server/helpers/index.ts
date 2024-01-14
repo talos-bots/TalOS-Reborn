@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { Message } from "discord.js";
 import { RoomMessage } from "../typings/discordBot.js";
-
+import yauzl from 'yauzl';
 export async function base642Buffer(base64: string): Promise<string| Buffer> {
 	let buffer: Buffer;
 	// Check if the input is in data URL format
@@ -148,4 +148,104 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     });
     const final = removedEmptyLines.join('\n');
     return final.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '').replaceAll(`${charName}: `, '');
+}
+
+/**
+ * Extracts a file with given extension from an ArrayBuffer containing a ZIP archive.
+ * @param {ArrayBuffer} archiveBuffer Buffer containing a ZIP archive
+ * @param {string} fileExtension File extension to look for
+ * @returns {Promise<Buffer>} Buffer containing the extracted file
+ */
+export async function extractFileFromZipBuffer(archiveBuffer: ArrayBuffer, fileExtension: string): Promise<Buffer> {
+    return await new Promise((resolve, reject) => yauzl.fromBuffer(Buffer.from(archiveBuffer), { lazyEntries: true }, (err: any, zipfile: any) => {
+        if (err) {
+            reject(err);
+        }
+
+        zipfile.readEntry();
+        zipfile.on('entry', (entry: any) => {
+            if (entry.fileName.endsWith(fileExtension)) {
+                console.log(`Extracting ${entry.fileName}`);
+                zipfile.openReadStream(entry, (err: any, readStream: any) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        const chunks: any = [];
+                        readStream.on('data', (chunk: any) => {
+                            chunks.push(chunk);
+                        });
+
+                        readStream.on('end', () => {
+                            const buffer = Buffer.concat(chunks);
+                            resolve(buffer);
+                            zipfile.readEntry(); // Continue to the next entry
+                        });
+                    }
+                });
+            } else {
+                zipfile.readEntry();
+            }
+        });
+    }));
+}
+
+/**
+ * Extracts files with a given extension from an ArrayBuffer containing a ZIP archive.
+ * @param {ArrayBuffer} archiveBuffer Buffer containing a ZIP archive
+ * @param {string} fileExtension File extension to look for
+ * @returns {Promise<Buffer[]>} Array of Buffers containing the extracted files
+ */
+export async function extractFilesFromZipBuffer(archiveBuffer: ArrayBuffer, fileExtension: string): Promise<Buffer[]> {
+    return await new Promise((resolve, reject) => {
+        yauzl.fromBuffer(Buffer.from(archiveBuffer), { lazyEntries: true }, (err, zipfile) => {
+            if (err) {
+                reject(err);
+            }
+
+            const files: Buffer[] = [];
+            zipfile.readEntry();
+
+            zipfile.on('entry', (entry) => {
+                if (entry.fileName.endsWith(fileExtension)) {
+                    console.log(`Extracting ${entry.fileName}`);
+                    zipfile.openReadStream(entry, (err, readStream) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            const chunks: Buffer[] = [];
+                            readStream.on('data', (chunk) => {
+                                chunks.push(chunk);
+                            });
+
+                            readStream.on('end', () => {
+                                files.push(Buffer.concat(chunks));
+                                zipfile.readEntry(); // Continue to the next entry
+                            });
+                        }
+                    });
+                } else {
+                    zipfile.readEntry(); // Skip non-matching files
+                }
+            });
+
+            zipfile.on('end', () => {
+                resolve(files); // Resolve with all extracted files
+            });
+        });
+    });
+}
+
+export function writeBase64ToPNGFile(base64: string){
+    try {
+        const buffer = Buffer.from(base64, 'base64');
+        // create a random file name with no special characters
+        const fileName = `temp-${Math.random().toString(36).substring(7)}.png`;
+        const filePath = path.join(uploadsPath, fileName);
+        // write the file to disk
+        fs.writeFileSync(filePath, buffer);
+        return `/images/${fileName}`;
+    } catch (e) {
+        console.error(e);
+        return;
+    }
 }
