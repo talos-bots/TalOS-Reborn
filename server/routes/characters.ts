@@ -6,7 +6,7 @@ import { CharacterInterface } from '../typings/types.js';
 export const charactersRouter = express.Router();
 
 // get all characters from the ../data/characters/ folder
-function fetchAllCharacters(): Promise<CharacterInterface[]> {
+export function fetchAllCharacters(): Promise<CharacterInterface[]> {
     return new Promise((resolve, reject) => {
         db.all('SELECT * FROM characters', [], (err, rows: any) => {
             if (err) {

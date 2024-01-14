@@ -115,6 +115,11 @@ export class RoomPipeline implements Room {
         this.updateLastModified();
     }
 
+    clearAllCharacters(): void {
+        this.characters = [];
+        this.updateLastModified();
+    }
+    
     addAlias(alias: Alias): void {
         this.aliases.push(alias);
         this.updateLastModified();
