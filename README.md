@@ -20,3 +20,10 @@ TalOS, now called TalOS reborn, is a desktop application with external web servi
 - **Image Gen Discord Bot** - Generate any of the available image gen services through the discord bot integration.
 - 
 TalOS: Reborn is currently in development, and is not yet ready for full release. However, you can still join the Wayward Wyverns Softworks Discord server to keep up to date with the latest news and updates. [Join the Discord server here](https://discord.com/invite/HNSaTjExYy).
+
+## How to run?
+```cmd
+npm install
+npm build-react
+npm run dev
+```
