@@ -280,7 +280,7 @@ const ArtPage = () => {
                                     ))}
                                 </div>
                             : (
-                                <div className={"w-full h-full flex flex-col justify-center items-center " + (isGenerating && 'bg-gradient-to-br to-accent from-cyan-200 rounded-box animated-gradient')}>
+                                <div className={"w-full h-full min-h-[512px] flex flex-col justify-center items-center " + (isGenerating && 'bg-gradient-to-br to-accent from-cyan-200 rounded-box animated-gradient')}>
                                     <p className={"text-center text-base-content text-xl " + (isGenerating && 'hidden')}>No images generated yet.</p>
                                 </div>
                             )}

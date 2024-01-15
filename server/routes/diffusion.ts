@@ -253,6 +253,10 @@ export async function generateNovelAIImage(requestBody: NovelAIRequest) {
     if(!selectedModel || selectedModel.length < 1){
         selectedModel = connection.model;
     }
+    let existingSeed = seed;
+    if(!existingSeed || existingSeed < 1){
+        existingSeed = Math.floor(Math.random() * 9999999999);
+    }
     const generateResult = await fetch('https://api.novelai.net/ai/generate-image', {
         method: 'POST',
         headers: {
@@ -267,7 +271,7 @@ export async function generateNovelAIImage(requestBody: NovelAIRequest) {
                 height: height ?? novelAIDefaults.height,
                 width: width ?? novelAIDefaults.width,
                 scale: guidance ?? novelAIDefaults.scale,
-                seed: seed ? (seed > 0 ? seed : Math.floor(Math.random() * 9999999999)) : novelAIDefaults.seed,
+                seed: (existingSeed > 0) ? existingSeed : Math.floor(Math.random() * 9999999999),
                 sampler: sampler ?? novelAIDefaults.sampler,
                 steps: steps ?? novelAIDefaults.steps,
                 n_samples: number_of_samples ?? novelAIDefaults.n_samples,
