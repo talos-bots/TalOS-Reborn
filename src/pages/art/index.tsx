@@ -113,6 +113,85 @@ const ArtPage = () => {
         }
     }, [connectionType])
 
+    const setParametersInLocalStorage = () => {
+        localStorage.setItem('seed', seed.toString())
+        localStorage.setItem('guidance', guidance.toString())
+        localStorage.setItem('steps', steps.toString())
+        localStorage.setItem('sampler', sampler)
+        localStorage.setItem('numberOfImages', numberOfImages.toString())
+        localStorage.setItem('prompt', prompt)
+        localStorage.setItem('negativePrompt', negativePrompt)
+        localStorage.setItem('dalleStyle', dalleStyle)
+        localStorage.setItem('dalleRatio', dalleRatio)
+        localStorage.setItem('width', width.toString())
+        localStorage.setItem('height', height.toString())
+        localStorage.setItem('sizeIndex', sizeIndex.toString())
+        localStorage.setItem('undesiredContentPresetIndex', undesiredContentPresetIndex.toString())
+    }
+
+    const getParametersFromLocalStorage = () => {
+        const seed = localStorage.getItem('seed')
+        const guidance = localStorage.getItem('guidance')
+        const steps = localStorage.getItem('steps')
+        const sampler = localStorage.getItem('sampler')
+        const numberOfImages = localStorage.getItem('numberOfImages')
+        const prompt = localStorage.getItem('prompt')
+        const negativePrompt = localStorage.getItem('negativePrompt')
+        const dalleStyle = localStorage.getItem('dalleStyle')
+        const dalleRatio = localStorage.getItem('dalleRatio')
+        const width = localStorage.getItem('width')
+        const height = localStorage.getItem('height')
+        const sizeIndex = localStorage.getItem('sizeIndex')
+        const undesiredContentPresetIndex = localStorage.getItem('undesiredContentPresetIndex')
+        if (seed){
+            setSeed(parseInt(seed))
+        }
+        if (guidance){
+            setGuidance(parseFloat(guidance))
+        }
+        if (steps){
+            setSteps(parseInt(steps))
+        }
+        if (sampler){
+            setSampler(sampler as SamplerAlgorithim)
+        }
+        if (numberOfImages){
+            setNumberOfImages(parseInt(numberOfImages))
+        }
+        if (prompt){
+            setPrompt(prompt)
+        }
+        if (negativePrompt){
+            setNegativePrompt(negativePrompt)
+        }
+        if (dalleStyle){
+            setDalleStyle(dalleStyle as DalleStyle)
+        }
+        if (dalleRatio){
+            setDalleRatio(dalleRatio as DalleSize2 | DalleSize3)
+        }
+        if (width){
+            setWidth(parseInt(width))
+        }
+        if (height){
+            setHeight(parseInt(height))
+        }
+        if (sizeIndex){
+            setSizeIndex(parseInt(sizeIndex))
+        }
+        if (undesiredContentPresetIndex){
+            setUndesiredContentPresetInex(parseInt(undesiredContentPresetIndex))
+        }
+    }
+
+    useEffect(() => {
+        getParametersFromLocalStorage()
+    }, [])
+
+    useEffect(() => {
+        setParametersInLocalStorage()
+    }, [seed, guidance, steps, sampler, numberOfImages, prompt, negativePrompt, dalleStyle, dalleRatio, width, height, sizeIndex, undesiredContentPresetIndex])
+    
     const handleTestConnection = () => {
         const currentConnection = savedConnections.find((connection) => connection.id === connectionID)
         if (!currentConnection){
