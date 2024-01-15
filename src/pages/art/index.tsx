@@ -191,7 +191,7 @@ const ArtPage = () => {
     useEffect(() => {
         setParametersInLocalStorage()
     }, [seed, guidance, steps, sampler, numberOfImages, prompt, negativePrompt, dalleStyle, dalleRatio, width, height, sizeIndex, undesiredContentPresetIndex])
-    
+
     const handleTestConnection = () => {
         const currentConnection = savedConnections.find((connection) => connection.id === connectionID)
         if (!currentConnection){

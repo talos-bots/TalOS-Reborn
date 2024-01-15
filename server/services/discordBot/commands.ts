@@ -313,12 +313,6 @@ export const DefaultCommands: SlashCommand[] = [
                 }),
             },
             {
-                name: 'seed',
-                description: 'Seed',
-                type: 4,  // Integer type
-                required: false,
-            },
-            {
                 name: 'hidden',
                 description: 'Whether the prompt data should be hidden.',
                 type: 5,  // Boolean type
@@ -347,7 +341,6 @@ export const DefaultCommands: SlashCommand[] = [
             const undesiredContentPresetIndex = interaction.options.get('undesiredcontent')?.value as number || novelAIDefaults.ucPreset;
             const guidance = interaction.options.get('guidance')?.value as number || novelAIDefaults.scale;
             const sampler = interaction.options.get('sampler')?.value as number || 1;
-            const seed = interaction.options.get('seed')?.value as number || novelAIDefaults.seed;
             const model = interaction.options.get('model')?.value as string || novelAIDefaults.model;
             const hidden = interaction.options.get('hidden')?.value as boolean || true;
             const imageData = await generateNovelAIImage(                    {
@@ -360,7 +353,7 @@ export const DefaultCommands: SlashCommand[] = [
                 guidance: guidance || undefined,
                 sampler: samplersArray[sampler] || undefined,
                 number_of_samples: 1,
-                seed: seed || undefined,
+                seed: Math.floor(Math.random() * 9999999),
                 ucPreset: novelAIUndesiredContentPresets[undesiredContentPresetIndex]?.value || undefined,
                 model: model || undefined,
             })
@@ -426,11 +419,6 @@ export const DefaultCommands: SlashCommand[] = [
                 {
                     name: 'Sampler',
                     value: samplersArray[sampler],
-                    inline: true,
-                },
-                {
-                    name: 'Seed',
-                    value: seed? seed.toString() : novelAIDefaults.seed.toString(),
                     inline: true,
                 }
             ])
