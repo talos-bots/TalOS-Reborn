@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { useEffect, useState } from "react";
-import { Character } from "../../global_classes/Character";
+import { Character, UserPersona } from "../../global_classes/Character";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight} from "lucide-react";
 import ChatWindow from "./chat-window";
@@ -37,7 +37,7 @@ const ChatPage = () => {
     const [characterPopupCharacter, setCharacterPopupCharacter] = useState<Character | null>(null);
     const [theaterMode, setTheaterMode] = useState<boolean>(false);
     const [background, setBackground] = useState<string | null>(null);
-
+    const [persona, setPersona] = useState<UserPersona>(null);
     const [width] = useWindowSize();
 
     const isDesktop = window.innerWidth > 768;
@@ -123,7 +123,7 @@ const ChatPage = () => {
                                 </button>
                             </div> */}
                         </h3>
-                        <UserPersonaWindow persona={null} setPersona={() => {}}/>
+                        <UserPersonaWindow persona={persona} setPersona={setPersona}/>
                     </div>
                 </>
             ) : (

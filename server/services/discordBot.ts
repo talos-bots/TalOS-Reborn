@@ -61,9 +61,7 @@ export class DiscordBotService {
         if (!this.token) {
             throw new Error('Discord bot token is not set!');
         }
-        if (!this.client) {
-            this.client = new Client(intents);
-        }
+        this.client = new Client(intents);
 
         this.client.on('ready', async () => {
             console.log(`Logged in as ${this.client?.user?.tag}!`);
@@ -126,6 +124,14 @@ export class DiscordBotService {
         await this.client.login(this.token);
     }
 
+    public sendTypingByChannelId(channelId: string){
+        if(!this.client) return;
+        const channel = this.client.channels.cache.get(channelId);
+        if(channel instanceof TextChannel || channel instanceof DMChannel || channel instanceof NewsChannel){
+            channel.sendTyping();
+        }
+    }
+    
     public removeMessageFromQueue(message: Message){
         const index = this.messageQueue.indexOf(message);
         if(index > -1){
@@ -288,7 +294,7 @@ export class DiscordBotService {
     }
 
     public isLoggedIntoDiscord(): boolean {
-        return !!this.client?.readyAt;
+        return this.client?.isReady() || false;
     }
     
     public doGlobalNicknameChange(newName: string){
@@ -577,11 +583,32 @@ export class DiscordBotService {
         }
         if(!currentConfig) return;
         if(currentConfig.photoUrl){
-            const avatar = await base642Buffer(currentConfig.photoUrl);
-            this.client.user?.setAvatar(avatar);
+            try {
+                const avatar = await base642Buffer(currentConfig.photoUrl);
+                this.client.user?.setAvatar(avatar);
+            } catch (error) {
+                console.error(error);
+            }
+
         }
         if(currentConfig.name){
-            this.client.user?.setUsername(currentConfig.name);
+            try {
+                this.client.user?.setUsername(currentConfig.name);
+            } catch (error) {
+                console.error(error);
+            }
         }
+    }
+
+    turnOffProcessing(){
+        this.processingQueue = false;
+    }
+
+    turnOnProcessing(){
+        this.processingQueue = true;
+    }
+
+    getProcessingStatus(){
+        return this.processingQueue;
     }
 }

@@ -5,42 +5,50 @@ import { fetchCharacterById } from "./characters.js";
 import { getGlobalConfig } from "./discordConfig.js";
 import { Request, Response, Application, NextFunction, Router } from "express";
 import { CharacterInterface } from "../typings/types.js";
+import { Alias, RoomMessage } from "../typings/discordBot.js";
 
 const activePipelines: RoomPipeline[] = [];
 
 const activeDiscordClient: DiscordBotService = new DiscordBotService();
+let isProcessing = false;
 
 export async function processMessage(){
-    if(!activeDiscordClient?.isLoggedIntoDiscord()){
+    if(!activeDiscordClient?.isLoggedIntoDiscord() || isProcessing){
         return;
     }
-    if(activeDiscordClient.processingQueue === true){
-        return;
-    }
-    activeDiscordClient.processingQueue = true;
-    const message = activeDiscordClient.messageQueue.shift();
-    if(!message) return;
-    let roomPipeline = activePipelines.find((pipeline) => {
-        return pipeline.channelId === message.channel.id;
-    });
-    if(!roomPipeline){
-        const newPipeline = RoomPipeline.getRoomByChannelId(message.channel.id);
-        if(!newPipeline){
-            return;
+    isProcessing = true;
+
+    try {
+        const message = activeDiscordClient.messageQueue.shift();
+        if(!message) return;
+        let roomPipeline = activePipelines.find(pipeline => pipeline.channelId === message.channel.id);
+        if(!roomPipeline){
+            const newPipeline = RoomPipeline.getRoomByChannelId(message.channel.id);
+            if(!newPipeline){
+                return;
+            }
+            roomPipeline = newPipeline;
+            activePipelines.push(newPipeline);
         }
-        roomPipeline = newPipeline;
-        activePipelines.push(newPipeline);
+        await handleMessageProcessing(roomPipeline, message);
+    } catch (error) {
+        console.error('Error during message processing:', error);
+    } finally {
+        isProcessing = false;
+        if(activeDiscordClient?.messageQueue.length > 0){
+            processMessage();
+        }
     }
-    handleMessageProcessing(roomPipeline, message);
 }
 
 async function handleMessageProcessing(room: RoomPipeline, message: Message){
-    if(!activeDiscordClient?.isLoggedIntoDiscord()) return;
+    if(!activeDiscordClient?.isLoggedIntoDiscord()) return isProcessing = false;
+    if(message.content.startsWith('.') && !message.content.startsWith('...')) return isProcessing = false;
     const roomMessage = room.processDiscordMessage(message);
-    if(!roomMessage) return;
+    if(!roomMessage) return isProcessing = false;
     room.saveToFile();
     activeDiscordClient.removeMessageFromQueue(message);
-    if(roomMessage.message.swipes[0].startsWith('-')) return;
+    if(roomMessage.message.swipes[0].startsWith('-')) return isProcessing = false;
     const characters: CharacterInterface[] = [];
     for(let i = 0; i < room.characters.length; i++){
         const characterId = room.characters[i];
@@ -49,22 +57,56 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
         characters.push(character);
     }
     let roster: CharacterInterface[] = characters;
+    // shuffle the roster
+    roster = roster.sort(() => Math.random() - 0.5);
     activeDiscordClient.sendTyping(message)
     while(roster.length > 0){
-        const character = characters[0];
+        const character = roster.shift();
+        if(!character) continue;
         const usageArgs = room.getUsageArgumentsForCharacter(character._id);
         if(!usageArgs){
             roster = roster.filter((char) => {
                 return char._id !== character._id;
             });
             const response = await room.generateResponse(roomMessage, character._id);
-            if(!response) continue;
+            if(!response) break;
             const responseMessage = response.message.swipes[response.message.currentIndex];
             await activeDiscordClient?.sendMessageAsCharacter(room.channelId, character, responseMessage);
         }
     }
-    activeDiscordClient.processingQueue = false;
+    isProcessing = false;
     processMessage();
+}
+
+async function generateDiscordResponse(room: RoomPipeline, message: RoomMessage){
+    if(!activeDiscordClient?.isLoggedIntoDiscord()) return isProcessing = false;
+    isProcessing = true;
+    const characters: CharacterInterface[] = [];
+    for(let i = 0; i < room.characters.length; i++){
+        const characterId = room.characters[i];
+        const character = await fetchCharacterById(characterId);
+        if(!character) continue;
+        characters.push(character);
+    }
+    let roster: CharacterInterface[] = characters;
+    // shuffle the roster
+    roster = roster.sort(() => Math.random() - 0.5);
+    while(roster.length > 0){
+        const character = roster.shift();
+        if(!character) continue;
+        const usageArgs = room.getUsageArgumentsForCharacter(character._id);
+        if(!usageArgs){
+            roster = roster.filter((char) => {
+                return char._id !== character._id;
+            });
+            activeDiscordClient.sendTypingByChannelId(room.channelId);
+            const response = await room.generateResponse(message, character._id);
+            if(!response) break;
+            const responseMessage = response.message.swipes[response.message.currentIndex];
+            await activeDiscordClient?.sendMessageAsCharacter(room.channelId, character, responseMessage);
+        }
+    }
+    isProcessing = false;
 }
 
 export async function startDiscordRoutes(){
@@ -82,7 +124,39 @@ const isDiscordRunning = (req: Request, res: Response, next: NextFunction) => {
     next();
 }
 
+export function clearRoomMessages(roomId: string){
+    let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
+    if(!roomPipeline) return;
+    roomPipeline.clearMessages();
+}
+
+export async function addOrChangeAliasForUser(alias: Alias, roomId: string){
+    let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
+    if(!roomPipeline) return;
+    await roomPipeline.addOrChangeAlias(alias);
+    roomPipeline.saveToFile();
+}
+
+export async function addSystemMessageAndGenerateResponse(roomId: string, message: string){
+    let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
+    if(!roomPipeline) return;
+    const newMessage = roomPipeline.createSystemMessage(message);
+    roomPipeline.addRoomMessage(newMessage);
+    roomPipeline.saveToFile();
+    await generateDiscordResponse(roomPipeline, newMessage);
+}
+
 export const DiscordManagementRouter = Router();
+
+export function removeRoomFromActive(id: string){
+    const index = activePipelines.findIndex(pipeline => pipeline._id === id);
+    if(index >= 0){
+        activePipelines.splice(index, 1);
+    }
+}
 
 DiscordManagementRouter.post('/start', async (req, res) => {
     let config;

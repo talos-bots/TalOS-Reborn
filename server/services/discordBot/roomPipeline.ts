@@ -115,6 +115,11 @@ export class RoomPipeline implements Room {
         this.updateLastModified();
     }
 
+    clearAllCharacters(): void {
+        this.characters = [];
+        this.updateLastModified();
+    }
+
     addAlias(alias: Alias): void {
         this.aliases.push(alias);
         this.updateLastModified();
@@ -266,15 +271,24 @@ export class RoomPipeline implements Room {
         let value = '';
         let refinedResponse = '';
         while(unfinished && tries <= 3){
-            const unparsedResponse = await handleCompletionRequest(completionRequest);
-            if(unparsedResponse === null){
-                throw new Error('Failed to generate response');
-            }
-            value = unparsedResponse?.choices[0]?.text.trim();
-            refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), false);
-            tries++;
-            if(refinedResponse !== ''){
-                unfinished = false;
+            try {
+                const unparsedResponse = await handleCompletionRequest(completionRequest);
+                if(unparsedResponse === null){
+                    throw new Error('Failed to generate response');
+                }
+                console.log(unparsedResponse);
+                if(unparsedResponse?.choices[0]?.text === undefined){
+                    throw new Error('Failed to generate response');
+                }
+                value = unparsedResponse?.choices[0]?.text.trim();
+                refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), false);
+                tries++;
+                if(refinedResponse !== ''){
+                    unfinished = false;
+                }
+            } catch (error) {
+                console.error('Error during response generation:', error);
+                tries++;
             }
         }
         if(refinedResponse === ''){
@@ -300,6 +314,28 @@ export class RoomPipeline implements Room {
         this.saveToFile();
         return characterResponse;
     }
+    
+    public createSystemMessage(message: string): RoomMessage {
+        const systemMessage: RoomMessage = {
+            _id: new Date().getTime().toString(),
+            timestamp: new Date().getTime(),
+            attachments: [],
+            embeds: [],
+            discordChannelId: this.channelId,
+            discordGuildId: this.guildId,
+            message: {
+                userId: 'system',
+                fallbackName: 'System',
+                swipes: [message],
+                currentIndex: 0,
+                role: 'System' as Role,
+                thought: false,
+            }
+        };
+        this.addRoomMessage(systemMessage);
+        this.saveToFile();
+        return systemMessage;
+    }
 
     public getUsageArgumentsForCharacter(characterId: string): UsageArguments | undefined {
         const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
@@ -313,4 +349,22 @@ export class RoomPipeline implements Room {
         return args;
     }
 
+    public async addOrChangeAlias(alias: Alias){
+        const existingAlias = this.aliases.find(existingAlias => existingAlias.userId === alias.userId);
+        if(existingAlias){
+            existingAlias.name = alias.name;
+            existingAlias.avatarUrl = alias.avatarUrl;
+            existingAlias.personaId = alias.personaId;
+        } else {
+            this.aliases.push(alias);
+        }
+        this.updateLastModified();
+        await this.saveToFile();
+    }
+
+    clearMessages(): void {
+        this.messages = [];
+        this.updateLastModified();
+        this.saveToFile();
+    }
 }

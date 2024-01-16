@@ -47,8 +47,8 @@ export const getChannels = async (guildId: string) => {
         .catch(error => console.error(error));
 };
 
-export const getAllChannels = async (guildId: string) => {
-    return apiClient.post('/channels/all', { guildId })
+export const getAllChannels = async () => {
+    return apiClient.post('/channels/all')
         .then(response => response.data)
         .catch(error => console.error(error));
 };

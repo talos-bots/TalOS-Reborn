@@ -72,7 +72,7 @@ export const conversationsPath = `${dataPath}/conversations`;
 export const roomsPath = `${dataPath}/rooms`;
 export const diffusionConnectionsPath = `${dataPath}/diffusion_connections`;
 export const discordConfigPath = path.join(talosDir, "/discordConfigs");
-
+export const defaultBackgroundsPath = path.join(__dirname, "/defaults/backgrounds");
 // create the directories if they don't exist
 fs.mkdirSync(uploadsPath, { recursive: true });
 fs.mkdirSync(profilePicturesPath, { recursive: true });
@@ -92,6 +92,7 @@ fs.mkdirSync(connectionsPath, { recursive: true });
 fs.mkdirSync(diffusionConnectionsPath, { recursive: true });
 fs.mkdirSync(discordConfigPath, { recursive: true });
 fs.mkdirSync(roomsPath, { recursive: true });
+fs.mkdirSync(defaultBackgroundsPath, { recursive: true });
 
 // create the express apps
 export const expressApp = express();
@@ -176,7 +177,7 @@ expressApp.use(cookieParser());
 expressApp.use(cors(corsOptions));
 expressApp.use('/images', express.static(uploadsPath));
 expressApp.use('/pfp', express.static(profilePicturesPath));
-expressApp.use('/backgrounds', express.static(backgroundsPath));
+expressApp.use('/backgrounds', express.static(backgroundsPath), express.static(defaultBackgroundsPath));
 expressApp.use('/sprites', express.static(spritesPath));
 expressApp.use(express.static(path.join(__dirname, '../dist-react')));
 const server = createServer(expressApp);
@@ -354,15 +355,18 @@ expressApp.post('/api/background/rename', authenticateToken, (req, res) => {
 });
 
 // get all image file names in backgrounds folder
-expressApp.get('/api/background/all', authenticateToken, (req, res) => {
+expressApp.get('/api/background/all', authenticateToken, async (req, res) => {
     try {
-        fs.readdir(backgroundsPath, (err, files) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send(err);
-            }
-            res.send(files);
+        const filesArr: string[] = [];
+        const files = fs.readdirSync(backgroundsPath);
+        files.forEach((file) => {
+            filesArr.push(file);
         });
+        const defaultFiles = fs.readdirSync(defaultBackgroundsPath);
+        defaultFiles.forEach((file) => {
+            filesArr.push(file);
+        });
+        res.send(filesArr);
     } catch (error) {
         console.log(error);
     }

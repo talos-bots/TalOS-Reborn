@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "tsc",
-    "dev": "tsc-watch -p . --onSuccess \"node ../dist/server.js --dev\"",
+    "dev": "tsc-watch --onSuccess \"node ../dist/server.js --dev\"",
     "start": "tsc && node ../dist/server.js --dev"
   },
   "type": "module",

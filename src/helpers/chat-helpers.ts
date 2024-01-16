@@ -36,7 +36,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     let isFirstLine = true;
     
     if (doMultiLine === false){
-        let command = lines.join(' ');
+        let command = lines[0];
         if(command.trim() === ''){
             if(lines.length > 1){
                 command = lines[1];

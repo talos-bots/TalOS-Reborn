@@ -5,6 +5,9 @@ import fs from "fs";
 import path from "path";
 
 import OpenAI from 'openai';
+import { extractFileFromZipBuffer, extractFilesFromZipBuffer, writeBase64ToPNGFile } from "../helpers/index.js";
+import e from "express";
+import { NovelAIRequest } from "../typings/novelAI.js";
 
 export type DiffusionType = 'Dalle' | 'Auto1111' | 'SDAPI' | 'Reborn' | 'Google' | 'Stability' | 'NovelAI'
 export type DiffusionCompletionConnectionTemplate = {
@@ -28,7 +31,7 @@ function fetchAllConnections() {
         const fileData = fs.readFileSync(filePath, "utf-8");
         return JSON.parse(fileData);
     });
-    return connectionData;
+    return connectionData as DiffusionCompletionConnectionTemplate[];
 }
 
 diffusionRouter.get('/diffusion-connections', (req, res) => {
@@ -100,11 +103,19 @@ diffusionRouter.post('/dalle/generate', async (req, res) => {
         switch (model_id) {
             case "dall-e-3":
                 const response3 = await generateDalle3Image(prompt, size, style, connectionId);
-                res.send(response3);
+                if(response3){
+                    res.send(response3);
+                }else {
+                    res.status(500).send({ message: 'OpenAI said no :(' })
+                }
                 break;
             case "dall-e-2":
                 const response2 = await generateDalle2Image(prompt, size, samples, connectionId);
-                res.send(response2);
+                if(response2){
+                    res.send(response2);
+                }else {
+                    res.status(500).send({ message: 'OpenAI said no :(' })
+                }
                 break;
             default:
                 res.send("Model not found");
@@ -143,7 +154,17 @@ async function generateDalle2Image(prompt: string | null, size: DalleSize2 | nul
         prompt: prompt || 'A painting of a cat',
         n: samples,
         size: size || '512x512',    });
-    return response;
+    // extract the image from the response
+    if(response.created && response.created > 0){
+        const image = response.data.map((image: any) => {
+            return {
+                url: image.url,
+                revisedPrompt: image.revised_prompt ?? '',
+            }
+        });
+        return image;
+    }
+    return;
 }
 
 async function testDallekey(key: string) {
@@ -158,6 +179,162 @@ async function testDallekey(key: string) {
 
 diffusionRouter.post('/test-dalle-key', async (req, res) => {
     const { key } = req.body;
+    console.log(key);
     const response = await testDallekey(key);
     res.send(response);
+});
+
+async function testNovelAIKey(key: string) {
+    try {
+        const response = await fetch('https://api.novelai.net/user/subscription', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key.trim()}`
+            }
+        });
+        console.log(response);
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        } else if (response.status == 401) {
+            console.log('NovelAI Access Token is incorrect.');
+            return;
+        }
+        else {
+            console.log('NovelAI returned an error:', response.statusText);
+            return;
+        }
+    }
+    catch (error) {
+        console.log('Failed to test NovelAI key:', error);
+        return;
+    }
+}
+
+diffusionRouter.post('/test-novelai-key', async (req, res) => {
+    const { key } = req.body;
+    console.log(key);
+    const response = await testNovelAIKey(key);
+    if(response){
+        res.send(response);
+    }else {
+        res.status(500).send({ message: 'NovelAI said no :(' })
+    }
+});
+
+export async function findNovelAIConnection(): Promise<DiffusionCompletionConnectionTemplate | undefined>{
+    const connections = fetchAllConnections();
+    const novelAIConnection = connections.find((connection) => {
+        return connection.type as DiffusionType === 'NovelAI';
+    });
+    return novelAIConnection;
+}
+
+export const novelAIDefaults = {
+    height: 1024,
+    width: 1024,
+    scale: 5,
+    sampler: 'k_dpmpp_2m',
+    steps: 28,
+    n_samples: 1,
+    ucPreset: 0,
+    seed: Math.floor(Math.random() * 9999999999),
+    model: 'nai-diffusion-3',
+}
+
+export async function generateNovelAIImage(requestBody: NovelAIRequest) {
+    const { prompt, connectionId, negative_prompt, height, width, guidance, sampler, steps, number_of_samples, ucPreset, seed, model } = requestBody;
+    const connection = fetchConnectionById(connectionId);
+    if (!connection) {
+        throw new Error("Connection not found");
+    }
+    let selectedModel = model;
+    if(!selectedModel || selectedModel.length < 1){
+        selectedModel = connection.model;
+    }
+    let existingSeed = seed;
+    if(!existingSeed || existingSeed < 1){
+        existingSeed = Math.floor(Math.random() * 9999999999);
+    }
+    const generateResult = await fetch('https://api.novelai.net/ai/generate-image', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${connection.key}`
+        },
+        body: JSON.stringify({
+            input: prompt || 'A painting of a cat',
+            model: selectedModel || 'nai-diffusion-3',
+            parameters: {
+                negative_prompt: negative_prompt ?? 'loli, patreon, text, twitter, child',
+                height: height ?? novelAIDefaults.height,
+                width: width ?? novelAIDefaults.width,
+                scale: guidance ?? novelAIDefaults.scale,
+                seed: (existingSeed > 0) ? existingSeed : Math.floor(Math.random() * 9999999999),
+                sampler: sampler ?? novelAIDefaults.sampler,
+                steps: steps ?? novelAIDefaults.steps,
+                n_samples: number_of_samples ?? novelAIDefaults.n_samples,
+                ucPreset: ucPreset ?? novelAIDefaults.ucPreset,
+                qualityToggle: true,
+                add_original_image: false,
+                controlnet_strength: 1,
+                dynamic_thresholding: false,
+                legacy: false,
+                sm: false,
+                sm_dyn: false,
+                uncond_scale: 1,
+            },
+        })
+    })
+    if (!generateResult.ok) {
+        const text = await generateResult.text();
+        console.log('NovelAI returned an error.', generateResult.statusText, text);
+        return;
+    }
+
+    const archiveBuffer = await generateResult.arrayBuffer();
+    if(!archiveBuffer) {
+        console.log('NovelAI returned an empty response.');
+        return;
+    }
+    if(number_of_samples && number_of_samples > 1){
+        const imageBuffers = await extractFilesFromZipBuffer(archiveBuffer, '.png');
+        const imageFiles = imageBuffers.map((imageBuffer) => {
+            const originalBase64 = imageBuffer.toString('base64');
+            const imageFile = writeBase64ToPNGFile(originalBase64);
+            return imageFile;
+        });
+        return imageFiles.map((imageFile) => {
+            return {
+                url: imageFile,
+                revisedPrompt: '',
+            }
+        });
+    }else {
+        const imageBuffer = await extractFileFromZipBuffer(archiveBuffer, '.png');
+        const originalBase64 = imageBuffer.toString('base64');
+        const imageFile = writeBase64ToPNGFile(originalBase64);
+        return [{
+            url: imageFile,
+            revisedPrompt: '',
+        }]
+    }
+}
+
+diffusionRouter.post('/novelai/generate-image', async (req, res) => {
+    try {
+        // ask for image
+        const response = await generateNovelAIImage(req.body);
+        if(response){
+            // yay! got an image :D
+            return res.send(response)
+        }else {
+            //sometimes it fails, idk why
+            return res.status(500).send({ message: 'NovelAI said no :(' })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: error });
+    }
 });

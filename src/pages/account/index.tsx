@@ -116,7 +116,7 @@ const AccountPage = () => {
     }
 
     return (
-        <div className="md:grid md:grid-cols-6 min-h-[90vh] p-2 md:p-4 gap-2 flex flex-col">
+        <div className="md:grid md:grid-cols-6 md:min-h-[90vh] p-2 md:p-4 gap-2 flex flex-col">
             <Helmet>
                 <title>TalOS | Account</title>
             </Helmet>

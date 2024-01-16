@@ -49,7 +49,7 @@ const CharactersPage = () => {
         <Helmet>
             <title>TalOS | Characters</title>
         </Helmet>
-        <div className="w-full h-full flex-col min-h-[90vh]">
+        <div className="w-full h-full flex-col md:min-h-[90vh]">
             {loading && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
                     <div className="bg-base-300 rounded-box p-2 md:p-6">

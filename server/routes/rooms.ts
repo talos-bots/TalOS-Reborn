@@ -2,6 +2,8 @@ import express from 'express';
 import fs from "fs";
 import path from "path";
 import { roomsPath } from '../server.js';
+import { Room } from '../typings/discordBot.js';
+import { removeRoomFromActive } from './discord.js';
 
 export const roomsRouter = express.Router();
 
@@ -22,10 +24,10 @@ function fetchAllRooms() {
     }
 }
 
-function saveRoom(roomData: any) {
+function saveRoom(roomData: Room) {
     try {
         const newPath = path.join(roomsPath);
-        const filePath = path.join(newPath, `${roomData.id}.json`);
+        const filePath = path.join(newPath, `${roomData._id}.json`);
         const data = JSON.stringify(roomData, null, 4); // Pretty print the JSON
         fs.writeFileSync(filePath, data, "utf-8");
     } catch (err) {
@@ -54,12 +56,8 @@ function removeRoomById(id: string){
     try {
         const newPath = path.join(roomsPath);
         const filePath = path.join(newPath, `${id}.json`);
-        if (fs.existsSync(filePath)) {
-            fs.rmSync(filePath);
-            return true;
-        } else {
-            return false; // or handle the error as needed
-        }
+        fs.rmSync(filePath);
+        return true;
     } catch (err) {
         console.error(err);
         throw err;
@@ -90,6 +88,8 @@ roomsRouter.get('/:id', (req, res) => {
 roomsRouter.delete('/:id', (req, res) => {
     const id = req.params.id;
     const roomData = removeRoomById(id);
+    removeRoomFromActive(id);
+    console.log(roomData);
     if (roomData) {
         res.send({ message: "Room deleted successfully!" });
     } else {

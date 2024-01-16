@@ -125,13 +125,13 @@ function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 
         }
         if(persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]`);
+                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
             }
         }
         prompt = lines.join("\n");
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== "Assistant") {
+    if (newMessages.length > 0) {
         prompt += `${constructName}:`;
     }
 	return prompt;
@@ -161,12 +161,12 @@ function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: num
         }
         if(i === newMessages.length - 3 && persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                prompt += `[${persona.description.trim()}]`;
+                prompt += `[${persona.description.trim()}]\n`;
             }
         }
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== "Assistant") {
+    if (newMessages.length > 0) {
         prompt += `### Response:\n${constructName}:`;
     }
 
@@ -200,13 +200,13 @@ function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: num
         }
         if(persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]`);
+                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
             }
         }
         prompt = lines.join("\n");
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== "Assistant") {
+    if (newMessages.length > 0) {
         prompt += `ASSISTANT: ${constructName}:`;
     }
 
@@ -242,10 +242,57 @@ function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: n
         }
     }
     // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'User') {
+    if (newMessages.length > 0) {
         prompt += `<|model|>${constructName}:`;
     }
     return prompt;
+}
+
+function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+	let prompt = "";
+	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
+	for(let i = 0; i < newMessages.length; i++){
+        if(i === 0){
+            prompt += `<START>\n`
+        }
+        const messageText = messages[i].swipes[messages[i].currentIndex].trim();
+		if(newMessages[i].role === 'System'){
+			prompt += `${messageText}\n`;
+			continue;
+		}else{
+			if(newMessages[i].thought === true){
+                if(newMessages[i].role === "User"){
+                    prompt += `You: ${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
+                }else{
+                    prompt += `${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
+                }
+            }else{
+                if(newMessages[i].role === "User"){
+                    prompt += `You: ${newMessages[i].fallbackName}: ${messageText}\n`;
+                }else{
+                    prompt += `${newMessages[i].fallbackName}: ${messageText}\n`;
+                }
+            }
+		}
+	}
+    // insert system prompt at the 4th line from the end
+    if(newMessages.length > 0){
+        const lines = prompt.split("\n");
+        if(system_prompt.trim() !== ""){
+            lines.splice(lines.length - 3, 0, system_prompt);
+        }
+        if(persona){
+            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
+                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
+            }
+        }
+        prompt = lines.join("\n");
+    }
+    // If the last message was not from the bot, we append an empty response for the bot
+    if (newMessages.length > 0) {
+        prompt += `${constructName}:`;
+    }
+	return prompt;
 }
 
 export function getCharacterPromptFromConstruct(character: CharacterInterface) {
@@ -317,6 +364,9 @@ async function formatCompletionRequest(request: CompletionRequest){
     else if(settingsInfo.instruct_mode === "Metharme"){
         prompt += assembleMetharmePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
     }
+    else if(settingsInfo.instruct_mode === "Pygmalion"){
+        prompt += assemblePygmalionPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
+    }
     else{
         prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
     }
@@ -374,6 +424,20 @@ async function getMancerCompletion(request: CompletionRequest){
     if(modelInfo.model === "mythalion"){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
     }
     const settingsProper = SettingsInterfaceToMancerSettings(settingsInfo);
     const body = {
@@ -444,6 +508,23 @@ async function getGenericCompletion(request: CompletionRequest){
     if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
+    }
+    if(modelInfo.model === ''){
+        throw new Error('No valid response from LLM.');
     }
     const body = {
         'model': modelInfo.model,
@@ -768,8 +849,9 @@ async function getOpenAICompletion(request: CompletionRequest){
     if(!settingsInfo){
         settingsInfo = DefaultSettings[0];
     }
-    console.log(settingsInfo);
-    console.log(modelInfo);
+    if(modelInfo.model === ''){
+        throw new Error('No valid response from LLM.');
+    }
     const response = await axios('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -858,6 +940,23 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
     }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
+    }
+    if(modelInfo.model === ''){
+        throw new Error('No valid response from LLM.');
+    }
     const body = {
         'model': modelInfo.model,
         'prompt': prompt,
@@ -911,6 +1010,119 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
     }
 }
 
+export async function getKoboldAICompletion(request: CompletionRequest){
+    const prompt = await formatCompletionRequest(request);
+    const stopSequences = getStopSequences(request.messages);
+    const appSettings = fetchAllAppSettings();
+    console.log(appSettings);
+    let connectionid = request.connectionid;
+    if(!connectionid){
+        connectionid = appSettings?.defaultConnection ?? "";
+    }
+    if(!connectionid){
+        return null;
+    }
+    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = appSettings?.defaultSettings ?? "1";
+    }
+    if(!settingsid) return;
+    if(settingsid?.length < 1){
+        settingsid = "1";
+    }
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    if(!settingsInfo){
+        settingsInfo = DefaultSettings[0];
+    }
+    if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
+        stopSequences.push("###");
+    }
+    if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
+    }
+    const body = {
+        'prompt': prompt,
+        'stop_sequence': stopSequences,
+        "max_context_length": settingsInfo.context_length ? settingsInfo.context_length : 1024,
+        "max_length": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
+        "quiet": false,
+        "rep_pen": settingsInfo.rep_pen ? settingsInfo.rep_pen : 1.2,
+        "rep_pen_range": settingsInfo.rep_pen_range ? settingsInfo.rep_pen_range : 512,
+        "rep_pen_slope": settingsInfo.rep_pen_slope ? settingsInfo.rep_pen_slope : 0.06,
+        "temperature": settingsInfo.temperature ? settingsInfo.temperature : 0.9,
+        "tfs": settingsInfo.tfs ? settingsInfo.tfs : 0.9,
+        "top_a": settingsInfo.top_a ? settingsInfo.top_a : 0,
+        "top_k": settingsInfo.top_k ? settingsInfo.top_k : 0,
+        "top_p": settingsInfo.top_p ? settingsInfo.top_p : 0,
+        "typical": settingsInfo.typical ? settingsInfo.typical : 0.9,
+        "sampler_order": settingsInfo.sampler_order ? settingsInfo.sampler_order : [
+            6,
+            5,
+            0,
+            2,
+            3,
+            1,
+            4
+        ],
+
+    }
+    console.log(body);
+    try {
+        const newURL = new URL(modelInfo.url as string);
+        const response = await fetch(`${newURL.protocol}//${newURL.hostname}${newURL.port? `:${newURL.port}` : ''}` + '/api/v1/generate', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${modelInfo.key? modelInfo.key.length > 0? `${modelInfo.key.trim()}` : '' : ''}`,
+                'x-api-key': (modelInfo.key? modelInfo.key.length > 0? `${modelInfo.key.trim()}` : '' : ''),
+            },
+        });
+        if(response.ok){
+            const json = await response.json();
+
+            return {
+                choices: [
+                    {
+                        text: json.results[0].text,
+                        index: 0,
+                        logprobs: null,
+                        finish_reason: 'stop',
+                    }
+                ]
+            }
+        }else{
+            throw new Error('No valid response from LLM.');
+        }
+    } catch (error) {
+        console.error('Error in getGenericCompletion:', error);
+        return null;
+    }
+}
+
 export async function handleCompletionRequest(request: CompletionRequest){
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
@@ -934,6 +1146,8 @@ export async function handleCompletionRequest(request: CompletionRequest){
             return await getOpenAICompletion(request);
         case 'OpenRouter':
             return await getOpenRouterCompletion(request);
+        case 'Kobold':
+            return await getKoboldAICompletion(request);
         default:
             return await getGenericCompletion(request);
     }

@@ -175,6 +175,7 @@ export async function setAppSettingsDiffusion(diffusionId: string): Promise<void
         if (response.status !== 200) {
             throw new Error(`Error: ${response.status}`);
         }
+        console.log(response.data);
     } catch (error) {
         console.error("Error setting default diffusion connection:", error);
     }

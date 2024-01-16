@@ -264,3 +264,38 @@ connectionsRouter.post('/test/openrouter', async (req, res) => {
     const data = await getOpenRouter(request);
     res.send({data});
 });
+
+async function getKobold(url: string, key?: string){
+    try{
+        const endpointURLObject = new URL(url);
+        const response = await fetch(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}` + `/api/v1/model`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': (key? key.length > 0? `Bearer ${key.trim()}` : '' : ''),
+                'x-api-key': (key? key.length > 0? `${key.trim()}` : '' : ''),
+            },
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.log(error);
+            return error;
+        });
+        if (!response.ok) {
+            console.log('Connection models not found');
+            throw Error(`Error: ${response.status}`);
+        }
+        const json = await response.json();
+        return json;
+    }catch(error){
+        console.log(error);
+        return error;
+    }
+}
+
+connectionsRouter.post('/test/kobold', async (req, res) => {
+    const url = req.body.url;
+    const key = req.body.key;
+    const data = await getKobold(url as string, key as string);
+    res.send({data});
+});

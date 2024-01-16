@@ -245,6 +245,34 @@ export async function fetchOpenRouterModels(key?: string){
     }
 }
 
+export async function fetchKoboldModel(url: string, key?: string){
+    try {
+        const response = await api(`/api/test/kobold`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({ url, key }),
+        });
+        
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.data;
+        if(data.error) {
+            console.error('Error fetching kobold models:', data.error);
+            return null;
+        }else{
+            return [data?.data?.result];
+        }
+    } catch (error) {
+        console.error('Error in fetchKoboldModel:', error);
+        return null;
+    }
+}
+
 export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona?: UserPersona, connectionid?: string, settingsid?: string){
     const newRequest: CompletionRequest = {
         lorebookid: 'mancer',

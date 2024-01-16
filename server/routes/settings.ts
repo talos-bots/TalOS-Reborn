@@ -320,7 +320,7 @@ settingsRouter.get('/appSettings/defaultDiffusionConnection', (req, res) => {
 });
 
 // set the defaultDiffusionConnection in the ../data/appSettings.json file
-settingsRouter.get('/appSettings/defaultDiffusionConnection', (req, res) => {
+settingsRouter.post('/appSettings/defaultDiffusionConnection', (req, res) => {
     const diffusionID = req.body.diffusionId
     const appSettingsData = fetchAllAppSettings();
     if (appSettingsData) {

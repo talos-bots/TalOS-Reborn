@@ -3,9 +3,9 @@ import { SettingsInterface } from "../../types";
 import { deleteSettingById, fetchAllSettings, getAppSettingsSettings, saveSettingToLocal, setAppSettingsSettings } from "../../api/settingsAPI";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme";
+export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme" | "Pygmalion";
 
-const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "None", "Metharme"];
+const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "None", "Metharme", "Pygmalion"];
 
 const GenerationSettings = () => {
     const [maxContextLength, setMaxContextLength] = useState<number>(2048);
@@ -153,6 +153,36 @@ const GenerationSettings = () => {
         await setAppSettingsSettings(presetID)
     }
 
+    const copySettings = async () => {
+        const connection = availablePresets.find((connection) => connection.id === presetID)
+        console.log(connection)
+        if (connection){
+            console.log('copying')
+            setPresetName('')
+            setPresetID('')
+            setFrequencyPenalty(connection.frequency_penalty)
+            setMaxContextLength(connection.context_length)
+            setMaxTokens(connection.max_tokens)
+            setMinLength(connection.min_tokens)
+            setMinP(connection.min_p)
+            setMirostatEta(connection.mirostat_eta)
+            setMirostatMode(connection.mirostat_mode)
+            setMirostatTau(connection.mirostat_tau)
+            setPresencePenalty(connection.presence_penalty)
+            setRepPen(connection.rep_pen)
+            setRepPenRange(connection.rep_pen_range)
+            setRepPenSlope(connection.rep_pen_slope)
+            setSamplerOrder(connection.sampler_order)
+            setTemperature(connection.temperature)
+            setTopA(connection.top_a)
+            setTopK(connection.top_k)
+            setTopP(connection.top_p)
+            setTfs(connection.tfs)
+            setTypical(connection.typical)
+            setInstructMode(connection.instruct_mode)
+        }
+    }
+
     return (
         <div className="text-base-content flex flex-col gap-2">
             <div className="flex flex-row gap-2 w-full items-center justify-center">
@@ -170,6 +200,11 @@ const GenerationSettings = () => {
                 </RequiredSelectField>
                 <button className="dy-btn dy-btn-primary" onClick={handleSavePreset}>Save</button>
                 <button className="dy-btn dy-btn-error" onClick={handleDeleteConnection}>Delete</button>
+            </div>
+            <div className="flex flex-row gap-2 w-full items-center justify-center">
+                <button className="dy-btn dy-btn-primary" onClick={copySettings}>Copy Settings To New Presest</button>
+                <button className="dy-btn dy-btn-primary" onClick={setPresetDefault}>Set As Default</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset}>Save</button>
             </div>
             <RequiredInputField
                 type="text"

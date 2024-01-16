@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "concurrently \"npm build react && vite --host\" \"cd ./server && npm run dev\"",
     "dev": "concurrently \"vite --host\" \"cd ./server && npm run dev\"",
     "dev-react": "vite --host",
     "start-server": "cd ./server && npm run start",
@@ -65,7 +66,8 @@
     "tsc-watch": "^6.0.4",
     "tslib": "^2.6.2",
     "tw-elements": "^1.0.0",
-    "tw-elements-react": "^1.0.0-alpha2"
+    "tw-elements-react": "^1.0.0-alpha2",
+    "yauzl": "^2.10.0"
   },
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
@@ -78,6 +80,7 @@
     "@types/multer": "^1.4.11",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
+    "@types/yauzl": "^2.10.3",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitejs/plugin-react": "^4.2.0",

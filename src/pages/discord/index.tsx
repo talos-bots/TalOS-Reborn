@@ -8,6 +8,7 @@ import DiscordPanel from "../../components/settings/DiscordPanel";
 import RoomManager from "./room-manager/RoomManager";
 
 const DiscordPage = () => {
+    const [discordOnline, setDiscordOnline] = useState<boolean>(false);
     const { user } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
@@ -26,15 +27,15 @@ const DiscordPage = () => {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-12 w-full md:h-[92.5vh] md:max-h-[92.5vh] gap-2 md:p-4 text-base-content">
+        <div className="grid grid-cols-1 md:grid-cols-12 w-full md:h-[92.5vh] md:max-h-[92.5vh] md:gap-2 md:p-4 text-base-content">
             <CharacterPopup isOpen={showCharacterPopup} toggleModal={handleCharacterPopupToggle} character={characterPopupCharacter}/>
-            <div className="col-span-3 md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 p-4 md:max-h-[90vh] overflow-y-auto">
+            <div className="md:col-span-3 md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 p-4 md:max-h-[90vh] overflow-y-auto">
                 <h3>Discord Bot Configuration</h3>
-                <DiscordPanel />
+                <DiscordPanel discordOnline={discordOnline} setDiscordOnline={setDiscordOnline}/>
             </div>
-            <div className="col-span-9 md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 p-4 md:max-h-[90vh] overflow-y-auto">
+            <div className="md:col-span-9 md:rounded-box bg-base-300 md:p-4 h-full flex flex-col gap-2 p-4 md:max-h-[90vh] overflow-y-auto">
                 <h3>Room Manager</h3>
-                <RoomManager />
+                <RoomManager discordOnline={discordOnline}/>
             </div>
         </div>
     )
