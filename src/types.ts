@@ -91,7 +91,7 @@ export type CharacterInterface = {
 
 export type Role = "System" | "Assistant" | "User";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme";
+export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme" | "Pygmalion";
 
 export type Message = {
     userId: string;
@@ -332,4 +332,5 @@ export interface NovelAIRequest {
     number_of_samples?: number,
     seed?: number,
     ucPreset?: number,
+    model?: string,
 }

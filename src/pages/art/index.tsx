@@ -264,6 +264,7 @@ const ArtPage = () => {
                 generateNovelAIImage(
                     {
                         prompt: prompt,
+                        model: connectionModel,
                         connectionId: currentConnection.id,
                         negative_prompt: negativePrompt,
                         steps: steps,
@@ -366,29 +367,12 @@ const ArtPage = () => {
                         </div>
                     </div>
                     <div className='row-span-1 flex flex-col max-h-full gap-2'>
-                        <h3 className='flex flex-row items-center justify-center'>
-                            {/* <button className='dy-btn dy-btn-primary dy-btn-outline dy-btn-sm' onClick={goLeft}>
-                                <ArrowLeft/>
-                            </button> */}
-                            <span className='text-center font-semibold'>Previous Images</span>
-                            {/* <button className='dy-btn dy-btn-primary dy-btn-outline dy-btn-sm' onClick={goRight}>
-                                <ArrowRight/>
-                            </button> */}
-                        </h3>
                         <div className='flex flex-grow rounded-box bg-base-200 flex-row p-4 relative dy-carousel gap-2'>
                             {previousImages.map((imageData, index) => (
                                 <div key={imageData.url} id={`slide${index}`} className="dy-carousel-item relative flex-row items-center justify-center" onClick={() => {imageModal(imageData.url)}}>
                                     <img src={imageData.url} className='dy-carousel-item h-auto max-h-[200px] object-cover self-center rounded-box'/>
                                 </div>
                             ))}
-                            <div className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
-                                <a className={"dy-btn dy-btn-circle dy-btn-primary dy-btn-sm"}>
-                                    <ArrowLeft/>
-                                </a> 
-                                <a className="dy-btn dy-btn-circle dy-btn-primary dy-btn-sm">
-                                    <ArrowRight/>
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>

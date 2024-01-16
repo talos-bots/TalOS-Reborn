@@ -248,6 +248,53 @@ function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: n
     return prompt;
 }
 
+function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+	let prompt = "";
+	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
+	for(let i = 0; i < newMessages.length; i++){
+        if(i === 0){
+            prompt += `<START>\n`
+        }
+        const messageText = messages[i].swipes[messages[i].currentIndex].trim();
+		if(newMessages[i].role === 'System'){
+			prompt += `${messageText}\n`;
+			continue;
+		}else{
+			if(newMessages[i].thought === true){
+                if(newMessages[i].role === "User"){
+                    prompt += `You: ${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
+                }else{
+                    prompt += `${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
+                }
+            }else{
+                if(newMessages[i].role === "User"){
+                    prompt += `You: ${newMessages[i].fallbackName}: ${messageText}\n`;
+                }else{
+                    prompt += `${newMessages[i].fallbackName}: ${messageText}\n`;
+                }
+            }
+		}
+	}
+    // insert system prompt at the 4th line from the end
+    if(newMessages.length > 0){
+        const lines = prompt.split("\n");
+        if(system_prompt.trim() !== ""){
+            lines.splice(lines.length - 3, 0, system_prompt);
+        }
+        if(persona){
+            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
+                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
+            }
+        }
+        prompt = lines.join("\n");
+    }
+    // If the last message was not from the bot, we append an empty response for the bot
+    if (newMessages.length > 0) {
+        prompt += `${constructName}:`;
+    }
+	return prompt;
+}
+
 export function getCharacterPromptFromConstruct(character: CharacterInterface) {
     let prompt = '';
     if(character.description.trim().length > 0){
@@ -317,6 +364,9 @@ async function formatCompletionRequest(request: CompletionRequest){
     else if(settingsInfo.instruct_mode === "Metharme"){
         prompt += assembleMetharmePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
     }
+    else if(settingsInfo.instruct_mode === "Pygmalion"){
+        prompt += assemblePygmalionPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
+    }
     else{
         prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
     }
@@ -374,6 +424,20 @@ async function getMancerCompletion(request: CompletionRequest){
     if(modelInfo.model === "mythalion"){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
     }
     const settingsProper = SettingsInterfaceToMancerSettings(settingsInfo);
     const body = {
@@ -444,6 +508,20 @@ async function getGenericCompletion(request: CompletionRequest){
     if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
     }
     if(modelInfo.model === ''){
         throw new Error('No valid response from LLM.');
@@ -861,6 +939,20 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
     if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
         stopSequences.push("<|user|>");
         stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
     }
     if(modelInfo.model === ''){
         throw new Error('No valid response from LLM.');

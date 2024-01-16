@@ -241,6 +241,30 @@ export const DefaultCommands: SlashCommand[] = [
                 required: false,
             },
             {
+                name: 'numberofsamples',
+                description: 'Number of samples',
+                type: 4,  // Integer type
+                required: false,
+                choices: [
+                    {
+                        name: '1',
+                        value: '1',
+                    },
+                    {
+                        name: '2',
+                        value: '2',
+                    },
+                    {
+                        name: '3',
+                        value: '3',
+                    },
+                    {
+                        name: '4',
+                        value: '4',
+                    },
+                ],
+            },
+            {
                 name: 'model',
                 description: 'Model',
                 type: 3,  // String type
@@ -329,7 +353,7 @@ export const DefaultCommands: SlashCommand[] = [
             }
             await interaction.deferReply({ephemeral: false});
             const prompt = interaction.options.get('prompt')?.value as string || '';
-            const negativePrompt = interaction.options.get('negativeprompt')?.value as string || '';
+            const negativePrompt = interaction.options.get('negativeprompt')?.value as string || 'loli, patreon, text, twitter, child';
             const steps = interaction.options.get('steps')?.value as number || novelAIDefaults.steps;
             let width = interaction.options.get('width')?.value as number;
             let height = interaction.options.get('height')?.value as number
@@ -343,6 +367,7 @@ export const DefaultCommands: SlashCommand[] = [
             const sampler = interaction.options.get('sampler')?.value as number || 1;
             const model = interaction.options.get('model')?.value as string || novelAIDefaults.model;
             const hidden = interaction.options.get('hidden')?.value as boolean || true;
+            const number_of_samples = interaction.options.get('numberofsamples')?.value as number || 1;
             const imageData = await generateNovelAIImage(                    {
                 prompt: prompt,
                 connectionId: novelAIConnection.id,
@@ -352,7 +377,7 @@ export const DefaultCommands: SlashCommand[] = [
                 height: height || undefined,
                 guidance: guidance || undefined,
                 sampler: samplersArray[sampler] || undefined,
-                number_of_samples: 1,
+                number_of_samples: number_of_samples || undefined,
                 seed: Math.floor(Math.random() * 9999999),
                 ucPreset: novelAIUndesiredContentPresets[undesiredContentPresetIndex]?.value || undefined,
                 model: model || undefined,
@@ -383,7 +408,7 @@ export const DefaultCommands: SlashCommand[] = [
                 },
                 {
                     name: 'Negative Prompt',
-                    value: negativePrompt? negativePrompt : `None provided.`,
+                    value: negativePrompt? negativePrompt : `loli, patreon, text, twitter, child`,
                     inline: false,
                 },
                 {
@@ -427,13 +452,13 @@ export const DefaultCommands: SlashCommand[] = [
             if(hidden){
                 await interaction.editReply({
                     embeds: [],
-                    files: [attachments[0]],
+                    files: attachments,
                 });
                 return;
             }else{
                 await interaction.editReply({
                     embeds: [embed],
-                    files: [attachments[0]],
+                    files: attachments,
                 });
                 return;
             }
