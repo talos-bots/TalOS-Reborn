@@ -264,13 +264,13 @@ function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: 
                 if(newMessages[i].role === "User"){
                     prompt += `You: ${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
                 }else{
-                    prompt += `${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
+                    prompt += `<BOT>: ${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
                 }
             }else{
                 if(newMessages[i].role === "User"){
                     prompt += `You: ${newMessages[i].fallbackName}: ${messageText}\n`;
                 }else{
-                    prompt += `${newMessages[i].fallbackName}: ${messageText}\n`;
+                    prompt += `<BOT>: ${newMessages[i].fallbackName}: ${messageText}\n`;
                 }
             }
 		}
@@ -290,7 +290,7 @@ function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: 
     }
     // If the last message was not from the bot, we append an empty response for the bot
     if (newMessages.length > 0) {
-        prompt += `${constructName}:`;
+        prompt += `<BOT>: ${constructName}:`;
     }
 	return prompt;
 }
@@ -438,6 +438,7 @@ async function getMancerCompletion(request: CompletionRequest){
     }
     if(settingsInfo.instruct_mode === "Pygmalion"){
         stopSequences.push("You:");
+        stopSequences.push("<BOT>:");
     }
     const settingsProper = SettingsInterfaceToMancerSettings(settingsInfo);
     const body = {
@@ -522,6 +523,7 @@ async function getGenericCompletion(request: CompletionRequest){
     }
     if(settingsInfo.instruct_mode === "Pygmalion"){
         stopSequences.push("You:");
+        stopSequences.push("<BOT>:");
     }
     if(modelInfo.model === ''){
         throw new Error('No valid response from LLM.');
@@ -953,6 +955,7 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
     }
     if(settingsInfo.instruct_mode === "Pygmalion"){
         stopSequences.push("You:");
+        stopSequences.push("<BOT>:");
     }
     if(modelInfo.model === ''){
         throw new Error('No valid response from LLM.');
@@ -1062,6 +1065,7 @@ export async function getKoboldAICompletion(request: CompletionRequest){
     }
     if(settingsInfo.instruct_mode === "Pygmalion"){
         stopSequences.push("You:");
+        stopSequences.push("<BOT>:");
     }
     const body = {
         'prompt': prompt,

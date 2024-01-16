@@ -538,7 +538,7 @@ const CharacterCRUD = () => {
                         className="bg-transparent"
                     >
                         <div className='w-36 md:rounded-box bg-base-300 p-4 flex-col h-full gap-4 flex justify-center items-center'>
-                            <button className='dy-btn dy-btn-accent w-full h-28' type='submit'>
+                            <button className='dy-btn dy-btn-accent w-full h-28' type='submit' onClick={(e)=>{handleFormSubmit(e)}} onTouchStart={(e)=>{handleFormSubmit(e)}}>
                                 <Save size={36} />
                             </button>
                             <button className='dy-btn dy-btn-warning w-full h-28' type='button' onClick={async () => {
