@@ -69,6 +69,7 @@ export const spellsPath = `${dataPath}/spells`;
 export const weaponsPath = `${dataPath}/weapons`;
 export const armorsPath = `${dataPath}/armors`;
 export const conversationsPath = `${dataPath}/conversations`;
+export const datasetsPath = `${dataPath}/datasets`;
 export const roomsPath = `${dataPath}/rooms`;
 export const diffusionConnectionsPath = `${dataPath}/diffusion_connections`;
 export const discordConfigPath = path.join(talosDir, "/discordConfigs");
@@ -93,6 +94,11 @@ fs.mkdirSync(diffusionConnectionsPath, { recursive: true });
 fs.mkdirSync(discordConfigPath, { recursive: true });
 fs.mkdirSync(roomsPath, { recursive: true });
 fs.mkdirSync(defaultBackgroundsPath, { recursive: true });
+fs.mkdirSync(spritesPath, { recursive: true });
+fs.mkdirSync(modelsPath, { recursive: true });
+fs.mkdirSync(wasmPath, { recursive: true });
+fs.mkdirSync(imagesPath, { recursive: true });
+fs.mkdirSync(datasetsPath, { recursive: true });
 
 // create the express apps
 export const expressApp = express();

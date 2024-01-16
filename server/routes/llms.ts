@@ -68,6 +68,24 @@ function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
                 return getTokens(`<|model|>${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
             }
             return getTokens(`<|user|>${message.swipes[message.currentIndex]}`);
+        case "Pygmalion":
+            if(message.role === "System"){
+                return getTokens(`${message.swipes[message.currentIndex]}`);
+            }
+            else if(message.thought === true){
+                if(message.role === "User"){
+                    return getTokens(`You: ${message.fallbackName}'s Thoughts: ${message.swipes[message.currentIndex]}`);
+                }else{
+                    return getTokens(`<BOT>: ${message.fallbackName}'s Thoughts: ${message.swipes[message.currentIndex]}`);
+                }
+            }
+            else if(message.role === "User"){
+                return getTokens(`You: ${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
+            }
+            else if(message.role === "Assistant"){
+                return getTokens(`<BOT>: ${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
+            }
+            return getTokens(`${message.swipes[message.currentIndex]}`);
         default:
             if(message.role === "System"){
                 return getTokens(message.swipes[message.currentIndex]);
@@ -105,7 +123,7 @@ function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 
 	let prompt = "";
 	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
 	for(let i = 0; i < newMessages.length; i++){
-        const messageText = messages[i].swipes[messages[i].currentIndex].trim();
+        const messageText = newMessages[i].swipes[messages[i].currentIndex].trim();
 		if(newMessages[i].role === 'System'){
 			prompt += `${messageText}\n`;
 			continue;
@@ -250,9 +268,9 @@ function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: n
 
 function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
 	let prompt = "";
-	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
+	const newMessages = fillChatContextToLimit(messages, contextLength, "Pygmalion");
 	for(let i = 0; i < newMessages.length; i++){
-        const messageText = messages[i].swipes[messages[i].currentIndex].trim();
+        const messageText = newMessages[i].swipes[messages[i].currentIndex].trim();
 		if(newMessages[i].role === 'System'){
 			prompt += `${messageText}\n`;
 			continue;
@@ -367,7 +385,7 @@ async function formatCompletionRequest(request: CompletionRequest){
     else{
         prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
     }
-    return prompt.replace(new RegExp('{{user}}', 'g'), `${request?.persona?.name ?? 'You'}`).replace(new RegExp('{{char}}', 'g'), `${character.name}`);
+    return prompt.replace(new RegExp('{{user}}', 'g'), `${request?.persona?.name ?? 'You'}`).replace(new RegExp('{{char}}', 'g'), `${character.name}`).replace(new RegExp('<USER>', 'g'), `${request?.persona?.name ?? 'You'}`).replace(new RegExp('<user>', 'g'), `${request?.persona?.name ?? 'You'}`).replace(new RegExp('<char>', 'g'), `${character.name}`).replace(new RegExp('<CHAR>', 'g'), `${character.name}`);
 }
 
 function getStopSequences(messages: ChatMessage[]){
@@ -904,7 +922,6 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
     const prompt = await formatCompletionRequest(request);
     const stopSequences = getStopSequences(request.messages);
     const appSettings = fetchAllAppSettings();
-    console.log(appSettings);
     let connectionid = request.connectionid;
     if(!connectionid){
         connectionid = appSettings?.defaultConnection ?? "";
@@ -994,7 +1011,8 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
     if (openAIReply?.error) {
         throw new Error(openAIReply.error.message);
     }
-    const text = openAIReply?.choices[0]?.message.content.trim();
+    console.log(openAIReply);
+    const text = openAIReply?.choices[0]?.text.trim();
     if(!text){
         throw new Error('No valid response from LLM.');
     }

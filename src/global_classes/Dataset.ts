@@ -1,15 +1,8 @@
-import { Message, Role } from "../types";
-
-export type CharacterMap = {
-    characterId: string;
-    connectionId: string;
-    model: string;
-    settingsId: string;
-    role: Role;
-}
+import { CharacterMap, Message, Role } from "../types";
 
 export class Dataset{
     constructor(
+        public id: string = new Date().getTime().toString(),
         public name: string = "",
         public description: string = "",
         public messages: Message[] = [],
@@ -22,6 +15,7 @@ export class Dataset{
 
     public static fromJson(json: any): Dataset{
         return new Dataset(
+            json.id,
             json.name,
             json.description,
             json.messages,
@@ -35,6 +29,7 @@ export class Dataset{
 
     public toJson(): any{
         return {
+            id: this.id,
             name: this.name,
             description: this.description,
             messages: this.messages,

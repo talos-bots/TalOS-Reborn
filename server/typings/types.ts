@@ -184,3 +184,23 @@ export interface DiscordConfig {
     allowMultiCharacter: boolean;
     defaultCharacter: string;
 }
+
+export type CharacterMap = {
+    characterId: string;
+    connectionId: string;
+    model: string;
+    settingsId: string;
+    role: Role;
+}
+
+export interface DatasetInterface {
+    id: string;
+    name: string;
+    description: string;
+    messages: ChatMessage[];
+    badWords: string[];
+    characters: CharacterMap[];
+    systemPrompts: string[];
+    retries: number;
+    badWordsGenerated: number;
+}

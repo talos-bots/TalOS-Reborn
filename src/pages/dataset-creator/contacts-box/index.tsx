@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Character } from "../../../global_classes/Character";
 import ContactItem from "./contact-item";
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { emitCloseSides } from '../../../helpers/events';
 import { fetchAllCharacters } from '../../../api/characterAPI';
 
 const ContactsBox = () => {

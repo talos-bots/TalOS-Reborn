@@ -334,3 +334,23 @@ export interface NovelAIRequest {
     ucPreset?: number,
     model?: string,
 }
+
+export type CharacterMap = {
+    characterId: string;
+    connectionId: string;
+    model: string;
+    settingsId: string;
+    role: Role;
+}
+
+export interface DatasetInterface {
+    id: string;
+    name: string;
+    description: string;
+    messages: Message[];
+    badWords: string[];
+    characters: CharacterMap[];
+    systemPrompts: string[];
+    retries: number;
+    badWordsGenerated: number;
+}

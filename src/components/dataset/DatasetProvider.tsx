@@ -1,11 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, ReactNode, useContext } from 'react';
-import { Dataset, CharacterMap } from '../../global_classes/Dataset';
-import { Message } from '../../types';
+import { Dataset } from '../../global_classes/Dataset';
+import { CharacterMap, Message } from '../../types';
 
 interface DatasetContextProps {
     dataset: Dataset | null;
     setDataset: (dataset: Dataset) => void;
+    updateId: (id: string) => void;
     updateName: (name: string) => void;
     updateDescription: (description: string) => void;
     updateMessages: (messages: Message[]) => void;
@@ -19,6 +20,7 @@ interface DatasetContextProps {
 const defaultState: DatasetContextProps = {
     dataset: null,
     setDataset: () => {},
+    updateId: () => {},
     updateName: () => {},
     updateDescription: () => {},
     updateMessages: () => {},
@@ -41,6 +43,7 @@ export const DatasetProvider: React.FC<DatasetProviderProps> = ({ children }) =>
     const updateDataset = (updatedValues: Partial<Dataset>) => {
         if (dataset) {
             const newDataset = new Dataset(
+                updatedValues.id ?? dataset.id,
                 updatedValues.name ?? dataset.name,
                 updatedValues.description ?? dataset.description,
                 updatedValues.messages ?? dataset.messages,
@@ -58,6 +61,7 @@ export const DatasetProvider: React.FC<DatasetProviderProps> = ({ children }) =>
         <DatasetContext.Provider value={{ 
             dataset, 
             setDataset,
+            updateId: id => updateDataset({ id }),
             updateName: name => updateDataset({ name }),
             updateDescription: description => updateDataset({ description }),
             updateMessages: messages => updateDataset({ messages }),

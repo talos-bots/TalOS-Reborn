@@ -4,11 +4,11 @@ import { Dataset } from '../../../global_classes/Dataset';
 import { useDataset } from '../../../components/dataset/DatasetProvider';
 
 const GenerationParameters = () => {
-    const { dataset, updateName, updateDescription, updateMessages, updateBadWords, updateCharacters, updateSystemPrompts, updateRetries, updateBadWordsGenerated } = useDataset();
-    const [localDataset, setLocalDataset] = useState(dataset || new Dataset('', '', [], [''], [], [''], 0, 0));
+    const { dataset, updateName, updateDescription, updateMessages, updateBadWords, updateCharacters, updateSystemPrompts, updateRetries, updateBadWordsGenerated, updateId } = useDataset();
+    const [localDataset, setLocalDataset] = useState(dataset || new Dataset());
   
     useEffect(() => {
-        setLocalDataset(dataset || new Dataset('', '', [], [''], [], [''], 0, 0));
+        setLocalDataset(dataset || new Dataset());
     }, [dataset]);
   
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -24,6 +24,7 @@ const GenerationParameters = () => {
             }
             const updatedValues = { ...prev, [name]: updatedValue };
             return new Dataset(
+                updatedValues.id,
                 updatedValues.name,
                 updatedValues.description,
                 updatedValues.messages,
@@ -38,6 +39,7 @@ const GenerationParameters = () => {
   
     const handleSave = () => {
         if (localDataset) {
+            updateId(localDataset.id);
             updateName(localDataset.name);
             updateDescription(localDataset.description);
             updateMessages(localDataset.messages);
