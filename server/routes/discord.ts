@@ -68,7 +68,7 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
                 return char._id !== character._id;
             });
             const response = await room.generateResponse(roomMessage, character._id);
-            if(!response) continue;
+            if(!response) break;
             const responseMessage = response.message.swipes[response.message.currentIndex];
             await activeDiscordClient?.sendMessageAsCharacter(room.channelId, character, responseMessage);
         }

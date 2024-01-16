@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
-import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels, fetchOpenRouterModels } from "../../api/connectionAPI";
+import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels, fetchOpenRouterModels, fetchKoboldModel } from "../../api/connectionAPI";
 import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
 function getForwardFacingName(type: EndpointType): string {
@@ -12,13 +12,15 @@ function getForwardFacingName(type: EndpointType): string {
             return 'Google Makersuite';
         case 'OAI':
             return 'OpenAI Key';
+        case 'Kobold':
+            return 'KoboldAI (Classic)';
         default:
             return type;
     }
 }
 
 const ConnectionPanel = () => {
-    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM', 'OpenRouter']
+    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM', 'OpenRouter', 'Kobold']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
     const [connectionType, setConnectionType] = useState<EndpointType>(connectionTypes[0] as EndpointType)
     const [connectionID, setConnectionID] = useState<string>('' as string)
@@ -159,6 +161,16 @@ const ConnectionPanel = () => {
             }).catch((error) => {
                 setConnectionStatus('Connection Failed')
             });
+        } else if (connectionType === 'Kobold'){
+            setConnectionStatus('Connecting...')
+            fetchKoboldModel(connectionURL, connectionPassword).then((models) => {
+                if(models === null) return
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            });
+            setConnectionStatus('Connection Successful!')
         } else {
             setConnectionStatus('Connecting...')
             fetchConnectionModels(connectionURL, connectionPassword).then((models) => {

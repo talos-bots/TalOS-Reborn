@@ -287,7 +287,8 @@ export class RoomPipeline implements Room {
                     unfinished = false;
                 }
             } catch (error) {
-                console.error(error);
+                console.error('Error during response generation:', error);
+                tries++;
             }
         }
         if(refinedResponse === ''){

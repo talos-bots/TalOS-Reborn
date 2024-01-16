@@ -1010,6 +1010,119 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
     }
 }
 
+export async function getKoboldAICompletion(request: CompletionRequest){
+    const prompt = await formatCompletionRequest(request);
+    const stopSequences = getStopSequences(request.messages);
+    const appSettings = fetchAllAppSettings();
+    console.log(appSettings);
+    let connectionid = request.connectionid;
+    if(!connectionid){
+        connectionid = appSettings?.defaultConnection ?? "";
+    }
+    if(!connectionid){
+        return null;
+    }
+    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+    if(!modelInfo){
+        return null;
+    }
+    let settingsid = request.settingsid;
+    if(!settingsid){
+        settingsid = appSettings?.defaultSettings ?? "1";
+    }
+    if(!settingsid) return;
+    if(settingsid?.length < 1){
+        settingsid = "1";
+    }
+    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+    if(!settingsInfo){
+        settingsInfo = DefaultSettings[0];
+    }
+    if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
+        stopSequences.push("###");
+    }
+    if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Alpaca"){
+        stopSequences.push("###");
+    }
+    if(settingsInfo.instruct_mode === "Vicuna"){
+        stopSequences.push("USER:");
+        stopSequences.push("ASSISTANT:");
+    }
+    if(settingsInfo.instruct_mode === "Metharme"){
+        stopSequences.push("<|user|>");
+        stopSequences.push("<|model|>");
+    }
+    if(settingsInfo.instruct_mode === "Pygmalion"){
+        stopSequences.push("You:");
+    }
+    const body = {
+        'prompt': prompt,
+        'stop_sequence': stopSequences,
+        "max_context_length": settingsInfo.context_length ? settingsInfo.context_length : 1024,
+        "max_length": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
+        "quiet": false,
+        "rep_pen": settingsInfo.rep_pen ? settingsInfo.rep_pen : 1.2,
+        "rep_pen_range": settingsInfo.rep_pen_range ? settingsInfo.rep_pen_range : 512,
+        "rep_pen_slope": settingsInfo.rep_pen_slope ? settingsInfo.rep_pen_slope : 0.06,
+        "temperature": settingsInfo.temperature ? settingsInfo.temperature : 0.9,
+        "tfs": settingsInfo.tfs ? settingsInfo.tfs : 0.9,
+        "top_a": settingsInfo.top_a ? settingsInfo.top_a : 0,
+        "top_k": settingsInfo.top_k ? settingsInfo.top_k : 0,
+        "top_p": settingsInfo.top_p ? settingsInfo.top_p : 0,
+        "typical": settingsInfo.typical ? settingsInfo.typical : 0.9,
+        "sampler_order": settingsInfo.sampler_order ? settingsInfo.sampler_order : [
+            6,
+            5,
+            0,
+            2,
+            3,
+            1,
+            4
+        ],
+
+    }
+    console.log(body);
+    try {
+        const newURL = new URL(modelInfo.url as string);
+        const response = await fetch(`${newURL.protocol}//${newURL.hostname}${newURL.port? `:${newURL.port}` : ''}` + '/api/v1/generate', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${modelInfo.key? modelInfo.key.length > 0? `${modelInfo.key.trim()}` : '' : ''}`,
+                'x-api-key': (modelInfo.key? modelInfo.key.length > 0? `${modelInfo.key.trim()}` : '' : ''),
+            },
+        });
+        if(response.ok){
+            const json = await response.json();
+
+            return {
+                choices: [
+                    {
+                        text: json.results[0].text,
+                        index: 0,
+                        logprobs: null,
+                        finish_reason: 'stop',
+                    }
+                ]
+            }
+        }else{
+            throw new Error('No valid response from LLM.');
+        }
+    } catch (error) {
+        console.error('Error in getGenericCompletion:', error);
+        return null;
+    }
+}
+
 export async function handleCompletionRequest(request: CompletionRequest){
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
@@ -1033,6 +1146,8 @@ export async function handleCompletionRequest(request: CompletionRequest){
             return await getOpenAICompletion(request);
         case 'OpenRouter':
             return await getOpenRouterCompletion(request);
+        case 'Kobold':
+            return await getKoboldAICompletion(request);
         default:
             return await getGenericCompletion(request);
     }
