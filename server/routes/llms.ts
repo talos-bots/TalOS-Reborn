@@ -252,9 +252,6 @@ function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: 
 	let prompt = "";
 	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
 	for(let i = 0; i < newMessages.length; i++){
-        if(i === 0){
-            prompt += `<START>\n`
-        }
         const messageText = messages[i].swipes[messages[i].currentIndex].trim();
 		if(newMessages[i].role === 'System'){
 			prompt += `${messageText}\n`;
