@@ -158,6 +158,17 @@ export function removeRoomFromActive(id: string){
     }
 }
 
+export async function sendCharacterGreeting(roomId: string, characterId: string){
+    const roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline) return;
+    const character = await fetchCharacterById(characterId);
+    if(!character) return;
+    const greeting = character.first_mes;
+    if(!greeting) return;
+    roomPipeline.createRoomMessageFromChar(greeting, characterId);
+    activeDiscordClient.sendMessageAsCharacter(roomPipeline.channelId, character, greeting);
+}
+
 DiscordManagementRouter.post('/start', async (req, res) => {
     let config;
     if(req.body.config){

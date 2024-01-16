@@ -1,7 +1,7 @@
 import { AttachmentBuilder, CommandInteraction, EmbedBuilder, Message } from "discord.js";
 import { Alias, Room, SlashCommand } from "../../typings/discordBot.js";
 import { RoomPipeline } from "./roomPipeline.js";
-import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages } from "../../routes/discord.js";
+import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages, sendCharacterGreeting } from "../../routes/discord.js";
 import { fetchAllCharacters } from "../../routes/characters.js";
 import { findNovelAIConnection, generateNovelAIImage, novelAIDefaults } from "../../routes/diffusion.js";
 import { NovelAIModels, novelAIUndesiredContentPresets, samplersArray, sizePresets } from "../../typings/novelAI.js";
@@ -560,6 +560,37 @@ export const DefaultCommands: SlashCommand[] = [
                 content: `${message}`,
             });
             addSystemMessageAndGenerateResponse(registered._id, message);
+        }
+    } as SlashCommand,
+    {
+        name: 'greeting',
+        description: 'Sends a greeting from a character to the current channel.',
+        execute: async (interaction: CommandInteraction) => {
+            await interaction.deferReply({ephemeral: true});
+            if (interaction.channelId === null) {
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            if(interaction.guildId === null){
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            const registered = RoomPipeline.getRoomByChannelId(interaction.channelId);
+            if(!registered){
+                await interaction.editReply({
+                    content: "This channel is not a room.",
+                });
+                return;
+            }
+            const character = registered.characters[Math.floor(Math.random() * registered.characters.length)];
+            await sendCharacterGreeting(registered._id, character);
+            await interaction.editReply({
+                content: `Greeting sent.`,
+            });
         }
     } as SlashCommand,
 ];

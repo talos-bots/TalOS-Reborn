@@ -367,4 +367,30 @@ export class RoomPipeline implements Room {
         this.updateLastModified();
         this.saveToFile();
     }
+
+    createRoomMessageFromChar(message: string, charId: string): RoomMessage {
+        const character = this.characters.find(character => character === charId);
+        if(!character){
+            throw new Error(`Character not found: ${charId}`);
+        }
+        const roomMessage: RoomMessage = {
+            _id: new Date().getTime().toString(),
+            timestamp: new Date().getTime(),
+            attachments: [],
+            embeds: [],
+            discordChannelId: this.channelId,
+            discordGuildId: this.guildId,
+            message: {
+                userId: character,
+                fallbackName: '',
+                swipes: [message],
+                currentIndex: 0,
+                role: 'Assistant',
+                thought: false,
+            }
+        };
+        this.addRoomMessage(roomMessage);
+        this.saveToFile();
+        return roomMessage;
+    }
 }
