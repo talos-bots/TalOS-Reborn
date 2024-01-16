@@ -42,7 +42,16 @@ export function breakUpCommands(charName: string, commandString: string, user = 
                 command = lines[1];
             }
         }
-        return command.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '').replaceAll(`${charName}: `, '');
+        return command.replaceAll('<start>', '')
+        .replaceAll('<end>', '').replaceAll('###', '')
+        .replaceAll('<user>', '').replaceAll('user:', '')
+        .replaceAll('USER:', '').replaceAll('ASSISTANT:', '')
+        .replaceAll('<|user|>', '').replaceAll('<|model|>', '')
+        .replaceAll(`${charName}: `, '')
+        .replaceAll(`${user}: `, '')
+        .replaceAll(`<BOT>`, charName)
+        .replaceAll(`<bot>`, charName)
+        .replaceAll(`<CHAR>`, charName)
     }
     
     for (let i = 0; i < lines.length; i++) {
@@ -87,5 +96,11 @@ export function breakUpCommands(charName: string, commandString: string, user = 
         return command.trim() !== '';
     });
     const final = removedEmptyLines.join('\n');
-    return final.replaceAll('<start>', '').replaceAll('<end>', '').replaceAll('###', '').replaceAll('<user>', '').replaceAll('user:', '').replaceAll('USER:', '').replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '').replaceAll('<|model|>', '').replaceAll(`${charName}: `, '');
+    return final.replaceAll('<start>', '').replaceAll('<end>', '')
+    .replaceAll('###', '').replaceAll('<user>', '')
+    .replaceAll('user:', '').replaceAll('USER:', '')
+    .replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '')
+    .replaceAll('<|model|>', '').replaceAll(`${charName}: `, '')
+    .replaceAll(`${user}: `, '').replaceAll(`<BOT>`, charName)
+    .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName);
 }
