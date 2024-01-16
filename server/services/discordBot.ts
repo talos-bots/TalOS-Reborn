@@ -124,6 +124,14 @@ export class DiscordBotService {
         await this.client.login(this.token);
     }
 
+    public sendTypingByChannelId(channelId: string){
+        if(!this.client) return;
+        const channel = this.client.channels.cache.get(channelId);
+        if(channel instanceof TextChannel || channel instanceof DMChannel || channel instanceof NewsChannel){
+            channel.sendTyping();
+        }
+    }
+    
     public removeMessageFromQueue(message: Message){
         const index = this.messageQueue.indexOf(message);
         if(index > -1){

@@ -1,7 +1,7 @@
 import { AttachmentBuilder, CommandInteraction, EmbedBuilder, Message } from "discord.js";
-import { Room, SlashCommand } from "../../typings/discordBot.js";
+import { Alias, Room, SlashCommand } from "../../typings/discordBot.js";
 import { RoomPipeline } from "./roomPipeline.js";
-import { clearRoomMessages } from "../../routes/discord.js";
+import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages } from "../../routes/discord.js";
 import { fetchAllCharacters } from "../../routes/characters.js";
 import { findNovelAIConnection, generateNovelAIImage, novelAIDefaults } from "../../routes/diffusion.js";
 import { NovelAIModels, novelAIUndesiredContentPresets, samplersArray, sizePresets } from "../../typings/novelAI.js";
@@ -462,6 +462,104 @@ export const DefaultCommands: SlashCommand[] = [
                 });
                 return;
             }
+        }
+    } as SlashCommand,
+    {
+        name: 'alias',
+        description: 'Sets an alias for a user in the current channel.',
+        options: [
+            {
+                name: 'alias',
+                description: 'The alias to set.',
+                type: 3,
+                required: true,
+            },
+            {
+                name: 'user',
+                description: 'The user to set the alias for.',
+                type: 6,
+                required: false,
+            },
+        ],
+        execute: async (interaction: CommandInteraction) => {
+            await interaction.deferReply({ephemeral: false});
+            if (interaction.channelId === null) {
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            if(interaction.guildId === null){
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            const registered = RoomPipeline.getRoomByChannelId(interaction.channelId);
+            if(!registered){
+                await interaction.editReply({
+                    content: "This channel is not a room.",
+                });
+                return;
+            }
+            const user = interaction.options.get('user')?.value as string;
+            const alias = interaction.options.get('alias')?.value as string;
+            const newAlias: Alias = {
+                userId: user ? user : interaction.user.id,
+                name: alias,
+                personaId: '',
+                avatarUrl: interaction.user.avatarURL() || '',
+            }
+            addOrChangeAliasForUser(newAlias, registered._id);
+            await interaction.editReply({
+                content: `Alias ${alias} set for <@${user ? user : interaction.user.id}>.`,
+            });
+        }
+    } as SlashCommand,
+    {
+        name: 'sys',
+        description: 'Sends a system message to the current channel.',
+        options: [
+            {
+                name: 'message',
+                description: 'The message to send.',
+                type: 3,
+                required: true,
+            },
+            {
+                name: 'hidden',
+                description: 'Whether the message should be hidden.',
+                type: 5, // Boolean type
+                required: false,
+            }
+        ],
+        execute: async (interaction: CommandInteraction) => {
+            const hidden = interaction.options.get('hidden')?.value as boolean || true;
+            await interaction.deferReply({ephemeral: hidden});
+            if (interaction.channelId === null) {
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            if(interaction.guildId === null){
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            const registered = RoomPipeline.getRoomByChannelId(interaction.channelId);
+            if(!registered){
+                await interaction.editReply({
+                    content: "This channel is not a room.",
+                });
+                return;
+            }
+            const message = interaction.options.get('message')?.value as string;
+            await interaction.editReply({
+                content: `${message}`,
+            });
+            addSystemMessageAndGenerateResponse(registered._id, message);
         }
     } as SlashCommand,
 ];

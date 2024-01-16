@@ -314,6 +314,28 @@ export class RoomPipeline implements Room {
         this.saveToFile();
         return characterResponse;
     }
+    
+    public createSystemMessage(message: string): RoomMessage {
+        const systemMessage: RoomMessage = {
+            _id: new Date().getTime().toString(),
+            timestamp: new Date().getTime(),
+            attachments: [],
+            embeds: [],
+            discordChannelId: this.channelId,
+            discordGuildId: this.guildId,
+            message: {
+                userId: 'system',
+                fallbackName: 'System',
+                swipes: [message],
+                currentIndex: 0,
+                role: 'System' as Role,
+                thought: false,
+            }
+        };
+        this.addRoomMessage(systemMessage);
+        this.saveToFile();
+        return systemMessage;
+    }
 
     public getUsageArgumentsForCharacter(characterId: string): UsageArguments | undefined {
         const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
@@ -325,6 +347,19 @@ export class RoomPipeline implements Room {
             return;
         }
         return args;
+    }
+
+    public async addOrChangeAlias(alias: Alias){
+        const existingAlias = this.aliases.find(existingAlias => existingAlias.userId === alias.userId);
+        if(existingAlias){
+            existingAlias.name = alias.name;
+            existingAlias.avatarUrl = alias.avatarUrl;
+            existingAlias.personaId = alias.personaId;
+        } else {
+            this.aliases.push(alias);
+        }
+        this.updateLastModified();
+        await this.saveToFile();
     }
 
     clearMessages(): void {
