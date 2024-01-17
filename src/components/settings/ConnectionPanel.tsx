@@ -53,7 +53,7 @@ const ConnectionPanel = () => {
             key: connectionPassword,
             url: connectionURL,
             name: connectionName,
-            model: connectionModel,
+            model: (connectionModel.trim() === '') ? connectionModelList[0] : connectionModel,
             type: connectionType
         } as GenericCompletionConnectionTemplate
         if (savedConnections.some((connection) => connection.id === connectionID)) {

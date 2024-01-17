@@ -8,7 +8,6 @@ import axios from 'axios';
 import { DefaultSettings } from '../defaults/settings.js';
 import { CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, OpenAIMessage, OpenAIRole, SettingsInterface, UserPersona } from '../typings/types.js';
 import { ChatMessage } from '../typings/discordBot.js';
-import { cat } from '@xenova/transformers';
 export const llmsRouter = express.Router();
 
 function getTokens(text: string){
