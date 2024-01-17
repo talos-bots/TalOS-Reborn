@@ -48,14 +48,8 @@ const DiffusionPanel = () => {
             setConnectionURL(connection.url)
             setConnectionName(connection.name)
             setConnectionModel(connection.model)
-        }else{
-            console.log('no connection found')
-            setConnectionType(connectionTypes[0] as DiffusionType)
-            setConnectionPassword('')
-            setConnectionURL('')
-            setConnectionName('')
-            setConnectionModel('')
         }
+
     }
 
     useEffect(() => {

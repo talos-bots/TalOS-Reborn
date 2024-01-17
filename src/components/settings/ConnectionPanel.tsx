@@ -82,12 +82,6 @@ const ConnectionPanel = () => {
                 setConnectionURL(connection.url)
                 setConnectionName(connection.name)
                 setConnectionModel(connection.model)
-            }else{
-                setConnectionType(connectionTypes[0] as EndpointType)
-                setConnectionPassword('')
-                setConnectionURL('')
-                setConnectionName('')
-                setConnectionModel('')
             }
         }
         handleLoadConnection()

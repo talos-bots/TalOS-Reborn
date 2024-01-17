@@ -8,6 +8,7 @@ import axios from 'axios';
 import { DefaultSettings } from '../defaults/settings.js';
 import { CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, OpenAIMessage, OpenAIRole, SettingsInterface, UserPersona } from '../typings/types.js';
 import { ChatMessage } from '../typings/discordBot.js';
+import { cat } from '@xenova/transformers';
 export const llmsRouter = express.Router();
 
 function getTokens(text: string){
@@ -540,9 +541,6 @@ async function getGenericCompletion(request: CompletionRequest){
         stopSequences.push("You:");
         stopSequences.push("<BOT>:");
     }
-    if(modelInfo.model === ''){
-        throw new Error('No valid response from LLM.');
-    }
     const body = {
         'model': modelInfo.model,
         'prompt': prompt,
@@ -837,194 +835,201 @@ async function getGeminiCompletion(request: CompletionRequest){
 }
 
 async function getOpenAICompletion(request: CompletionRequest){
-    const messages = messagesToOpenAIChat(request.messages);
-    const stopSequences = getStopSequences(request.messages);
-    const appSettings = fetchAllAppSettings();
-    if(!messages){
+    try {
+        const messages = messagesToOpenAIChat(request.messages);
+        const stopSequences = getStopSequences(request.messages);
+        const appSettings = fetchAllAppSettings();
+        if(!messages){
+            return null;
+        }
+        let connectionid = request.connectionid;
+        if(!connectionid){
+            connectionid = appSettings?.defaultConnection ?? "";
+        }
+        if(!connectionid){
+            return null;
+        }
+        const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+        if(!modelInfo){
+            return null;
+        }
+        let settingsid = request.settingsid;
+        if(!settingsid){
+            settingsid = appSettings?.defaultSettings ?? "1";
+        }
+        if(!settingsid) return;
+        if(settingsid?.length < 1){
+            settingsid = "1";
+        }
+        let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+        if(!settingsInfo){
+            settingsInfo = DefaultSettings[0];
+        }
+        if(modelInfo.model === ''){
+            throw new Error('No valid response from LLM.');
+        }
+        const response = await axios('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${modelInfo.key?.trim()}`,
+            },
+            data: {
+                "model": modelInfo.model,
+                "messages": messages,
+                "stop": stopSequences,
+                "max_tokens": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
+                "temperature": (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
+                "top_p": (settingsInfo.top_p !== undefined && settingsInfo.top_k <= 1) ? settingsInfo.top_p : 0.9,
+                "frequency_penalty": (settingsInfo.frequency_penalty !== undefined && settingsInfo.frequency_penalty <= 2) ? settingsInfo.frequency_penalty : 1,
+                "presence_penalty": (settingsInfo.presence_penalty !== undefined && settingsInfo.presence_penalty <= 2) ? settingsInfo.presence_penalty : 1,
+            },
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            return error.response;
+        });
+        console.log(response.data);
+        if(!response){
+            return null;
+        }
+        if (response.status !== 200) {
+            console.error('Error generating completion:', response.statusText);
+            return null;
+        }
+        const openAIReply = await response.data;
+        if (openAIReply?.error) {
+            throw new Error(openAIReply.error.message);
+        }
+        const text = openAIReply?.choices[0]?.message.content.trim();
+        if(!text){
+            throw new Error('No valid response from LLM.');
+        }
+        return {
+            choices: [
+                {
+                    text: text,
+                    index: 0,
+                    logprobs: openAIReply?.choices[0]?.logprobs,
+                    finish_reason: openAIReply?.choices[0]?.finish_reason,
+                }
+            ]
+        }
+    } catch (error) {
+        console.error('Error in getOpenAICompletion:', error);
         return null;
-    }
-    let connectionid = request.connectionid;
-    if(!connectionid){
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid){
-        return null;
-    }
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
-    }
-    if(!settingsid) return;
-    if(settingsid?.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
-    if(modelInfo.model === ''){
-        throw new Error('No valid response from LLM.');
-    }
-    const response = await axios('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${modelInfo.key?.trim()}`,
-        },
-        data: {
-            "model": modelInfo.model,
-            "messages": messages,
-            "stop": stopSequences,
-            "max_tokens": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
-            "temperature": (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
-            "top_p": (settingsInfo.top_p !== undefined && settingsInfo.top_k <= 1) ? settingsInfo.top_p : 0.9,
-            "frequency_penalty": (settingsInfo.frequency_penalty !== undefined && settingsInfo.frequency_penalty <= 2) ? settingsInfo.frequency_penalty : 1,
-            "presence_penalty": (settingsInfo.presence_penalty !== undefined && settingsInfo.presence_penalty <= 2) ? settingsInfo.presence_penalty : 1,
-        },
-    }).then((response) => {
-        return response;
-    }).catch((error) => {
-        return error.response;
-    });
-    console.log(response.data);
-    if(!response){
-        return null;
-    }
-    if (response.status !== 200) {
-        console.error('Error generating completion:', response.statusText);
-        return null;
-    }
-    const openAIReply = await response.data;
-    if (openAIReply?.error) {
-        throw new Error(openAIReply.error.message);
-    }
-    const text = openAIReply?.choices[0]?.message.content.trim();
-    if(!text){
-        throw new Error('No valid response from LLM.');
-    }
-    return {
-        choices: [
-            {
-                text: text,
-                index: 0,
-                logprobs: openAIReply?.choices[0]?.logprobs,
-                finish_reason: openAIReply?.choices[0]?.finish_reason,
-            }
-        ]
     }
 }
 
 export async function getOpenRouterCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
-    const stopSequences = getStopSequences(request.messages);
-    const appSettings = fetchAllAppSettings();
-    let connectionid = request.connectionid;
-    if(!connectionid){
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid){
+    try {
+        const prompt = await formatCompletionRequest(request);
+        const stopSequences = getStopSequences(request.messages);
+        const appSettings = fetchAllAppSettings();
+        let connectionid = request.connectionid;
+        if(!connectionid){
+            connectionid = appSettings?.defaultConnection ?? "";
+        }
+        if(!connectionid){
+            return null;
+        }
+        const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
+        if(!modelInfo){
+            return null;
+        }
+        let settingsid = request.settingsid;
+        if(!settingsid){
+            settingsid = appSettings?.defaultSettings ?? "1";
+        }
+        if(!settingsid) return;
+        if(settingsid?.length < 1){
+            settingsid = "1";
+        }
+        let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
+        if(!settingsInfo){
+            settingsInfo = DefaultSettings[0];
+        }
+        if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
+            stopSequences.push("###");
+        }
+        if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
+            stopSequences.push("USER:");
+            stopSequences.push("ASSISTANT:");
+        }
+        if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
+            stopSequences.push("<|user|>");
+            stopSequences.push("<|model|>");
+        }
+        if(settingsInfo.instruct_mode === "Alpaca"){
+            stopSequences.push("###");
+        }
+        if(settingsInfo.instruct_mode === "Vicuna"){
+            stopSequences.push("USER:");
+            stopSequences.push("ASSISTANT:");
+        }
+        if(settingsInfo.instruct_mode === "Metharme"){
+            stopSequences.push("<|user|>");
+            stopSequences.push("<|model|>");
+        }
+        if(settingsInfo.instruct_mode === "Pygmalion"){
+            stopSequences.push("You:");
+            stopSequences.push("<BOT>:");
+        }
+        const body = {
+            'model': modelInfo.model,
+            'prompt': prompt,
+            'stop': stopSequences,
+            'stream': false,
+            'temperature': (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
+            'max_tokens': settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
+            'top_p': (settingsInfo.top_p !== undefined && settingsInfo.top_k <= 1) ? settingsInfo.top_p : 0.9,
+            'top_k': (settingsInfo.top_k !== undefined && settingsInfo.top_k >= 1) ? settingsInfo.top_k : 1,
+            'frequency_penalty': (settingsInfo.frequency_penalty !== undefined && settingsInfo.frequency_penalty <= 2) ? settingsInfo.frequency_penalty : 1,
+            'presence_penalty': (settingsInfo.presence_penalty !== undefined && settingsInfo.presence_penalty <= 2) ? settingsInfo.presence_penalty : 1,
+        }
+        console.log(body);
+        const response = await axios('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${modelInfo.key?.trim()}`,
+            },
+            data: body,
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            return error.response;
+        });
+        console.log(response.data);
+        if(!response){
+            return null;
+        }
+        if (response.status !== 200) {
+            console.error('Error generating completion:', response.statusText);
+            return null;
+        }
+        const openAIReply = await response.data;
+        if (openAIReply?.error) {
+            throw new Error(openAIReply.error.message);
+        }
+        console.log(openAIReply);
+        const text = openAIReply?.choices[0]?.text.trim();
+        if(!text){
+            throw new Error('No valid response from LLM.');
+        }
+        return {
+            choices: [
+                {
+                    text: text,
+                    index: 0,
+                    logprobs: openAIReply?.choices[0]?.logprobs,
+                    finish_reason: openAIReply?.choices[0]?.finish_reason,
+                }
+            ]
+        }
+    } catch (error) {
+        console.error('Error in getOpenRouterCompletion:', error);
         return null;
-    }
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
-    }
-    if(!settingsid) return;
-    if(settingsid?.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
-    if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
-        stopSequences.push("###");
-    }
-    if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
-        stopSequences.push("USER:");
-        stopSequences.push("ASSISTANT:");
-    }
-    if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
-        stopSequences.push("<|user|>");
-        stopSequences.push("<|model|>");
-    }
-    if(settingsInfo.instruct_mode === "Alpaca"){
-        stopSequences.push("###");
-    }
-    if(settingsInfo.instruct_mode === "Vicuna"){
-        stopSequences.push("USER:");
-        stopSequences.push("ASSISTANT:");
-    }
-    if(settingsInfo.instruct_mode === "Metharme"){
-        stopSequences.push("<|user|>");
-        stopSequences.push("<|model|>");
-    }
-    if(settingsInfo.instruct_mode === "Pygmalion"){
-        stopSequences.push("You:");
-        stopSequences.push("<BOT>:");
-    }
-    if(modelInfo.model === ''){
-        throw new Error('No valid response from LLM.');
-    }
-    const body = {
-        'model': modelInfo.model,
-        'prompt': prompt,
-        'stop': stopSequences,
-        'stream': false,
-        'temperature': (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
-        'max_tokens': settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
-        'top_p': (settingsInfo.top_p !== undefined && settingsInfo.top_k <= 1) ? settingsInfo.top_p : 0.9,
-        'top_k': (settingsInfo.top_k !== undefined && settingsInfo.top_k >= 1) ? settingsInfo.top_k : 1,
-        'frequency_penalty': (settingsInfo.frequency_penalty !== undefined && settingsInfo.frequency_penalty <= 2) ? settingsInfo.frequency_penalty : 1,
-        'presence_penalty': (settingsInfo.presence_penalty !== undefined && settingsInfo.presence_penalty <= 2) ? settingsInfo.presence_penalty : 1,
-    }
-    console.log(body);
-    const response = await axios('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${modelInfo.key?.trim()}`,
-        },
-        data: body,
-    }).then((response) => {
-        return response;
-    }).catch((error) => {
-        return error.response;
-    });
-    console.log(response.data);
-    if(!response){
-        return null;
-    }
-    if (response.status !== 200) {
-        console.error('Error generating completion:', response.statusText);
-        return null;
-    }
-    const openAIReply = await response.data;
-    if (openAIReply?.error) {
-        throw new Error(openAIReply.error.message);
-    }
-    console.log(openAIReply);
-    const text = openAIReply?.choices[0]?.text.trim();
-    if(!text){
-        throw new Error('No valid response from LLM.');
-    }
-    return {
-        choices: [
-            {
-                text: text,
-                index: 0,
-                logprobs: openAIReply?.choices[0]?.logprobs,
-                finish_reason: openAIReply?.choices[0]?.finish_reason,
-            }
-        ]
     }
 }
 

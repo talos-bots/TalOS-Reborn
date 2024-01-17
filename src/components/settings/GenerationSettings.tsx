@@ -180,7 +180,6 @@ const GenerationSettings = () => {
                 <button className="dy-btn dy-btn-error" onClick={handleDeleteConnection}>Delete</button>
             </div>
             <div className="flex flex-row gap-2 w-full items-center justify-center">
-                <button className="dy-btn dy-btn-primary" onClick={copySettings}>Copy Settings To New Presest</button>
                 <button className="dy-btn dy-btn-primary" onClick={setPresetDefault}>Set As Default</button>
                 <button className="dy-btn dy-btn-primary" onClick={handleSavePreset}>Save</button>
             </div>

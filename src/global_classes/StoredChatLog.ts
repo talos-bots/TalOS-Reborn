@@ -109,18 +109,18 @@ export class StoredChatLog {
         let value = '';
         let refinedResponse = '';
         while(unfinished && tries <= 3){
+            tries++;
             const unparsedResponse = await sendCompletionRequest(this.messages, character, persona).then((response) => {
                 console.log(response);
                 return response;
             }).catch((error) => {
                 console.log(error);
             });
-            if(unparsedResponse === null){
+            if(!unparsedResponse){
                 return null;
             }
             value = unparsedResponse?.choices[0]?.text.trim();
             refinedResponse = breakUpCommands(character.name, value, persona?.name ?? 'You', null, false);
-            tries++;
             if(refinedResponse !== ''){
                 unfinished = false;
             }
