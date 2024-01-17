@@ -19,12 +19,16 @@ function fetchAllSettings() {
         const fileData = fs.readFileSync(filePath, "utf-8");
         return JSON.parse(fileData);
     });
-    return settingData.concat(DefaultSettings);
+    return settingData;
 }
 
 settingsRouter.get('/settings', (req, res) => {
     const settingData = fetchAllSettings();
     res.send(settingData);
+});
+
+settingsRouter.get('/settings/default', (req, res) => {
+    res.send(DefaultSettings);
 });
 
 // save a setting to the ../data/settings/ folder

@@ -47,6 +47,18 @@ export async function fetchAllSettings(): Promise<SettingsInterface[]> {
     return data.map((character: any) => character as SettingsInterface);
 }
 
+export async function fetchDefaultSettings(): Promise<SettingsInterface[] | null> {
+    const response = await api('/api/settings/default');
+
+    if (response.status !== 200) {
+        throw new Error(`Error: ${response.status}`);
+    }
+
+    const data = await response.data
+    console.log(data);
+    return data.map((character: any) => character as SettingsInterface);
+}
+
 export async function deleteSettingById(id: string): Promise<void> {
     const response = await api(`/api/setting/${id}`, {
         method: 'DELETE',

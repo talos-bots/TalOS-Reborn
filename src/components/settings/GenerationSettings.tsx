@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { SettingsInterface } from "../../types";
-import { deleteSettingById, fetchAllSettings, getAppSettingsSettings, saveSettingToLocal, setAppSettingsSettings } from "../../api/settingsAPI";
+import { deleteSettingById, fetchAllSettings, fetchDefaultSettings, getAppSettingsSettings, saveSettingToLocal, setAppSettingsSettings } from "../../api/settingsAPI";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 
 export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme" | "Pygmalion";
@@ -32,10 +32,14 @@ const GenerationSettings = () => {
     const [presetID, setPresetID] = useState<string>('' as string);
     const [presetName, setPresetName] = useState<string>('' as string);
     const [availablePresets, setAvailablePresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
-
+    const [defaultPresets, setDefaultPresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
+    
     const handleLoadSettings = () => {
         fetchAllSettings().then((connections) => {
             setAvailablePresets(connections)
+        })
+        fetchDefaultSettings().then((connections) => {
+            setDefaultPresets(connections)
         })
     }
 
@@ -131,34 +135,12 @@ const GenerationSettings = () => {
         await setAppSettingsSettings(presetID)
     }
 
-    const copySettings = async () => {
-        const connection = availablePresets.find((connection) => connection.id === presetID)
-        console.log(connection)
-        if (connection){
-            console.log('copying')
-            setPresetName('')
-            setPresetID('')
-            setFrequencyPenalty(connection.frequency_penalty)
-            setMaxContextLength(connection.context_length)
-            setMaxTokens(connection.max_tokens)
-            setMinLength(connection.min_tokens)
-            setMinP(connection.min_p)
-            setMirostatEta(connection.mirostat_eta)
-            setMirostatMode(connection.mirostat_mode)
-            setMirostatTau(connection.mirostat_tau)
-            setPresencePenalty(connection.presence_penalty)
-            setRepPen(connection.rep_pen)
-            setRepPenRange(connection.rep_pen_range)
-            setRepPenSlope(connection.rep_pen_slope)
-            setSamplerOrder(connection.sampler_order)
-            setTemperature(connection.temperature)
-            setTopA(connection.top_a)
-            setTopK(connection.top_k)
-            setTopP(connection.top_p)
-            setTfs(connection.tfs)
-            setTypical(connection.typical)
-            setInstructMode(connection.instruct_mode)
+    const checkSettingsIsDefault = () => {
+        const defaultConnection = defaultPresets.find((connection) => connection.id === presetID)
+        if(defaultConnection){
+            return true
         }
+        return false
     }
 
     return (
@@ -172,16 +154,16 @@ const GenerationSettings = () => {
                     className={'w-full'}
                 >
                     <option value={''}>New Preset</option>
-                    {availablePresets.map((connectionOption, index) => (
+                    {availablePresets.concat(defaultPresets).map((connectionOption, index) => (
                         <option key={index} value={connectionOption.id}>{connectionOption.name}</option>
                     ))}
                 </RequiredSelectField>
-                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset}>Save</button>
-                <button className="dy-btn dy-btn-error" onClick={handleDeleteConnection}>Delete</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset} disabled={checkSettingsIsDefault()}>Save</button>
+                <button className="dy-btn dy-btn-error" onClick={handleDeleteConnection} disabled={checkSettingsIsDefault()}>Delete</button>
             </div>
             <div className="flex flex-row gap-2 w-full items-center justify-center">
                 <button className="dy-btn dy-btn-primary" onClick={setPresetDefault}>Set As Default</button>
-                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset}>Save</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset} disabled={checkSettingsIsDefault()}>Save</button>
             </div>
             <RequiredInputField
                 type="text"
@@ -204,7 +186,7 @@ const GenerationSettings = () => {
             </RequiredSelectField>
             <div className="flex flex-row gap-2 w-full items-center justify-center">
                 <button className="dy-btn dy-btn-primary" onClick={setPresetDefault}>Set As Default</button>
-                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset}>Save</button>
+                <button className="dy-btn dy-btn-primary" onClick={handleSavePreset} disabled={checkSettingsIsDefault()}>Save</button>
             </div>
             <div className="flex flex-col w-full overflow-y-auto text-left themed-box max-h-[600px]">
                 <div className="flex flex-col ">
