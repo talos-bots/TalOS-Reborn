@@ -45,6 +45,7 @@
     "multer": "^1.4.5-lts.1",
     "node-llama-cpp": "^2.8.2",
     "openai": "^4.24.1",
+    "pm2": "^5.3.0",
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",
     "png-chunks-extract": "^1.0.0",

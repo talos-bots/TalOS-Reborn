@@ -159,12 +159,15 @@ export function removeRoomFromActive(id: string){
 }
 
 export async function sendCharacterGreeting(roomId: string, characterId: string){
-    const roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
-    if(!roomPipeline) return;
+    let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline){
+        if(!RoomPipeline.loadFromFile(roomId)) return console.error('Room not found');
+        roomPipeline = RoomPipeline.loadFromFile(roomId);
+    }
     const character = await fetchCharacterById(characterId);
-    if(!character) return;
+    if(!character) return console.error('Character not found');
     const greeting = character.first_mes;
-    if(!greeting) return;
+    if(!greeting) return console.error('Character has no greeting');
     roomPipeline.createRoomMessageFromChar(greeting, characterId);
     activeDiscordClient.sendMessageAsCharacter(roomPipeline.channelId, character, greeting);
 }
