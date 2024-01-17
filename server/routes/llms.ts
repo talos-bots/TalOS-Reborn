@@ -339,7 +339,7 @@ async function formatCompletionRequest(request: CompletionRequest){
     if(character){
         characterPrompt = getCharacterPromptFromConstruct(character);
     }
-    let prompt = characterPrompt;
+    let prompt = characterPrompt + "\n";
     const characterPromptTokens = getTokens(characterPrompt);
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
@@ -547,7 +547,6 @@ async function getGenericCompletion(request: CompletionRequest){
         'stream': false,
         ...settingsInfo
     }
-    console.log(body);
     try {
         const newURL = new URL(modelInfo.url as string);
         const response = await fetch(`${newURL.protocol}//${newURL.hostname}${newURL.port? `:${newURL.port}` : ''}` + '/v1/completions', {

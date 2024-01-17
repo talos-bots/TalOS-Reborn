@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { roomsPath } from '../server.js';
 import { Room } from '../typings/discordBot.js';
-import { removeRoomFromActive } from './discord.js';
+import { removeRoomFromActive, updateRoomFromFile } from './discord.js';
 
 export const roomsRouter = express.Router();
 
@@ -34,6 +34,7 @@ function saveRoom(roomData: Room) {
         console.error(err);
         throw err;
     }
+    updateRoomFromFile(roomData._id);
 }
 
 function fetchRoomById(id: string){

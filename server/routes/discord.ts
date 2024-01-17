@@ -158,6 +158,13 @@ export function removeRoomFromActive(id: string){
     }
 }
 
+export function updateRoomFromFile(id: string){
+    const index = activePipelines.findIndex(pipeline => pipeline._id === id);
+    if(index >= 0){
+        activePipelines[index] = RoomPipeline.loadFromFile(id);
+    }
+}
+
 export async function sendCharacterGreeting(roomId: string, characterId: string){
     let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
     if(!roomPipeline){
