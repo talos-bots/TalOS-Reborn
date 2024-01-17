@@ -611,4 +611,21 @@ export class DiscordBotService {
     getProcessingStatus(){
         return this.processingQueue;
     }
+
+    async clearWebhooksFromChannel(channelID: Snowflake): Promise<void> {
+        if(!this.client) return;
+        const channel = this.client.channels.cache.get(channelID);
+    
+        if (!(channel instanceof TextChannel || channel instanceof NewsChannel)) {
+            return;
+        }
+    
+        const webhooks = await channel.fetchWebhooks();
+        try{
+            await Promise.all(webhooks.map(webhook => {try{webhook.delete()}catch{console.log("Failed to delete webhook.")}}));
+        }catch(error){
+            console.error(error);
+        }
+    }
+    
 }

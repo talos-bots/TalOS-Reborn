@@ -172,6 +172,10 @@ export async function sendCharacterGreeting(roomId: string, characterId: string)
     activeDiscordClient.sendMessageAsCharacter(roomPipeline.channelId, character, greeting);
 }
 
+export async function clearWebhooks(channelId: string){
+    await activeDiscordClient.clearWebhooksFromChannel(channelId);
+}
+
 DiscordManagementRouter.post('/start', async (req, res) => {
     let config;
     if(req.body.config){

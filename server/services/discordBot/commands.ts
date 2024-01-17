@@ -1,7 +1,7 @@
 import { AttachmentBuilder, CommandInteraction, EmbedBuilder, Message } from "discord.js";
 import { Alias, Room, SlashCommand } from "../../typings/discordBot.js";
 import { RoomPipeline } from "./roomPipeline.js";
-import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages, sendCharacterGreeting } from "../../routes/discord.js";
+import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages, clearWebhooks, sendCharacterGreeting } from "../../routes/discord.js";
 import { fetchAllCharacters } from "../../routes/characters.js";
 import { findNovelAIConnection, generateNovelAIImage, novelAIDefaults } from "../../routes/diffusion.js";
 import { NovelAIModels, novelAIUndesiredContentPresets, samplersArray, sizePresets } from "../../typings/novelAI.js";
@@ -189,7 +189,7 @@ export const DefaultCommands: SlashCommand[] = [
             const pipeline = RoomPipeline.getRoomByChannelId(interaction.channelId);
             if(pipeline){
                 await interaction.reply({
-                    content: "This channel is not already a room.",
+                    content: "This channel is already a room.",
                 });
                 return;
             }
@@ -590,6 +590,29 @@ export const DefaultCommands: SlashCommand[] = [
             await sendCharacterGreeting(registered._id, character);
             await interaction.editReply({
                 content: `Greeting sent.`,
+            });
+        }
+    } as SlashCommand,
+    {
+        name: 'clearwebhooks',
+        description: 'Clears all webhooks for the current channel.',
+        execute: async (interaction: CommandInteraction) => {
+            if (interaction.channelId === null) {
+                await interaction.reply({
+                content: "This command can only be used in a server channel.",
+                });
+                return;
+            }
+            if(interaction.guildId === null){
+                await interaction.reply({
+                content: "This command can only be used in a server channel.",
+                });
+                return;
+            }
+            const channelId = interaction.channelId;
+            await clearWebhooks(channelId);
+            await interaction.reply({
+                content: "Webhooks cleared.", ephemeral: true,
             });
         }
     } as SlashCommand,
