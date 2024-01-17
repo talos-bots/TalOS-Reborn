@@ -268,7 +268,7 @@ export class StoredChatMessage implements Message{
     }
 
     public static fromUserPersonaAndString(persona: UserPersona | null, message: string, thought: boolean = false): StoredChatMessage {
-        if(!persona?._id){
+        if(!persona?.name){
             return new StoredChatMessage('display-name', 'Test User', [message], 0, 'User', thought);
         }else{
             return new StoredChatMessage(persona._id, persona.name, [message], 0, 'User', thought);
