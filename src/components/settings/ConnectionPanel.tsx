@@ -22,16 +22,29 @@ function getForwardFacingName(type: EndpointType): string {
 const ConnectionPanel = () => {
     const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM', 'OpenRouter', 'Kobold']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
-    const [connectionType, setConnectionType] = useState<EndpointType>(connectionTypes[0] as EndpointType)
-    const [connectionID, setConnectionID] = useState<string>('' as string)
-    const [connectionPassword, setConnectionPassword] = useState<string>('' as string)
-    const [connectionURL, setConnectionURL] = useState<string>('' as string)
-    const [connectionName, setConnectionName] = useState<string>('' as string)
-    const [connectionModel, setConnectionModel] = useState<string>('' as string)
-    const [connectionStatus, setConnectionStatus] = useState<string>('Untested' as string)
-    const [connectionModelList, setConnectionModelList] = useState<string[]>([] as string[])
+    const [connectionType, setConnectionType] = useState<EndpointType>(localStorage.getItem('connectionType') as EndpointType || 'OAI-Compliant-API')
+    const [connectionID, setConnectionID] = useState<string>(localStorage.getItem('connectionID') as string || '')
+    const [connectionPassword, setConnectionPassword] = useState<string>(localStorage.getItem('connectionPassword') as string || '')
+    const [connectionURL, setConnectionURL] = useState<string>(localStorage.getItem('connectionURL') as string || '')
+    const [connectionName, setConnectionName] = useState<string>(localStorage.getItem('connectionName') as string || 'New Connection')
+    const [connectionModel, setConnectionModel] = useState<string>(localStorage.getItem('connectionModel') as string || 'davinci')
+    const [connectionStatus, setConnectionStatus] = useState<string>('Untested')
+    const [connectionModelList, setConnectionModelList] = useState<string[]>([])
 
     const [urlValid, setURLValid] = useState<boolean>(false)
+
+    useEffect(() => {
+        if (connectionID === '') return
+        if (savedConnections.length === 0) return
+        const connection = savedConnections.find((connection) => connection.id === connectionID)
+        if (connection){
+            setConnectionType(connection.type)
+            setConnectionPassword(connection.key)
+            setConnectionURL(connection.url)
+            setConnectionName(connection.name)
+            setConnectionModel(connection.model)
+        }
+    }, [connectionID, savedConnections])
 
     const handleLoadConnections = () => {
         fetchAllConnections().then((connections) => {
@@ -41,56 +54,6 @@ const ConnectionPanel = () => {
 
     useEffect(() => {
         handleLoadConnections()
-    }, [])
-
-    const handleSaveConnection = () => {
-        let newID = connectionID
-        if (newID === ''){
-            newID = new Date().getTime().toString()
-        }
-        const newConnection: GenericCompletionConnectionTemplate = {
-            id: newID,
-            key: connectionPassword,
-            url: connectionURL,
-            name: connectionName,
-            model: (connectionModel.trim() === '') ? connectionModelList[0] : connectionModel,
-            type: connectionType
-        } as GenericCompletionConnectionTemplate
-        if (savedConnections.some((connection) => connection.id === connectionID)) {
-            const index = savedConnections.findIndex((connection) => connection.id === connectionID)
-            savedConnections[index] = newConnection
-        }else{
-            setSavedConnections([...savedConnections, newConnection])
-        }
-        saveConnectionToLocal(newConnection)
-        handleLoadConnections()
-    }
-
-    const handleDeleteConnection = () => {
-        const index = savedConnections.findIndex((connection) => connection.id === connectionID)
-        savedConnections.splice(index, 1)
-        setSavedConnections([...savedConnections])
-        deleteConnectionById(connectionID)
-    }
-
-    useEffect(() => {
-        const handleLoadConnection = () => {
-            const connection = savedConnections.find((connection) => connection.id === connectionID)
-            if (connection){
-                setConnectionType(connection.type)
-                setConnectionPassword(connection.key)
-                setConnectionURL(connection.url)
-                setConnectionName(connection.name)
-                setConnectionModel(connection.model)
-            }
-        }
-        handleLoadConnection()
-    }, [connectionID])
-    
-    useEffect(() => {
-        getAppSettingsConnection().then((settings) => {
-            setConnectionID(settings)
-        })
     }, [])
 
     const handleValidateURL = () => {
@@ -176,6 +139,48 @@ const ConnectionPanel = () => {
             })
         }
     }
+
+    const handleSaveConnection = () => {
+        let newID = connectionID
+        if (newID === ''){
+            newID = new Date().getTime().toString()
+        }
+        const newConnection: GenericCompletionConnectionTemplate = {
+            id: newID,
+            key: connectionPassword,
+            url: connectionURL,
+            name: connectionName,
+            model: (connectionModel.trim() === '') ? connectionModelList[0] : connectionModel,
+            type: connectionType
+        } as GenericCompletionConnectionTemplate
+        if (savedConnections.some((connection) => connection.id === connectionID)) {
+            const index = savedConnections.findIndex((connection) => connection.id === connectionID)
+            savedConnections[index] = newConnection
+        }else{
+            setSavedConnections([...savedConnections, newConnection])
+        }
+        saveConnectionToLocal(newConnection)
+        handleLoadConnections()
+    }
+
+    const handleDeleteConnection = () => {
+        const index = savedConnections.findIndex((connection) => connection.id === connectionID)
+        savedConnections.splice(index, 1)
+        setSavedConnections([...savedConnections])
+        deleteConnectionById(connectionID)
+    }
+
+    useEffect(() => {
+        const saveToLocalStorage = () => {
+            localStorage.setItem('connectionID', connectionID)
+            localStorage.setItem('connectionType', connectionType)
+            localStorage.setItem('connectionPassword', connectionPassword)
+            localStorage.setItem('connectionURL', connectionURL)
+            localStorage.setItem('connectionName', connectionName)
+            localStorage.setItem('connectionModel', connectionModel)
+        }
+        saveToLocalStorage()
+    }, [connectionID, connectionType, connectionPassword, connectionURL, connectionName, connectionModel])
 
     return (
         <div className="flex flex-col gap-2 text-base-content">

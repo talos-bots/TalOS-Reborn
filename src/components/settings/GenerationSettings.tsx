@@ -8,29 +8,29 @@ export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme" | "Pygmalio
 const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "None", "Metharme", "Pygmalion"];
 
 const GenerationSettings = () => {
-    const [maxContextLength, setMaxContextLength] = useState<number>(2048);
-    const [maxTokens, setMaxTokens] = useState<number>(250);
-    const [minLength, setMinLength] = useState<number>(0);
-    const [repPen, setRepPen] = useState<number>(1.1);
-    const [repPenRange, setRepPenRange] = useState<number>(2048);
-    const [repPenSlope, setRepPenSlope] = useState<number>(0.9);
-    const [temperature, setTemperature] = useState<number>(0.71);
-    const [tfs, setTfs] = useState<number>(1);
-    const [topA, setTopA] = useState<number>(0.00);
-    const [topK, setTopK] = useState<number>(40);
-    const [topP, setTopP] = useState<number>(0.9);
-    const [minP, setMinP] = useState<number>(0.0);
-    const [typical, setTypical] = useState<number>(1);
-    const [samplerOrder, setSamplerOrder] = useState<number[]>([6,3,2,5,0,1,4]);
-    const [stopBrackets, setStopBrackets] = useState<boolean>(false);
-    const [presencePenalty, setPresencePenalty] = useState<number>(0.0);
-    const [frequencyPenalty, setFrequencyPenalty] = useState<number>(0.0);
-    const [mirostatMode, setMirostatMode] = useState<number>(0);
-    const [mirostatTau, setMirostatTau] = useState<number>(0.0);
-    const [mirostatEta, setMirostatEta] = useState<number>(0.0);
-    const [instructMode, setInstructMode] = useState<InstructMode>('None');
-    const [presetID, setPresetID] = useState<string>('' as string);
-    const [presetName, setPresetName] = useState<string>('' as string);
+    const [maxContextLength, setMaxContextLength] = useState<number>(localStorage.getItem('maxContextLength') ? parseInt(localStorage.getItem('maxContextLength') as string) : 2048);
+    const [maxTokens, setMaxTokens] = useState<number>(localStorage.getItem('maxTokens') ? parseInt(localStorage.getItem('maxTokens') as string) : 250);
+    const [minLength, setMinLength] = useState<number>(localStorage.getItem('minLength') ? parseInt(localStorage.getItem('minLength') as string) : 0);
+    const [repPen, setRepPen] = useState<number>(localStorage.getItem('repPen') ? parseFloat(localStorage.getItem('repPen') as string) : 1.1);
+    const [repPenRange, setRepPenRange] = useState<number>(localStorage.getItem('repPenRange') ? parseInt(localStorage.getItem('repPenRange') as string) : 2048);
+    const [repPenSlope, setRepPenSlope] = useState<number>(localStorage.getItem('repPenSlope') ? parseFloat(localStorage.getItem('repPenSlope') as string) : 0.9);
+    const [temperature, setTemperature] = useState<number>(localStorage.getItem('temperature') ? parseFloat(localStorage.getItem('temperature') as string) : 0.71);
+    const [tfs, setTfs] = useState<number>(localStorage.getItem('tfs') ? parseFloat(localStorage.getItem('tfs') as string) : 1);
+    const [topA, setTopA] = useState<number>(localStorage.getItem('topA') ? parseFloat(localStorage.getItem('topA') as string) : 0.00);
+    const [topK, setTopK] = useState<number>(localStorage.getItem('topK') ? parseInt(localStorage.getItem('topK') as string) : 40);
+    const [topP, setTopP] = useState<number>(localStorage.getItem('topP') ? parseFloat(localStorage.getItem('topP') as string) : 0.9);
+    const [minP, setMinP] = useState<number>(localStorage.getItem('minP') ? parseFloat(localStorage.getItem('minP') as string) : 0.0);
+    const [typical, setTypical] = useState<number>(localStorage.getItem('typical') ? parseFloat(localStorage.getItem('typical') as string) : 1);
+    const [samplerOrder, setSamplerOrder] = useState<number[]>(localStorage.getItem('samplerOrder') ? localStorage.getItem('samplerOrder')?.split(',').map(Number) : [6,3,2,5,0,1,4]);
+    const [stopBrackets, setStopBrackets] = useState<boolean>(localStorage.getItem('stopBrackets') ? localStorage.getItem('stopBrackets') === 'true' : false);
+    const [presencePenalty, setPresencePenalty] = useState<number>(localStorage.getItem('presencePenalty') ? parseFloat(localStorage.getItem('presencePenalty') as string) : 0.0);
+    const [frequencyPenalty, setFrequencyPenalty] = useState<number>(localStorage.getItem('frequencyPenalty') ? parseFloat(localStorage.getItem('frequencyPenalty') as string) : 0.0);
+    const [mirostatMode, setMirostatMode] = useState<number>(localStorage.getItem('mirostatMode') ? parseInt(localStorage.getItem('mirostatMode') as string) : 0);
+    const [mirostatTau, setMirostatTau] = useState<number>(localStorage.getItem('mirostatTau') ? parseFloat(localStorage.getItem('mirostatTau') as string) : 0.0);
+    const [mirostatEta, setMirostatEta] = useState<number>(localStorage.getItem('mirostatEta') ? parseFloat(localStorage.getItem('mirostatEta') as string) : 0.0);
+    const [instructMode, setInstructMode] = useState<InstructMode>(localStorage.getItem('instructMode') ? localStorage.getItem('instructMode') as InstructMode : "None");
+    const [presetID, setPresetID] = useState<string>(localStorage.getItem('presetID') ? localStorage.getItem('presetID') as string : '');
+    const [presetName, setPresetName] = useState<string>(localStorage.getItem('presetName') ? localStorage.getItem('presetName') as string : '');
     const [availablePresets, setAvailablePresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
     const [defaultPresets, setDefaultPresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
     
@@ -96,8 +96,58 @@ const GenerationSettings = () => {
     }
 
     useEffect(() => {
+        getAppSettingsSettings().then((settings) => {
+            if(!settings) return
+            if (settings === '') return;
+            console.log(settings)
+            setPresetID(settings)
+        })
+    }, [])
+    
+    const setPresetDefault = async () => {
+        await setAppSettingsSettings(presetID)
+    }
+
+    const checkSettingsIsDefault = () => {
+        const defaultConnection = defaultPresets.find((connection) => connection.id === presetID)
+        if(defaultConnection){
+            return true
+        }
+        return false
+    }
+
+    useEffect(() => {
+        const saveToLocalStorage = () => {
+            localStorage.setItem('presetID', presetID)
+            localStorage.setItem('presetName', presetName)
+            localStorage.setItem('maxContextLength', maxContextLength.toString())
+            localStorage.setItem('maxTokens', maxTokens.toString())
+            localStorage.setItem('minLength', minLength.toString())
+            localStorage.setItem('repPen', repPen.toString())
+            localStorage.setItem('repPenRange', repPenRange.toString())
+            localStorage.setItem('repPenSlope', repPenSlope.toString())
+            localStorage.setItem('temperature', temperature.toString())
+            localStorage.setItem('tfs', tfs.toString())
+            localStorage.setItem('topA', topA.toString())
+            localStorage.setItem('topK', topK.toString())
+            localStorage.setItem('topP', topP.toString())
+            localStorage.setItem('minP', minP.toString())
+            localStorage.setItem('typical', typical.toString())
+            localStorage.setItem('samplerOrder', samplerOrder.toString())
+            localStorage.setItem('stopBrackets', stopBrackets.toString())
+            localStorage.setItem('presencePenalty', presencePenalty.toString())
+            localStorage.setItem('frequencyPenalty', frequencyPenalty.toString())
+            localStorage.setItem('mirostatMode', mirostatMode.toString())
+            localStorage.setItem('mirostatTau', mirostatTau.toString())
+            localStorage.setItem('mirostatEta', mirostatEta.toString())
+            localStorage.setItem('instructMode', instructMode.toString())
+        }
+        saveToLocalStorage()
+    }, [maxContextLength, maxTokens, minLength, repPen, repPenRange, repPenSlope, temperature, tfs, topA, topK, topP, minP, typical, samplerOrder, stopBrackets, presencePenalty, frequencyPenalty, mirostatMode, mirostatTau, mirostatEta, instructMode])
+
+    useEffect(() => {
         const handleLoadConnection = () => {
-            const connection = availablePresets.find((connection) => connection.id === presetID)
+            const connection = availablePresets.concat(defaultPresets).find((connection) => connection.id === presetID)
             if (connection){
                 setPresetName(connection.name)
                 setFrequencyPenalty(connection.frequency_penalty)
@@ -124,24 +174,6 @@ const GenerationSettings = () => {
         }
         handleLoadConnection()
     }, [presetID])
-
-    useEffect(() => {
-        getAppSettingsSettings().then((settings) => {
-            setPresetID(settings)
-        })
-    }, [])
-    
-    const setPresetDefault = async () => {
-        await setAppSettingsSettings(presetID)
-    }
-
-    const checkSettingsIsDefault = () => {
-        const defaultConnection = defaultPresets.find((connection) => connection.id === presetID)
-        if(defaultConnection){
-            return true
-        }
-        return false
-    }
 
     return (
         <div className="text-base-content flex flex-col gap-2">
