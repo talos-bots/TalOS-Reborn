@@ -13,11 +13,12 @@ const activeDiscordClient: DiscordBotService = new DiscordBotService();
 let isProcessing = false;
 
 export async function processMessage(){
-    if(!activeDiscordClient?.isLoggedIntoDiscord() || isProcessing){
+    if(!activeDiscordClient?.isLoggedIntoDiscord()){
         return;
     }
+    // wait 2 seconds before processing the next message
+    await new Promise(resolve => setTimeout(resolve, 2000));
     isProcessing = true;
-
     try {
         const message = activeDiscordClient.messageQueue.shift();
         if(!message) return;
@@ -30,7 +31,15 @@ export async function processMessage(){
             roomPipeline = newPipeline;
             activePipelines.push(newPipeline);
         }
-        await handleMessageProcessing(roomPipeline, message);
+        if(!activeDiscordClient?.isLoggedIntoDiscord()) return isProcessing = false;
+        if(message.content.startsWith('.') && !message.content.startsWith('...')) return isProcessing = false;
+        const roomMessage = roomPipeline.processDiscordMessage(message);
+        if(!roomMessage) return isProcessing = false;
+        roomPipeline.saveToFile();
+        activeDiscordClient.removeMessageFromQueue(message);
+        if(roomMessage.message.swipes[0].startsWith('-')) return isProcessing = false;
+        if(activeDiscordClient?.messageQueue[activeDiscordClient.messageQueue.length - 1]?.author.id === message.author.id) return isProcessing = false;
+        await handleMessageProcessing(roomPipeline, roomMessage, message);
     } catch (error) {
         console.error('Error during message processing:', error);
     } finally {
@@ -41,14 +50,7 @@ export async function processMessage(){
     }
 }
 
-async function handleMessageProcessing(room: RoomPipeline, message: Message){
-    if(!activeDiscordClient?.isLoggedIntoDiscord()) return isProcessing = false;
-    if(message.content.startsWith('.') && !message.content.startsWith('...')) return isProcessing = false;
-    const roomMessage = room.processDiscordMessage(message);
-    if(!roomMessage) return isProcessing = false;
-    room.saveToFile();
-    activeDiscordClient.removeMessageFromQueue(message);
-    if(roomMessage.message.swipes[0].startsWith('-')) return isProcessing = false;
+async function handleMessageProcessing(room: RoomPipeline, message: RoomMessage, discordMessage: Message){
     const characters: CharacterInterface[] = [];
     for(let i = 0; i < room.characters.length; i++){
         const characterId = room.characters[i];
@@ -59,7 +61,7 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
     let roster: CharacterInterface[] = characters;
     // shuffle the roster
     roster = roster.sort(() => Math.random() - 0.5);
-    activeDiscordClient.sendTyping(message)
+    activeDiscordClient.sendTyping(discordMessage)
     while(roster.length > 0){
         const character = roster.shift();
         if(!character) continue;
@@ -68,7 +70,7 @@ async function handleMessageProcessing(room: RoomPipeline, message: Message){
             roster = roster.filter((char) => {
                 return char._id !== character._id;
             });
-            const response = await room.generateResponse(roomMessage, character._id);
+            const response = await room.generateResponse(message, character._id);
             if(!response) break;
             const responseMessage = response.message.swipes[response.message.currentIndex];
             await activeDiscordClient?.sendMessageAsCharacter(room.channelId, character, responseMessage);
