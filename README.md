@@ -24,6 +24,6 @@ TalOS: Reborn is currently in development, and is not yet ready for full release
 ## How to run?
 ```cmd
 npm install
-npm build-react
+npm run build-react
 npm run dev
 ```
