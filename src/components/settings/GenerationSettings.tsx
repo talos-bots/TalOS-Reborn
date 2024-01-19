@@ -78,6 +78,7 @@ const GenerationSettings = () => {
             mirostat_tau: mirostatTau,
             instruct_mode: instructMode,
         }
+        setPresetID(newID)
         if (availablePresets.some((connection) => connection.id === presetID)) {
             const index = availablePresets.findIndex((connection) => connection.id === presetID)
             availablePresets[index] = newConnection

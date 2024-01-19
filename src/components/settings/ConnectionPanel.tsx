@@ -153,6 +153,7 @@ const ConnectionPanel = () => {
             model: (connectionModel.trim() === '') ? connectionModelList[0] : connectionModel,
             type: connectionType
         } as GenericCompletionConnectionTemplate
+        setConnectionID(newID)
         if (savedConnections.some((connection) => connection.id === connectionID)) {
             const index = savedConnections.findIndex((connection) => connection.id === connectionID)
             savedConnections[index] = newConnection

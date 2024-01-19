@@ -69,6 +69,7 @@ const DiffusionPanel = () => {
             model: connectionModel,
             type: connectionType
         } as DiffusionCompletionConnectionTemplate
+        setConnectionID(newID)
         if (savedConnections.some((connection) => connection.id === connectionID)) {
             const index = savedConnections.findIndex((connection) => connection.id === connectionID)
             savedConnections[index] = newConnection
