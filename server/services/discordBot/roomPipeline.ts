@@ -6,7 +6,7 @@ import path from 'path';
 import { fetchCharacterById } from "../../routes/characters.js";
 import { handleCompletionRequest } from "../../routes/llms.js";
 import { breakUpCommands } from "../../helpers/index.js";
-import { CompletionRequest, Role, UsageArguments } from "../../typings/types.js";
+import { CompletionRequest, Role, UsageArguments, UserPersona } from "../../typings/types.js";
 
 export class RoomPipeline implements Room {
     public _id: string = '';
@@ -240,7 +240,10 @@ export class RoomPipeline implements Room {
         }
         return stopList;
     }
-
+    getLastUserMessage(): RoomMessage | undefined {
+        const userMessages = this.messages.filter(message => message.message.role === 'User');
+        return userMessages[userMessages.length - 1];
+    }
     async generateResponse(roomMessage: RoomMessage, characterId: string): Promise<RoomMessage> {
         const messages = this.messages;
         if(!this.messages.includes(roomMessage)){
@@ -261,10 +264,17 @@ export class RoomPipeline implements Room {
             throw new Error(`Character not found: ${characterId}`);
         }
         const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
+        const lastMessage = this.getLastUserMessage();
         const completionRequest: CompletionRequest = {
             messages: requestMessages,
             character: characterId,
-            args: characterSettingsOverride?.args || undefined
+            args: characterSettingsOverride?.args || undefined,
+            persona: {
+                _id: lastMessage?.message.userId || 'system',
+                name: this.getLastUserMessage()?.message.fallbackName || 'User',
+                description: '',
+                avatar: '',
+            } as UserPersona,
         }
         let tries = 0;
         let unfinished = true;
