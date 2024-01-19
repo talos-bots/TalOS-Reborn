@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import './CharacterComponent.css';
-import { Edit, Info, MessageCircle, Trash } from "lucide-react";
+import { Download, Edit, Info, MessageCircle, Trash } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Character } from "../../../global_classes/Character";
 import { confirmModal } from "../confirm-modal";
 import { deleteCharacterById, getUserdataByID } from "../../../api/characterAPI";
 import { useUser } from "../auth-provider";
+import { saveTavernCardAsImage } from "../../../helpers/character-card";
 
 interface CharacterComponentProps {
     character: Character | null;
@@ -73,14 +74,25 @@ const CharacterComponent = (props: CharacterComponentProps) => {
         navigate(`/chat?${queryParams.toString()}`);
     };
 
+    const handleConstructExport = async () => {
+        if(character === null) return;
+        const url = await saveTavernCardAsImage(character);
+        const element = document.createElement("a");
+        element.href = url;
+        element.download = `${character.name}.png`;
+        document.body.appendChild(element);
+        element.click();
+    }
+    
     return (
         <div className="p-4 rounded-box bg-base-300 grid grid-cols-3 justify-between gap-2 text-base-content max-h-[260px] h-[260px]">
             <div className="flex flex-col gap-1 col-span-1">
                 <h3 className="character-name text-left text-ellipsis line-clamp-1">{displayName}</h3>
                 <img className="rounded-md flex-grow character-photo" src={photoURL} alt="character"/>
-                <div className="grid grid-cols-2 justify-center mt-2 gap-1 items-center grid-">
+                <div className="grid grid-cols-3 justify-center mt-2 gap-1 items-center grid-">
                     <button className="dy-btn dy-btn-sm dy-btn-info" onClick={(e) => {e.preventDefault(); openProfilePopup()}}><Info/></button>
                     <button className="dy-btn dy-btn-sm dy-btn-info" onClick={(e) => {e.preventDefault(); changeCharacterID()}}><MessageCircle/></button>
+                    <button className="dy-btn dy-btn-sm dy-btn-info" onClick={(e) => {e.preventDefault(); handleConstructExport()}}><Download/></button>
                 </div>
             </div>
             <div className="flex flex-col gap-1 col-span-2 justify-between">
