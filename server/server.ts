@@ -238,7 +238,6 @@ async function main(){
             if (userId) {
                 userConnections.push({ userId: userId, socketId: socket.id });
                 fetchUserByID(userId).then((user) => {
-                    socket.emit('notification', { message: `Authenticated successfully, Welcome to TalOS, ${user?.display_name}.` });
                     console.log(`User ${user?.display_name} authenticated with socket ${socket.id}`);
                 });
             }
