@@ -25,7 +25,6 @@ import { discordConfigRoute } from './routes/discordConfig.js';
 import { DiscordManagementRouter, startDiscordRoutes } from './routes/discord.js';
 import { roomsRouter } from './routes/rooms.js';
 import { AppSettingsInterface } from './typings/types.js';
-import { cat } from '@xenova/transformers';
 
 const defaultAppSettings: AppSettingsInterface = {
     defaultConnection: "",
@@ -40,9 +39,23 @@ const defaultAppSettings: AppSettingsInterface = {
     jwtSecret: ""
 };
 
+let dev = false;
+let useVarFolder = false;
+const args = process.argv.slice(2);
+
+args.forEach(arg => {
+    if (arg.startsWith('--dev')) {
+        dev = true;
+    }
+    if (arg.startsWith('--linux-server')) {
+        useVarFolder = true;
+        console.log("Using /var/local for data storage");
+    }
+});
+
 const __dirname = path.resolve();
 //get the userData directory
-const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
+const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : (useVarFolder ? '/var/local' : process.env.HOME + '/.local/share'));
 //get the talos directory
 const talosDir = path.join(appDataDir, 'TalOS');
 //get the uploads directory
@@ -103,16 +116,6 @@ fs.mkdirSync(datasetsPath, { recursive: true });
 
 // create the express apps
 const port = 3003;
-
-let dev = false;
-
-const args = process.argv.slice(2);
-
-args.forEach(arg => {
-    if (arg.startsWith('--dev')) {
-        dev = true;
-    }
-});
 
 let appSettings = { ...defaultAppSettings };
 

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "concurrently \"npm build react && vite --host\" \"cd ./server && npm run dev\"",
+    "start-linux-server": "concurrently \"npm build react && vite --host\" \"cd ./server && npm run start-linux-server\"",
     "dev": "concurrently \"vite --host\" \"cd ./server && npm run dev\"",
+    "dev-linux-server": "concurrently \"vite --host\" \"cd ./server && npm run dev-linux-server\"",
     "dev-react": "vite --host",
     "start-server": "cd ./server && npm run start",
     "build-all": "concurrently \"npm run build\" \"cd ./server && npm run build\"",

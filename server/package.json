@@ -2,7 +2,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc-watch --onSuccess \"node ../dist/server.js --dev\"",
-    "start": "tsc && node ../dist/server.js --dev"
+    "dev-linux-server": "tsc-watch --onSuccess \"node ../dist/server.js --dev --linux-server\"",
+    "start": "tsc && node ../dist/server.js --dev",
+    "start-linux-server": "tsc && node ../dist/server.js --dev --linux-server"
   },
   "type": "module",
   "dependencies": {

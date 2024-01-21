@@ -27,3 +27,9 @@ npm install
 npm run build-react
 npm run dev
 ```
+### How to run for a linux userless server enviornment?
+```cmd
+npm install
+npm run build-react
+npm run dev-linux-server
+```
