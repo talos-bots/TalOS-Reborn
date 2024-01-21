@@ -2,8 +2,19 @@ import sqlite3 from 'sqlite3';
 import fs from 'fs';
 import path from 'path';
 
+let useVarFolder = false;
+const args = process.argv.slice(2);
+
+args.forEach(arg => {
+    if (arg.startsWith('--linux-server')) {
+        useVarFolder = true;
+    }
+});
+
 //get the userData directory
-const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local');
+const appDataDir = process.env.APPDATA || 
+                   (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : 
+                   (useVarFolder ? '/var/local' : process.env.HOME + '/.local/share'));//get the talos directory
 //get the talos directory
 const talosDir = path.join(appDataDir, 'TalOS');
 //get the uploads directory
