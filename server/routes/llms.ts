@@ -28,6 +28,8 @@ function messagesToOpenAIChat(messages: ChatMessage[]){
 }
 
 function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
+    const messageText = message.swipes[message.currentIndex].trim();
+    let rolePrefix = "";
     switch(instructFormat){
         case "Alpaca":
             if(message.role === "System"){
@@ -41,9 +43,6 @@ function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
             }
             return getTokens(`### Instruction:\n${message.swipes[message.currentIndex]}`);
         case "Mistral":
-            const messageText = message.swipes[message.currentIndex].trim();
-            let rolePrefix = "";
-        
             if (message.role === "System") {
                 rolePrefix = "System: ";
             } else if (message.thought === true) {
