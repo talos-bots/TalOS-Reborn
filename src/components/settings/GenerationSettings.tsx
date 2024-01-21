@@ -3,9 +3,9 @@ import { SettingsInterface } from "../../types";
 import { deleteSettingById, fetchAllSettings, fetchDefaultSettings, getAppSettingsSettings, saveSettingToLocal, setAppSettingsSettings } from "../../api/settingsAPI";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme" | "Pygmalion";
+export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion";
 
-const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "None", "Metharme", "Pygmalion"];
+const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "Mistral", "None", "Metharme", "Pygmalion"];
 
 const GenerationSettings = () => {
     const [maxContextLength, setMaxContextLength] = useState<number>(localStorage.getItem('maxContextLength') ? parseInt(localStorage.getItem('maxContextLength') as string) : 2048);

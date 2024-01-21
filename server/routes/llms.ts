@@ -40,6 +40,20 @@ function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
                 return getTokens(`### Response:\n${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
             }
             return getTokens(`### Instruction:\n${message.swipes[message.currentIndex]}`);
+        case "Mistral":
+            const messageText = message.swipes[message.currentIndex].trim();
+            let rolePrefix = "";
+        
+            if (message.role === "System") {
+                rolePrefix = "System: ";
+            } else if (message.thought === true) {
+                rolePrefix = `${message.fallbackName}'s Thoughts: `;
+            } else if (message.role === "User" || message.role === "Assistant") {
+                rolePrefix = `${message.fallbackName}: `;
+            }
+        
+            // Calculate tokens without enclosing each message in [INST] [/INST]
+            return getTokens(`${rolePrefix}${messageText}`);            
         case "Vicuna":
             if(message.role === "System"){
                 return getTokens(`SYSTEM: ${message.swipes[message.currentIndex]}`);
@@ -190,6 +204,48 @@ function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: num
 
     return prompt;
 }
+
+function assembleMistralPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null) {
+    let prompt = "[INST]";
+    const newMessages = fillChatContextToLimit(messages, contextLength, "Mistral");
+
+    for (let i = 0; i < newMessages.length; i++) {
+        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
+        let rolePrefix = "";
+
+        if (newMessages[i].role === 'User') {
+            rolePrefix = "User: ";
+        } else if (newMessages[i].role === 'Assistant') {
+            rolePrefix = "Assistant: ";
+        } else if (newMessages[i].role === 'System') {
+            rolePrefix = "System: ";
+        }
+
+        if (newMessages[i].thought === true) {
+            prompt += `${rolePrefix}${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n\n`;
+        } else {
+            prompt += `${rolePrefix}${newMessages[i].fallbackName}: ${messageText}\n\n`;
+        }
+    }
+
+    // Insert system prompt and persona description if available
+    if (system_prompt.trim() !== "") {
+        prompt += `${system_prompt}\n\n`;
+    }
+    if (persona && persona.description.trim() !== "" && persona.importance === 'high') {
+        prompt += `[${persona.description.trim()}]\n\n`;
+    }
+
+    // If the last message was not from the bot, append an empty response for the bot
+    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role !== 'Assistant') {
+        prompt += `Assistant: ${constructName}:\n`;
+    }
+
+    prompt += "[/INST]";
+    return prompt;
+}
+
+
 
 function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
     let prompt = "";
@@ -375,6 +431,9 @@ async function formatCompletionRequest(request: CompletionRequest){
     }
     else if(settingsInfo.instruct_mode === "Vicuna"){
         prompt += assembleVicunaPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
+    }
+    else if(settingsInfo.instruct_mode === "Mistral") {
+        prompt += assembleMistralPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona)
     }
     else if(settingsInfo.instruct_mode === "Metharme"){
         prompt += assembleMetharmePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request?.persona);
