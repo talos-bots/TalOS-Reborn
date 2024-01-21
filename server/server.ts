@@ -55,8 +55,9 @@ args.forEach(arg => {
 
 const __dirname = path.resolve();
 //get the userData directory
-const appDataDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : (useVarFolder ? '/var/local' : process.env.HOME + '/.local/share'));
-//get the talos directory
+const appDataDir = process.env.APPDATA || 
+                   (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : 
+                   (useVarFolder ? '/var/local' : process.env.HOME + '/.local/share'));//get the talos directory
 const talosDir = path.join(appDataDir, 'TalOS');
 //get the uploads directory
 fs.mkdirSync(talosDir, { recursive: true });
