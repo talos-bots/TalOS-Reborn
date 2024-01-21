@@ -482,3 +482,16 @@ while(true){
         console.log(err);
     }
 }
+
+//make it so when the terminal is closed, the server is closed
+process.on('SIGINT', () => {
+    process.exit();
+});
+
+process.on('SIGTERM', () => {
+    process.exit();
+});
+
+process.on('exit', () => {
+    process.exit();
+});

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import { Cog, Cookie, Gamepad2, Home, MessageCircle, Paintbrush, Star, UsersRound } from "lucide-react";
+import { Castle, Cog, Cookie, Gamepad2, Home, MessageCircle, Paintbrush, Star, UsersRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getCurrentEngine, setNewLogicEngine } from "../../../helpers";
 import { emitLogicEngineChange, useLogicEngineChangeListener } from '../../../helpers/events';
@@ -88,6 +88,9 @@ const NavBar = (props: NavBarProps) => {
                     <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Chat" to="/chat">
                         <MessageCircle />
                     </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Realms" to="/realms">
+                        <Castle />
+                    </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Art" to="/art">
                         <Paintbrush />
                     </NavLink>
@@ -113,6 +116,9 @@ const NavBar = (props: NavBarProps) => {
                     </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Chat" to="/chat">
                         <MessageCircle/>
+                    </NavLink>
+                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Realms" to="/realms">
+                        <Castle />
                     </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Art" to="/art">
                         <Paintbrush/>

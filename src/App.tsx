@@ -18,6 +18,7 @@ import DataSetCreator from './pages/dataset-creator';
 import { DatasetProvider } from './components/dataset/DatasetProvider';
 import ArtPage from './pages/art';
 import DiscordPage from './pages/discord';
+import RealmsPage from './pages/realms';
 
 function ScrollToTop() {
 	const location = useLocation();
@@ -103,6 +104,7 @@ export default function App() {
 							<Route path='/dataset' element={<DataSetCreator/>} />
 							<Route path='/art' element={<ArtPage/>} />
 							<Route path='/discord' element={<DiscordPage/>} />
+							<Route path='/realms' element={<RealmsPage/>} />
 						</Routes>
 					</DatasetProvider>
 				</div>
