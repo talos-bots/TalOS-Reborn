@@ -230,7 +230,7 @@ async function getOpenAI(key?: string) {
 connectionsRouter.post('/test/openai', async (req, res) => {
     const request = req.body.key;
     const data = await getOpenAI(request);
-    res.send({data});
+    res.send(data);
 });
 
 async function getOpenRouter(key?: string) {
