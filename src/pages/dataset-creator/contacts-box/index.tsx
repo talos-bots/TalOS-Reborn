@@ -22,10 +22,10 @@ const ContactsBox = () => {
     
     return (
         <div className="rounded-box bg-base-100 h-full w-full p-2 flex gap-2 flex-col overflow-y-scroll">
-            {contacts.map((contact) => {
+            {contacts.map((contact, index) => {
                 return (
                     <ContactItem
-                        key={contact._id}
+                        key={index}
                         character={contact}
                     />
                 )

@@ -16,8 +16,6 @@ export async function saveConnectionToLocal(connection: GenericCompletionConnect
     if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
-
-    console.log('Character saved successfully!');
 }
 
 export async function fetchConnectionById(id: string): Promise<GenericCompletionConnectionTemplate | null> {
@@ -32,7 +30,6 @@ export async function fetchConnectionById(id: string): Promise<GenericCompletion
     }
 
     const data = await response.data
-    console.log(data);
     return data as GenericCompletionConnectionTemplate;
 }
 
@@ -44,7 +41,6 @@ export async function fetchAllConnections(): Promise<GenericCompletionConnection
     }
 
     const data = await response.data
-    console.log(data);
     return data.map((character: any) => character as GenericCompletionConnectionTemplate);
 }
 
@@ -56,8 +52,6 @@ export async function deleteConnectionById(id: string): Promise<void> {
     if (response.status !== 200) {
         throw new Error(`Error: ${response.status}`);
     }
-
-    console.log('Connection deleted successfully!');
 }
 
 export async function fetchConnectionModels(url: string, key?: string): Promise<any> {
@@ -76,12 +70,10 @@ export async function fetchConnectionModels(url: string, key?: string): Promise<
         }
 
         const data = await response.data;
-        console.log('Fetched connection models:', data);
         if(data.error) {
             console.error('Error fetching connection models:', data.error);
             return null;
         }else{
-            console.log(data);
             if(!data?.data){
                 if(!Array.isArray(data)){
                     return null;
@@ -126,7 +118,6 @@ export async function fetchMancerModels(key?: string){
         }
 
         const data = await response.data;
-        console.log('Fetched mancer models:', data);
         if(data.error) {
             console.error('Error fetching mancer models:', data.error);
             return null;
@@ -172,7 +163,6 @@ export async function fetchPalmModels(key?: string){
         }
 
         const data = await response.data;
-        console.log('Fetched palm models:', data);
         if(data.error) {
             console.error('Error fetching palm models:', data.error);
             return null;
@@ -236,7 +226,6 @@ export async function fetchOpenRouterModels(key?: string){
             console.error('Error fetching openrouter models:', data.error);
             return null;
         }else{
-            console.log(data.data);
             return data.data.map((model: any) => model.id);
         }
     } catch (error) {
@@ -303,7 +292,6 @@ export async function sendCompletionRequest(messages: Message[], character: Char
         }
 
         const data = await response.data;
-        console.log('Fetched completion:', data);
         return data;
     } catch (error) {
         console.error('Error in sendCompletionRequest:', error);

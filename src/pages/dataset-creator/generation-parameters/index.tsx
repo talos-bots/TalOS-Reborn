@@ -2,15 +2,31 @@ import React from 'react';
 import { useEffect, useState } from "react";
 import { Dataset } from '../../../global_classes/Dataset';
 import { useDataset } from '../../../components/dataset/DatasetProvider';
+import { fetchAllDatasets, saveDataset } from '../../../api/datasetAPI';
 
 const GenerationParameters = () => {
-    const { dataset, updateName, updateDescription, updateMessages, updateBadWords, updateCharacters, updateSystemPrompts, updateRetries, updateBadWordsGenerated, updateId } = useDataset();
+    const { dataset, setDataset, updateName, updateDescription, updateMessages, updateBadWords, updateCharacters, updateSystemPrompts, updateRetries, updateBadWordsGenerated, updateId } = useDataset();
     const [localDataset, setLocalDataset] = useState(dataset || new Dataset());
-  
+    const [availableDatasets, setAvailableDatasets] = useState<Dataset[]>([]);
+    const [id, setId] = useState<string | null>(null);
+
     useEffect(() => {
         setLocalDataset(dataset || new Dataset());
-    }, [dataset]);
-  
+        fetchAllDatasets().then((datasets) => {
+            setAvailableDatasets(datasets);
+        });
+    }, []);
+    
+    useEffect(() => {
+        if (id) {
+            const newDataset = availableDatasets.find((dataset) => dataset.id === id);
+            if (newDataset) {
+                setLocalDataset(newDataset);
+                setDataset(newDataset)
+            }
+        }
+    }, [id, availableDatasets]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setLocalDataset(prev => {
@@ -48,11 +64,22 @@ const GenerationParameters = () => {
             updateSystemPrompts(localDataset.systemPrompts);
             updateRetries(localDataset.retries);
             updateBadWordsGenerated(localDataset.badWordsGenerated);
+            setDataset(localDataset);
+            saveDataset(localDataset);
         }
     };
   
     return (
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="rounded-box bg-base-100 h-full w-full p-2 flex gap-2 flex-col overflow-y-scroll">
+            <label className="font-semibold">Dataset</label>
+            <select name="id" value={localDataset?.id} onChange={(e)=>{setId(e.target.value)}} className='dy-select dy-select-bordered'>
+                <option value={null}>Select a dataset</option>
+                {availableDatasets.map((dataset) => {
+                    return (
+                        <option key={dataset.id} value={dataset.id}>{dataset.name}</option>
+                    )
+                })}
+            </select>
             <label className="font-semibold">Name</label>
             <input type="text" name="name" value={localDataset?.name} onChange={handleChange} placeholder="Name" className='dy-input dy-input-bordered' />
             <label className="font-semibold">Description</label>

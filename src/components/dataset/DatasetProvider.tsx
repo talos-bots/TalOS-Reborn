@@ -38,7 +38,7 @@ interface DatasetProviderProps {
 }
   
 export const DatasetProvider: React.FC<DatasetProviderProps> = ({ children }) => {
-    const [dataset, setDataset] = useState<Dataset | null>(null);
+    const [dataset, setDataset] = useState<Dataset | null>(new Dataset());
   
     const updateDataset = (updatedValues: Partial<Dataset>) => {
         if (dataset) {

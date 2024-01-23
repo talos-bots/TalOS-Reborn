@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { ArrowLeft, ArrowRight, Cog, Contact, Plus, Smile } from "lucide-react";
+import { ArrowLeft, ArrowRight, Cog, Contact, Play, Plus, Smile, Trash } from "lucide-react";
 import { Character, UserPersona } from "../../../global_classes/Character";
 import { useEffect, useRef, useState } from "react";
 import { StoredChatLog, StoredChatMessage } from "../../../global_classes/StoredChatLog";
@@ -13,6 +13,8 @@ import ReactAnimatedEllipsis from 'react-animated-ellipsis';
 import ReactMarkdown from 'react-markdown';
 import { useNewChatLogListener, useSelectedChatLogChangedListener } from '../../../helpers/events';
 import { TEAlert } from 'tw-elements-react';
+import { useDataset } from '../../../components/dataset/DatasetProvider';
+import { generateBatchForDataset, saveDataset } from '../../../api/datasetAPI';
 
 interface ChatWindowProps {
     character: Character | null;
@@ -24,12 +26,14 @@ interface ChatWindowProps {
 
 const chatWindow = (props: ChatWindowProps) => {
     const { character, persona } = props;
+    const { dataset, setDataset } = useDataset();
     const [chatLog, setChatLog] = useState<StoredChatLog | null>(null);
     const [chatMessages, setChatMessages] = useState<StoredChatMessage[]>([]);
     const [messageText, setMessageText] = useState<string>('');
     const [showTypingIndicator, setShowTypingIndicator] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
     const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
+    const [numBatches, setNumBatches] = useState<number>(1);
 
     const isDesktop = window.innerWidth > 768;
 
@@ -192,6 +196,27 @@ const chatWindow = (props: ChatWindowProps) => {
         };
     }, [isMessageBoxOpen]);    
 
+    const generateData = async () => {
+        let currentDataset = dataset;
+        for(let i = 0; i < numBatches; i++){
+            await generateBatchForDataset(currentDataset).then((newDataset) => {
+                setDataset(newDataset);
+                currentDataset = newDataset;
+                saveDataset(newDataset);
+            }).catch((error) => {
+                console.log(error);
+                setShowError(true);
+            });
+        }
+    }
+
+    const clearMessages = () => {
+        const newDataset = dataset;
+        newDataset.messages = [];
+        setDataset(newDataset);
+        saveDataset(newDataset);
+    }
+
     return (
         <div className="col-span-full md:col-span-7 md:rounded-box bg-base-300 md:p-4 md:max-h-[90vh] flex flex-col gap-2 p-2" style={chatContainerStyle}>
             <TEAlert dismiss delay={5000} open={showError} autohide onClose={
@@ -206,22 +231,23 @@ const chatWindow = (props: ChatWindowProps) => {
                 </span>
             </TEAlert>
             <h3 className={"font-bold text-center flex flex-row gap-2 justify-between md:justify-center items-center"}>
-                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm md:hidden" onClick={props.toggleLeftDrawer}>
-                    <Contact/>
+                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm md:hidden" onClick={() => clearMessages()}>
+                    <Trash/>
                 </button>
                 <div className="flex flex-row gap-2 justify-center items-center">
-                    <span className="text-xl">Dataset Generation Tool</span>
+                    <span className="text-xl">Number of Batches</span>
                 </div>
-                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm md:hidden" onClick={props.toggleRightDrawer}>
-                    <Cog/>
+                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm" onClick={() => generateData()}>
+                    <Play/>
                 </button>
+                <input type="number" className="dy-input dy-input-bordered dy-input-sm" value={numBatches} onChange={(e) => setNumBatches(parseInt(e.target.value))} min={1} max={2000}/>
             </h3>
             <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 max-h-[calc(92.5vh-180px)] min-h-[calc(92.5vh-180px)]"}>
-                {chatMessages.map((message, index) => {
+                {Array.isArray(dataset.messages) && dataset.messages.map((message, index) => {
                     return (
                         <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
                             <div className="dy-chat-header">
-                                {message.role !== 'User' ? (character?.name? character?.name : 'none') : persona?.name ?? 'You'}
+                                {message.fallbackName ?? 'None'}
                             </div>
                             <div className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
                                 <ReactMarkdown 
