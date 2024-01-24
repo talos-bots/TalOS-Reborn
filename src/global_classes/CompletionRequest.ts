@@ -12,7 +12,7 @@ import { UsageArguments } from "../types";
 import { Character, UserPersona } from "./Character";
 
 export type Role = "System" | "Assistant" | "User";
-export type InstructMode = "Alpaca" | "Vicuna" | "None" | "Metharme";
+export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme";
 export type Message = {
     userId: string;
     fallbackName: string;
