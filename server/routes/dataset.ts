@@ -5,7 +5,7 @@ import { datasetsPath } from '../server.js';
 import { CharacterInterface, CompletionRequest, DatasetInterface, UserPersona } from '../typings/types.js';
 import { Message } from '../typings/types.js';
 import { fetchCharacterById } from './characters.js';
-import { handleCompletionRequest } from './llms.js';
+import { getSettingsAndStops, handleCompletionRequest } from './llms.js';
 import { breakUpCommands, getRandomSystemPrompt } from '../helpers/index.js';
 export const datasetsRouter = express.Router();
 
@@ -147,13 +147,21 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                     floatingGuidance: newDataset.systemPrompts[Math.floor(Math.random() * newDataset.systemPrompts.length)],
                 }
             };
+            const data = getSettingsAndStops(completionRequest);
+            if(!data){
+                console.error('Error getting settings and stops');
+                continue;
+            }
+            const { settingsInfo } = data;
             let tries = 0;
             let unfinished = true;
             let value = '';
             let refinedResponse = '';
+            let temperature = settingsInfo.temperature ?? 0.98;
             while(unfinished && tries <= 3){
                 try {
-                    const unparsedResponse = await handleCompletionRequest(completionRequest);
+                    const tempReq: CompletionRequest = {...completionRequest, args: {...completionRequest.args, overrideSettings: { temperature: temperature }}};
+                    const unparsedResponse = await handleCompletionRequest(tempReq);
                     if(unparsedResponse === null){
                         throw new Error('Failed to generate response');
                     }
@@ -191,6 +199,7 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                         unfinished = true;
                         retries++;
                         refinedResponse = '';
+                        temperature = 1.5;
                     } else {
                         messages.push(message);
                         messagesCount = messages.length;
