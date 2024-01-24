@@ -128,7 +128,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
         .replaceAll(`${user}: `, '')
         .replaceAll(`<BOT>`, charName)
         .replaceAll(`<bot>`, charName)
-        .replaceAll(`<CHAR>`, charName));
+        .replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
     }
     
     for (let i = 0; i < lines.length; i++) {
@@ -179,7 +179,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     .replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '')
     .replaceAll('<|model|>', '').replaceAll(`${charName}: `, '')
     .replaceAll(`${user}: `, '').replaceAll(`<BOT>`, charName)
-    .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName));
+    .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
 }
 
 /**
