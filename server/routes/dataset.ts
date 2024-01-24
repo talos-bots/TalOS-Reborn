@@ -89,6 +89,25 @@ function compareMessageSets(a: Message[], b: Message) {
     return aMessages.includes(bMessages);
 }
 
+function createTurnOrder(characters: CharacterInterface[], messages: Message[]) {
+    return characters.sort((a, b) => {
+        const aMessages = messages.filter((message) => {
+            return message.userId === a._id;
+        });
+        const bMessages = messages.filter((message) => {
+            return message.userId === b._id;
+        });
+        if(aMessages.length === 0 && bMessages.length === 0){
+            return 0;
+        } else if(aMessages.length === 0){
+            return -1;
+        } else if(bMessages.length === 0){
+            return 1;
+        }
+        return 0;
+    });
+}
+
 async function generateData(dataset: DatasetInterface): Promise<DatasetInterface | undefined>{
     try {
         let newDataset = dataset;
@@ -121,15 +140,18 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                 characters = characters.reverse();
             }
         }
-        for(let i = 0; i < characters.length; i++){
-            const character = characters[i];
+        const charactersToChatAs = createTurnOrder(characters, messages);
+        if(!charactersToChatAs) return;
+        let successfullyGeneratedMessages = 0;
+        for(let i = 0; i < charactersToChatAs.length; i++){
+            const character = charactersToChatAs[i];
             const characterMap = newDataset.characters.find((characterMap) => {
                 return characterMap.characterId === character._id;
             });
             if(!characterMap) continue;
             console.log(`Generating responses for ${character.name}`);
             //get the next character in the list or the first one if we're at the end
-            const nextCharacter = characters[(i + 1) % characters.length];
+            const nextCharacter = charactersToChatAs[(i + 1) % characters.length];
             const completionRequest: CompletionRequest = {
                 character: character,
                 messages: messages,
@@ -157,7 +179,7 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
             let unfinished = true;
             let value = '';
             let refinedResponse = '';
-            let temperature = settingsInfo.temperature ?? 0.98;
+            const temperature = settingsInfo.temperature ?? 0.98;
             while(unfinished && tries <= 3){
                 try {
                     const tempReq: CompletionRequest = {...completionRequest, args: {...completionRequest.args, overrideSettings: { temperature: temperature }}};
@@ -194,15 +216,9 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                         role: characterMap.role,
                         thought: false,
                     };
-                    if(compareMessageSets(messages, message)){
-                        unfinished = true;
-                        retries++;
-                        refinedResponse = '';
-                        temperature = 1.5;
-                    } else {
-                        messages.push(message);
-                        messagesCount = messages.length;
-                    }
+                    messages.push(message);
+                    messagesCount = messages.length;
+                    successfullyGeneratedMessages++;
                 } catch (error) {
                     console.error('Error during response generation:', error);
                     tries++;
@@ -213,11 +229,15 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                 continue;
             }
         }
+        if(successfullyGeneratedMessages < characters.length){
+            console.error('Failed to generate enough responses');
+            return;
+        }
         newDataset = {...newDataset, messages: messages};
         newDataset = {...newDataset, retries: retries};
         newDataset = {...newDataset, badWordsGenerated: badWordsGenerated};
-        saveDataset(dataset);
-        return dataset;
+        saveDataset(newDataset);
+        return newDataset;
     } catch (error) {
         console.error('Error generating data for dataset:', error);
     }
@@ -242,10 +262,13 @@ datasetsRouter.post('/generate/dataset', async (req, res) => {
         }
         const newData = await generateData(generatedDataset);
         if(!newData){
-            res.status(500).send({ message: "Failed to generate data for dataset" });
-            return;
+            break;
         }
         generatedDataset = newData;
-    }   
+    }
+    if(!generatedDataset){
+        res.status(500).send({ message: "Error generating data" });
+        return;
+    }
     res.send(generatedDataset);
 });
