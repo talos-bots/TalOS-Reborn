@@ -81,9 +81,16 @@ const GenerationParameters = () => {
         link.click();
         document.body.removeChild(link);
     }
+
+    const createNewDataset = () => {
+        const newDataset = new Dataset();
+        setDataset(newDataset);
+        setLocalDataset(newDataset);
+    }
   
     return (
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="rounded-box bg-base-100 h-full w-full p-2 flex gap-2 flex-col overflow-y-scroll">
+            <button type="button" onClick={createNewDataset} className='dy-btn dy-btn-primary'>Create New Dataset</button>
             <label className="font-semibold">Dataset</label>
             <select name="id" value={localDataset?.id} onChange={(e)=>{setId(e.target.value)}} className='dy-select dy-select-bordered'>
                 <option value={null}>Select a dataset</option>

@@ -69,6 +69,30 @@ const chatWindow = (props: ChatWindowProps) => {
         }
         setCharacterIds(dataset.characters.map((char) => char.characterId));
         setCurrentCharacters(newCharacters);
+        if(dataset.characters.length > 0 && dataset.messages.length === 0){
+            if(!sendGreetingFromCharacter(newCharacters[0])){
+                sendGreetingFromCharacter(newCharacters[1]);
+            }
+        }
+    }
+
+    const sendGreetingFromCharacter = async (character: Character) => {
+        if(character.hasGreetings){
+            const message = character.createGreetingStoredMessage();
+            // find a character who is not the current character
+            const ch = currentCharacters.find((char) => char._id !== character._id);
+            if(!ch) return;
+            if(!message) return;
+            message.role = dataset.characters.find((char) => char.characterId === character._id)?.role ?? 'User';
+            message.replacePlaceholders(ch.name);
+            const newDataset = dataset;
+            newDataset.messages.push(message);
+            setChatMessages(newDataset.messages);
+            setDataset(newDataset);
+            saveDataset(newDataset);
+            return true;
+        }
+        return false;
     }
 
     useEffect(() => {

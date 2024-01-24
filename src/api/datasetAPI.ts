@@ -2,7 +2,8 @@ import axios from 'axios';
 import { Dataset } from '../global_classes/Dataset';
 
 const api = axios.create({
-  baseURL: '/api'
+  baseURL: '/api',
+  timeout: 0,
 });
 
 // Fetch all datasets

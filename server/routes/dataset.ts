@@ -80,13 +80,22 @@ datasetsRouter.delete('/datasets/:id', (req, res) => {
     res.send({ message: "Dataset removed successfully!" });
 });
 
+function compareMessageSets(a: Message[], b: Message) {
+    // find out if the content of the message already exists in the dataset
+    const aMessages = a.map((message) => {
+        return message.swipes[0];
+    });
+    const bMessages = b.swipes[0];
+    return aMessages.includes(bMessages);
+}
+
 async function generateData(dataset: DatasetInterface): Promise<DatasetInterface | undefined>{
     try {
         let newDataset = dataset;
         console.log('Generating data for dataset');
         const messages: Message[] = newDataset.messages as Message[];
         console.log('Fetching characters');
-        const characters: CharacterInterface[] = [];
+        let characters: CharacterInterface[] = [];
         for(let i = 0; i < newDataset.characters.length; i++){
             console.log(`Fetching character ${newDataset.characters[i].characterId}`);
             await fetchCharacterById(newDataset.characters[i].characterId).then((character) => {
@@ -105,7 +114,13 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
         for(let i = 0; i < characters.length; i++){
             stopList.push(`${characters[i].name}:`);
         }
-        console.log(stopList);
+        if(messagesCount !== 0){
+            const lastMessage = messages[messagesCount - 1];
+            // if the last message is from the first character, reverse the order of the characters
+            if(lastMessage.userId === characters[0]._id){
+                characters = characters.reverse();
+            }
+        }
         for(let i = 0; i < characters.length; i++){
             const character = characters[i];
             const characterMap = newDataset.characters.find((characterMap) => {
@@ -147,7 +162,7 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                         throw new Error('Failed to generate response');
                     }
                     value = unparsedResponse?.choices[0]?.text.trim();
-                    refinedResponse = breakUpCommands(character.name, value, nextCharacter.name, stopList, true);
+                    refinedResponse = breakUpCommands(character.name, value, nextCharacter.name, stopList, false);
                     tries++;
                     for(let i = 0; i < badWords.length; i++){
                         if(refinedResponse.toLowerCase().includes(badWords[i].trim().toLowerCase())){
@@ -176,8 +191,15 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                 role: characterMap.role,
                 thought: false,
             };
-            messages.push(message);
-            messagesCount = messages.length;
+            if(compareMessageSets(messages, message)){
+                tries = 0;
+                unfinished = true;
+                retries++;
+                refinedResponse = '';
+            } else {
+                messages.push(message);
+                messagesCount = messages.length;
+            }
         }
         newDataset = {...newDataset, messages: messages};
         newDataset = {...newDataset, retries: retries};
