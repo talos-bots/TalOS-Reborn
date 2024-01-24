@@ -13,10 +13,11 @@ import { fetchCharacterById } from '../../../../api/characterAPI';
 
 interface ContactItemProps {
     characterMap: CharacterMap | null;
+    handleRemoveCharacter: (character: string) => void;
 }
 
 const ContactItem = (props: ContactItemProps) => {
-    const { characterMap } = props;
+    const { characterMap, handleRemoveCharacter } = props;
     const [character, setCurrentCharacter] = useState<Character | null>();
     const { dataset, setDataset, updateName, updateDescription, updateMessages, updateBadWords, updateCharacters, updateSystemPrompts, updateRetries, updateBadWordsGenerated, updateId } = useDataset();
     const [currentPresetId, setCurrentPresetId] = useState<string | null>(characterMap?.settingsId ?? null);
@@ -134,14 +135,6 @@ const ContactItem = (props: ContactItemProps) => {
         updateCharacters(newCharacters)
         updateDataset({ characters: newCharacters })
     }
-
-    const handleRemoveCharacter = () => {
-        if(character === null) return console.log('Character is null')
-        if(dataset === null) return console.log('Dataset is null')
-        const newCharacters = dataset.characters.filter((char) => char.characterId !== character._id)
-        updateCharacters(newCharacters)
-        updateDataset({characters: newCharacters})
-    }
     
     const updateDataset = (updatedValues: Partial<Dataset>) => {
         if (dataset) {
@@ -194,7 +187,7 @@ const ContactItem = (props: ContactItemProps) => {
                     </div>
                 </div>
                 <div className="flex flex-row items-center gap-2">
-                    <button onClick={(e)=>{()=>handleRemoveCharacter()}} className={"dy-btn h-full dy-btn-error "}>
+                    <button onClick={()=>{handleRemoveCharacter(character?._id)}} className={"dy-btn h-full dy-btn-error "}>
                         <Minus/>
                     </button>
                 </div>

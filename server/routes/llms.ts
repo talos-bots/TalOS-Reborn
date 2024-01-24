@@ -341,31 +341,11 @@ async function formatCompletionRequest(request: CompletionRequest){
     }
     let prompt = characterPrompt + "\n";
     const characterPromptTokens = getTokens(characterPrompt);
-    const appSettings = fetchAllAppSettings();
-    console.log(appSettings);
-    let connectionid = request.connectionid;
-    if(!connectionid){
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid){
+    const data = getSettingsAndStops(request);
+    if(!data){
         return null;
     }
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
-    }
-    if(!settingsid) return;
-    if(settingsid?.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
+    const { settingsInfo } = data;
     if((request?.persona) && (request?.persona?.description) && (request?.persona?.description.trim() !== "") && (request?.persona?.importance === 'low')){
         prompt += `[${request.persona.description.trim()}]`;
     }

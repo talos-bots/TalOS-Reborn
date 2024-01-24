@@ -2,7 +2,7 @@ import React from 'react';
 import { Character } from "../../../global_classes/Character";
 import ContactItem from "./contact-item";
 import { useEffect, useState } from "react";
-import { fetchAllCharacters } from '../../../api/characterAPI';
+import { fetchAllCharacters, fetchCharacterById } from '../../../api/characterAPI';
 import { useDataset } from '../../../components/dataset/DatasetProvider';
 import CharacterMultiSelect from '../../../components/shared/character-multi';
 import { CharacterMap } from '../../../types';
@@ -11,23 +11,12 @@ import { saveDataset } from '../../../api/datasetAPI';
 
 const ContactsBox = () => {
     const [contacts, setContacts] = useState<Character[]>([]);
+    const [selectedCharacters, setSelectedCharacters] = useState<CharacterMap[]>([]);
     const [characterIds, setCharacterIds] = useState<string[]>([]);
     const { dataset, setDataset } = useDataset();
-
-    useEffect(() => {
-        const getContacts = async () => {
-            const newCharacters = await fetchAllCharacters().then((characters) => {
-                return characters;
-            });
-            setContacts(newCharacters);
-            setLoading(false);
-        }
-        getContacts();
-    }, []);
-
     const [loading, setLoading] = useState<boolean>(true);
-    
-    const handleAddCharacter = (characterId: string) => {
+
+    const handleAddCharacter = ( characterId: string ) => {
         if(characterId === null) return console.log('Character is null')
         const character = contacts.find((char) => char._id === characterId)
         if(!character) return console.log('Character is undefined')
@@ -41,6 +30,14 @@ const ContactsBox = () => {
         }
         const newCharacters = dataset.characters.filter((char) => char.characterId !== character._id)
         newCharacters.push(newCharacterMap)
+        setCharacterIds(newCharacters.map((char) => char.characterId))
+        updateDataset({characters: newCharacters})
+    }
+
+    const handleRemoveCharacter = ( characterId: string ) => {
+        if(dataset === null) return console.log('Dataset is null')
+        const newCharacters = dataset.characters.filter((char) => char.characterId !== characterId)
+        setCharacterIds(newCharacters.map((char) => char.characterId))
         updateDataset({characters: newCharacters})
     }
 
@@ -66,25 +63,38 @@ const ContactsBox = () => {
     };
 
     useEffect(() => {
-        if(dataset) {
-            setCharacterIds(dataset.characters.map((char) => char.characterId))
+        const getContacts = async () => {
+            const newCharacters = await fetchAllCharacters().then((characters) => {
+                return characters;
+            });
+            setContacts(newCharacters);
+            setLoading(false);
         }
-    }, [dataset])
+        getContacts();
+    }, []);
 
     useEffect(() => {
-        if(characterIds.length > 0) {
-            characterIds.forEach((characterId) => {
-                if(dataset) {
-                    const character = dataset.characters.find((char) => char.characterId === characterId)
-                    if(character === undefined) {
-                        handleAddCharacter(characterId)
-                    } else {
-                        console.log('Character already exists')
-                    }
-                }
-            })
+        if(dataset === null) return;
+        const oldIds = dataset.characters.map((char) => char.characterId);
+        for (const id of characterIds) {
+            if (!oldIds.includes(id)) {
+                handleAddCharacter(id);
+            } else {
+                console.log('Character already exists in dataset')
+            }
         }
-    }, [characterIds])
+        // find characters that are in the old dataset but not in the new one
+        const removedCharacters = oldIds.filter((id) => !characterIds.includes(id));
+        for (const id of removedCharacters) {
+            handleRemoveCharacter(id);
+        }
+    }, [characterIds]);
+
+    useEffect(() => {
+        if(dataset === null) return;
+        const newCharacters = dataset.characters.filter((char) => char.characterId !== null)
+        setCharacterIds(newCharacters.map((char) => char.characterId))
+    }, [dataset]);
 
     return (
         <div className="rounded-box bg-base-100 h-full w-full p-2 flex gap-2 flex-col overflow-y-scroll">
@@ -94,6 +104,7 @@ const ContactsBox = () => {
                     <ContactItem
                         key={index}
                         characterMap={contact}
+                        handleRemoveCharacter={handleRemoveCharacter}
                     />
                 )
             })}
