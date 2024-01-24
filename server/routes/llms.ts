@@ -542,7 +542,7 @@ async function formatCompletionRequest(request: CompletionRequest) {
 }
 
 export function getSettingsAndStops(request: CompletionRequest): {settingsInfo: SettingsInterface, stopSequences: string[], modelInfo: GenericCompletionConnectionTemplate } | null{
-    const stopSequences: string[] = [];
+    let stopSequences: string[] = [];
     const appSettings = fetchAllAppSettings();
     let connectionid = request.connectionid;
     if(!connectionid){
@@ -593,9 +593,21 @@ export function getSettingsAndStops(request: CompletionRequest): {settingsInfo: 
         stopSequences.push("You:");
         stopSequences.push("<BOT>:");
     }
+    if(settingsInfo.instruct_mode === "Mistral"){
+        stopSequences.push("```");
+        stopSequences.push("[INST]");
+    }
+    if(settingsInfo.instruct_mode === "ChatML"){
+        stopSequences.push("<|im_start|>user");
+        stopSequences.push("<|im_start|>assistant");
+    }
     if(request.args?.overrideSettings){
         settingsInfo = {...settingsInfo, ...request.args.overrideSettings};
     }
+    // get rid of duplicate stop sequences
+    stopSequences = [...new Set(stopSequences)];
+    // remove empty stop sequences
+    stopSequences = stopSequences.filter((stop) => stop.trim().length > 0);
     return { settingsInfo: settingsInfo, stopSequences: stopSequences, modelInfo: modelInfo };
 }
 
