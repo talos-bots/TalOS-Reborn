@@ -170,7 +170,7 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                         throw new Error('Failed to generate response');
                     }
                     value = unparsedResponse?.choices[0]?.text.trim();
-                    refinedResponse = breakUpCommands(character.name, value, nextCharacter.name, stopList, false);
+                    refinedResponse = breakUpCommands(character.name, value, nextCharacter.name, stopList);
                     tries++;
                     for(let i = 0; i < badWords.length; i++){
                         if(refinedResponse.toLowerCase().includes(badWords[i].trim().toLowerCase())){

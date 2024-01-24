@@ -84,18 +84,49 @@ async function processCharacterData(characterData: any): Promise<Character> {
     construct.name = (characterData.name || '').replaceAll('\r', '');
     construct.scenario = (characterData.scenario || '').replaceAll('\r', '');
 
-    // Construct personality field by filtering out empty or null parts
-    const personalityParts = [
-        characterData.personality,
-        characterData.mes_example,
-        characterData.description
-    ].filter(part => part && part.trim().length > 0);
-    construct.personality = personalityParts.join('\n').replaceAll('\r', '');
+    if(characterData.description){
+        construct.description = characterData.description.replaceAll('\r', '');
+    }
+    
+    if (characterData.personality) {
+        construct.personality = characterData.personality.trim().replaceAll('\r', '')
+    }
+
+    if (characterData.creator_notes) {
+        construct.creator_notes = characterData.creator_notes.replaceAll('\r', '');
+    }
+
+    if (characterData.mes_example) {
+        construct.mes_example = characterData.mes_example.replaceAll('\r', '');
+    }
+
+    if (characterData.post_history_instructions) {
+        construct.post_history_instructions = characterData.post_history_instructions.replaceAll('\r', '');
+    }
+
+    if (characterData.creator) {
+        construct.creator = characterData.creator.replaceAll('\r', '');
+    }
+
+    if (characterData.avatar) {
+        construct.avatar = characterData.avatar;
+    }
+
+    if (characterData.tags) {
+        construct.tags = characterData.tags;
+    }
+
+    if(characterData.mes_example){
+        construct.mes_example = characterData.mes_example.replaceAll('\r', '');
+    }
 
     if (characterData.first_mes && characterData.first_mes.trim().length > 0) {
         construct.setFirstMes(characterData.first_mes.replaceAll('\r', ''));
     }
 
+    if(characterData.system_prompt && characterData.system_prompt.trim().length > 0){
+        construct.system_prompt = characterData.system_prompt.replaceAll('\r', '')
+    }
     if (characterData.alternate_greetings && characterData.alternate_greetings.length > 0) {
         characterData.alternate_greetings.forEach((greeting: string) => {
             construct.alternate_greetings.push(greeting.replaceAll('\r', ''));

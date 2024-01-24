@@ -441,7 +441,7 @@ const CharacterCRUD = () => {
                             value={description}
                             onChange={(e) => setDescription(e)}
                             required={false}
-                            className={"w-full h-full"}
+                            className={"w-full h-full min-h-fit"}
                         />
                         <TokenTextarea
                             disabled={notAuthorized}
@@ -450,7 +450,7 @@ const CharacterCRUD = () => {
                             value={personality}
                             onChange={(e) => setPersonality(e)}
                             required={false}
-                            className={"w-full h-full"}
+                            className={"w-full h-full min-h-fit"}
                         />
                         <TokenTextarea
                             disabled={notAuthorized}
@@ -459,7 +459,7 @@ const CharacterCRUD = () => {
                             value={thought_pattern}
                             onChange={(e) => setThoughtPattern(e)}
                             required={false}
-                            className={"w-full h-full"}
+                            className={"w-full h-full min-h-fit"}
                         />
                         <TokenTextarea
                             disabled={notAuthorized}
@@ -468,7 +468,7 @@ const CharacterCRUD = () => {
                             value={mes_example}
                             onChange={(e) => setMesExample(e)}
                             required={false}
-                            className={"w-full h-full"}
+                            className={"w-full h-full min-h-fit"}
                         />
                         <TokenTextarea
                             disabled={notAuthorized}
@@ -477,7 +477,7 @@ const CharacterCRUD = () => {
                             value={system_prompt}
                             onChange={(e) => setSystemPrompt(e)}
                             required={false}
-                            className={"w-full h-full"}
+                            className={"w-full h-full min-h-fit"}
                         />
                         {/* <StringArrayEditorCards
                             label="Alternate Greetings"
@@ -494,7 +494,7 @@ const CharacterCRUD = () => {
                             value={scenario}
                             onChange={(e) => setScenario(e)}
                             required={false}
-                            className={"w-full h-full"}
+                            className={"w-full h-full min-h-fit"}
                         />
                         <TokenTextarea
                             disabled={notAuthorized}
