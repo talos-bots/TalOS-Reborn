@@ -27,7 +27,33 @@ export async function continueConversation(messages: Message[], character: Chara
     return assistantResponse;
 }
 
-export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = false): string {
+export function removeSymbolsBasedOnFirstOccurrence(input: string): string {
+    const firstAsteriskIndex = input.indexOf('*');
+    const firstQuoteIndex = input.indexOf('"');
+
+    if (firstAsteriskIndex === -1 && firstQuoteIndex === -1) {
+        return input; // Return the original string if neither symbol is found
+    }
+
+    if ((firstAsteriskIndex !== -1 && firstQuoteIndex === -1) || (firstAsteriskIndex < firstQuoteIndex)) {
+        // If asterisk is found first or quotes are not found, remove all quotes
+        return input.replace(/"/g, '');
+    } else {
+        // If quote is found first or asterisks are not found, remove all asterisks
+        return input.replace(/\*/g, '');
+    }
+}
+
+//create a function that removes any html tags from a string
+export function removeHTMLTags(input: string): string {
+    return input.replace(/<[^>]*>?/gm, '');
+}
+
+export function removeBrackets(input: string): string {
+    return input.replace(/\[.*?\]/g, '');
+}
+
+export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = true): string {
     const lines = commandString.split('\n').filter((line) => {
         return line.trim() !== '';
     });
@@ -42,7 +68,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
                 command = lines[1];
             }
         }
-        return command.replaceAll('<start>', '')
+        return removeHTMLTags(command.replaceAll('<start>', '')
         .replaceAll('<end>', '').replaceAll('###', '')
         .replaceAll('<user>', '').replaceAll('user:', '')
         .replaceAll('USER:', '').replaceAll('ASSISTANT:', '')
@@ -51,7 +77,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
         .replaceAll(`${user}: `, '')
         .replaceAll(`<BOT>`, charName)
         .replaceAll(`<bot>`, charName)
-        .replaceAll(`<CHAR>`, charName)
+        .replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
     }
     
     for (let i = 0; i < lines.length; i++) {
@@ -96,11 +122,11 @@ export function breakUpCommands(charName: string, commandString: string, user = 
         return command.trim() !== '';
     });
     const final = removedEmptyLines.join('\n');
-    return final.replaceAll('<start>', '').replaceAll('<end>', '')
+    return removeHTMLTags(final.replaceAll('<start>', '').replaceAll('<end>', '')
     .replaceAll('###', '').replaceAll('<user>', '')
     .replaceAll('user:', '').replaceAll('USER:', '')
     .replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '')
     .replaceAll('<|model|>', '').replaceAll(`${charName}: `, '')
     .replaceAll(`${user}: `, '').replaceAll(`<BOT>`, charName)
-    .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName);
+    .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
 }
