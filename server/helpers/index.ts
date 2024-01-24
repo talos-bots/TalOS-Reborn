@@ -264,3 +264,23 @@ export function writeBase64ToPNGFile(base64: string){
         return;
     }
 }
+
+export const randomSystemPrompts = [
+    'Continue the conversation.',
+    'Keep the conversation going.',
+    'Say something else.',
+    'Keep talking.',
+    'And then...',
+    'Suddenly...',
+    'And so the adventures moved onward to...',
+    'Continue the story.',
+    'Continue',
+    'Then she remembered...',
+    'And then he said...',
+    'And then she said...',
+    'Engage sex mode.',
+];
+
+export function getRandomSystemPrompt(){
+    return randomSystemPrompts[Math.floor(Math.random() * randomSystemPrompts.length)];
+}

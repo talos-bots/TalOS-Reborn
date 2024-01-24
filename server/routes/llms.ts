@@ -132,7 +132,7 @@ function fillChatContextToLimit(chatLog: ChatMessage[], tokenLimit: number, inst
     return messagesToInclude;
 }
 
-function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
 	let prompt = "";
 	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
 	for(let i = 0; i < newMessages.length; i++){
@@ -151,8 +151,8 @@ function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 
     // insert system prompt at the 4th line from the end
     if(newMessages.length > 0){
         const lines = prompt.split("\n");
-        if(system_prompt.trim() !== ""){
-            lines.splice(lines.length - 3, 0, system_prompt);
+        if(system_prompt.length > 0){
+            lines.splice(lines.length - 3, 0, ...system_prompt);
         }
         if(persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
@@ -168,7 +168,7 @@ function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 
 	return prompt;
 }
 
-function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
     let prompt = "";
     const newMessages = fillChatContextToLimit(messages, contextLength, "Alpaca");
     for(let i = 0; i < newMessages.length; i++){
@@ -187,8 +187,10 @@ function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: num
             }
         }
         // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
-        if(i === newMessages.length - 3 && system_prompt !== ""){
-            prompt += `${system_prompt}\n`;
+        if(i === newMessages.length - 3 && system_prompt.length > 0){
+            for(let j = 0; j < system_prompt.length; j++){
+                prompt += `${system_prompt[j]}\n`;
+            }
         }
         if(i === newMessages.length - 3 && persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
@@ -204,10 +206,10 @@ function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: num
     return prompt;
 }
 
-function assembleMistralPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null) {
+function assembleMistralPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null) {
     let prompt = "";
 
-    let systemInfo = system_prompt.trim();
+    let systemInfo = system_prompt.map(prompt => prompt.trim()).join("\n");
     if(persona && persona.description.trim() !== "" && persona.importance === 'high') {
         systemInfo += `\n${persona.description.trim()}`;
     }
@@ -233,7 +235,7 @@ function assembleMistralPromptFromLog(messages: ChatMessage[], contextLength: nu
     return prompt;
 }
 
-function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
     let prompt = "";
     const newMessages = fillChatContextToLimit(messages, contextLength, "Vicuna");
     for(let i = 0; i < newMessages.length; i++){
@@ -255,8 +257,8 @@ function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: num
     // insert system prompt at the 4th line from the end
     if(newMessages.length > 0){
         const lines = prompt.split("\n");
-        if(system_prompt.trim() !== ""){
-            lines.splice(lines.length - 3, 0, system_prompt);
+        if(system_prompt.length > 0){
+            lines.splice(lines.length - 3, 0, ...system_prompt);
         }
         if(persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
@@ -273,7 +275,7 @@ function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: num
     return prompt;
 }
 
-function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
     let prompt = "";
     const newMessages = fillChatContextToLimit(messages, contextLength, "Metharme");
     for(let i = 0; i < newMessages.length; i++){
@@ -292,8 +294,8 @@ function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: n
             }
         }
         // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
-        if(i === newMessages.length - 3 && system_prompt !== ""){
-            prompt += `<|system|>${system_prompt}`;
+        if(i === newMessages.length - 3 && system_prompt.length > 0){
+            prompt += `<|system|>${system_prompt.join(" ")}`;
         }
         if(i === newMessages.length - 3 && persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
@@ -308,7 +310,7 @@ function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: n
     return prompt;
 }
 
-function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string = "", persona?: UserPersona | null){
+function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
 	let prompt = "";
 	const newMessages = fillChatContextToLimit(messages, contextLength, "Pygmalion");
 	for(let i = 0; i < newMessages.length; i++){
@@ -335,8 +337,8 @@ function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: 
     // insert system prompt at the 4th line from the end
     if(newMessages.length > 0){
         const lines = prompt.split("\n");
-        if(system_prompt.trim() !== ""){
-            lines.splice(lines.length - 3, 0, system_prompt);
+        if(system_prompt.length > 0){
+            lines.splice(lines.length - 3, 0, ...system_prompt);
         }
         if(persona){
             if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
@@ -416,32 +418,33 @@ async function formatCompletionRequest(request: CompletionRequest) {
             prompt += `${characterPrompt.trim()}\n`;
         }
     }
-
+    const systemPrompts: string[] = [];
     // handle floatingGuidance
     if(request.args?.floatingGuidance){
         if(request.args.floatingGuidance.trim().length > 0){
             switch(settingsInfo.instruct_mode){
                 case "Alpaca":
-                    prompt += `### Instruction:\n${request.args.floatingGuidance.trim()}\n`;
+                    systemPrompts.push(`### Instruction:\n${request.args.floatingGuidance.trim()}\n`);
                     break;
                 case "Vicuna":
-                    prompt += `SYSTEM: ${request.args.floatingGuidance.trim()}\n`;
+                    systemPrompts.push(`SYSTEM: ${request.args.floatingGuidance.trim()}\n`);
                     break;
                 case "Mistral":
-                    prompt += `[INST]\n${request.args.floatingGuidance.trim()}\n[/INST]\n\n`;
+                    systemPrompts.push(`[INST]\n${request.args.floatingGuidance.trim()}\n[/INST]\n\n`);
                     break;
                 case "Metharme":
-                    prompt += `<|system|>${request.args.floatingGuidance.trim()}`;
+                    systemPrompts.push(`<|system|>${request.args.floatingGuidance.trim()}`);
                     break;
                 case "Pygmalion":
-                    prompt += `${request.args.floatingGuidance.trim()}\n`;
+                    systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
                     break;
                 default:
-                    prompt += `${request.args.floatingGuidance.trim()}\n`;
+                    systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
                     break;
             }
         }
     }
+
     const characterPromptTokens = getTokens(prompt);
     if(request.persona && request.persona.description && request.persona.description.trim() !== "" && request.persona.importance === 'low') {
         switch(settingsInfo.instruct_mode){
@@ -467,27 +470,31 @@ async function formatCompletionRequest(request: CompletionRequest) {
     }
 
     const leftoverTokens = (settingsInfo.context_length - characterPromptTokens) - 800;
-
+    if(character){
+        if(character.system_prompt.trim().length > 0){
+            systemPrompts.push(character.system_prompt.trim());
+        }
+    }
     // Assemble prompts based on instruct mode
     switch (settingsInfo.instruct_mode) {
         case "Alpaca":
-            prompt += assembleAlpacaPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request.persona);
+            prompt += assembleAlpacaPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
             break;
         case "Vicuna":
-            prompt += assembleVicunaPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request.persona);
+            prompt += assembleVicunaPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
             break;
         case "Mistral":
             // For Mistral, character prompt is already included
-            prompt += assembleMistralPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", "", request.persona);
+            prompt += assembleMistralPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", [], request.persona);
             break;
         case "Metharme":
-            prompt += assembleMetharmePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request.persona);
+            prompt += assembleMetharmePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
             break;
         case "Pygmalion":
-            prompt += assemblePygmalionPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request.persona);
+            prompt += assemblePygmalionPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
             break;
         default:
-            prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", character ? character.system_prompt : "", request.persona);
+            prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
             break;
     }
 

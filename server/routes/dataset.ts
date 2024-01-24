@@ -6,7 +6,7 @@ import { CharacterInterface, CompletionRequest, DatasetInterface, UserPersona } 
 import { Message } from '../typings/types.js';
 import { fetchCharacterById } from './characters.js';
 import { handleCompletionRequest } from './llms.js';
-import { breakUpCommands } from '../helpers/index.js';
+import { breakUpCommands, getRandomSystemPrompt } from '../helpers/index.js';
 export const datasetsRouter = express.Router();
 
 // get all datasets from the ../data/datasets/ folder
@@ -216,6 +216,18 @@ datasetsRouter.post('/generate/dataset', async (req, res) => {
     const batches = req.body.batches;
     let generatedDataset = dataset;
     for(let i = 0; i < batches; i++){
+        // if the batches are greater than 5, if the current batch is divisible by 5, insert a system note
+        if(batches > 5 && i % 5 === 0){
+            const systemNote: Message = {
+                userId: 'system',
+                fallbackName: 'System',
+                swipes: [`[${getRandomSystemPrompt()}]`],
+                currentIndex: 0,
+                role: 'System',
+                thought: false,
+            };
+            generatedDataset.messages.push(systemNote);
+        }
         const newData = await generateData(generatedDataset);
         if(!newData){
             res.status(500).send({ message: "Failed to generate data for dataset" });

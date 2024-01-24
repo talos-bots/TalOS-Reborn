@@ -33,10 +33,10 @@ const GenerationParameters = () => {
             let updatedValue: any = value;
             if (name === 'badWords') {
                 // Split the string into an array of bad words
-                updatedValue = value.split('\n').map(word => word.trim());
+                updatedValue = value.split('\n');
             }else if (name === 'systemPrompts') {
                 // Split the string into an array of system prompts
-                updatedValue = value.split('\n').map(prompt => prompt.trim());
+                updatedValue = value.split('\n');
             }
             const updatedValues = { ...prev, [name]: updatedValue };
             return new Dataset(
