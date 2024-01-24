@@ -456,8 +456,14 @@ async function getMancerCompletion(request: CompletionRequest){
         stopSequences.push("<BOT>:");
     }
     const settingsProper = SettingsInterfaceToMancerSettings(settingsInfo);
+    let model = modelInfo.model;
+    if(request.args?.modelOverride){
+        if(request.args.modelOverride.trim().length > 0){
+            model = request.args.modelOverride.trim();
+        }
+    }
     const body = {
-        'model': modelInfo.model,
+        'model': model,
         'prompt': prompt,
         'stop': stopSequences,
         ...settingsProper,
@@ -540,8 +546,14 @@ async function getGenericCompletion(request: CompletionRequest){
         stopSequences.push("You:");
         stopSequences.push("<BOT>:");
     }
+    let model = modelInfo.model;
+    if(request.args?.modelOverride){
+        if(request.args.modelOverride.trim().length > 0){
+            model = request.args.modelOverride.trim();
+        }
+    }
     const body = {
-        'model': modelInfo.model,
+        'model': model,
         'prompt': prompt,
         'stop': stopSequences,
         'stream': false,
@@ -866,6 +878,12 @@ async function getOpenAICompletion(request: CompletionRequest){
         if(modelInfo.model === ''){
             throw new Error('No valid response from LLM.');
         }
+        let model = modelInfo.model;
+        if(request.args?.modelOverride){
+            if(request.args.modelOverride.trim().length > 0){
+                model = request.args.modelOverride.trim();
+            }
+        }
         const response = await axios('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -873,7 +891,7 @@ async function getOpenAICompletion(request: CompletionRequest){
                 "Authorization": `Bearer ${modelInfo.key?.trim()}`,
             },
             data: {
-                "model": modelInfo.model,
+                "model": model,
                 "messages": messages,
                 "stop": stopSequences,
                 "max_tokens": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
@@ -973,8 +991,14 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
             stopSequences.push("You:");
             stopSequences.push("<BOT>:");
         }
+        let model = modelInfo.model;
+        if(request.args?.modelOverride){
+            if(request.args.modelOverride.trim().length > 0){
+                model = request.args.modelOverride.trim();
+            }
+        }
         const body = {
-            'model': modelInfo.model,
+            'model': model,
             'prompt': prompt,
             'stop': stopSequences,
             'stream': false,

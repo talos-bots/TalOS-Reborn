@@ -9,62 +9,63 @@ import { fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchOpe
 import { useDataset } from '../../../../components/dataset/DatasetProvider';
 import { Dataset } from '../../../../global_classes/Dataset';
 import { saveDataset } from '../../../../api/datasetAPI';
+import { fetchCharacterById } from '../../../../api/characterAPI';
 
 interface ContactItemProps {
-    character: Character | null;
+    characterMap: CharacterMap | null;
 }
 
 const ContactItem = (props: ContactItemProps) => {
-    const { character } = props;
+    const { characterMap } = props;
+    const [character, setCurrentCharacter] = useState<Character | null>();
     const { dataset, setDataset, updateName, updateDescription, updateMessages, updateBadWords, updateCharacters, updateSystemPrompts, updateRetries, updateBadWordsGenerated, updateId } = useDataset();
+    const [currentPresetId, setCurrentPresetId] = useState<string | null>(characterMap?.settingsId ?? null);
+    const [currentConnectionId, setCurrentConnectionId] = useState<string | null>(characterMap?.connectionId ?? null);
     const [currentPreset, setCurrentPreset] = useState<SettingsInterface | null>(null);
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([] as GenericCompletionConnectionTemplate[]);
     const [currentConnection, setCurrentConnection] = useState<GenericCompletionConnectionTemplate | null>(null);
     const [connectionModelList, setConnectionModelList] = useState<string[]>([] as string[])
-    const [connectionModel, setConnectionModel] = useState<string>('')
+    const [connectionModel, setConnectionModel] = useState<string>(characterMap?.model ?? '')
     const [connectionStatus, setConnectionStatus] = useState<string>('Disconnected')
     const [availablePresets, setAvailablePresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
     const [defaultPresets, setDefaultPresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
-    const [role, setRole] = useState<Role>('Assistant')
+    const [role, setRole] = useState<Role>(characterMap?.role ?? 'Assistant')
     const roles: Role[] = ['Assistant', 'System', 'User']
 
-    const handleLoadConnections = () => {
-        fetchAllConnections().then((connections) => {
+    const init = async () => {
+        if(characterMap === null) return console.log('CharacterMap is null')
+        await fetchCharacterById(characterMap?.characterId ?? '').then((character) => {
+            if(character === null) return
+            setCurrentCharacter(character)
+        });
+        if(character === null) return console.log('Character is null')
+        await handleLoadSettings();
+        await handleLoadConnections();
+        setCurrentConnectionId(characterMap.connectionId)
+        setCurrentPresetId(characterMap.settingsId)
+        setConnectionModel(characterMap.model)
+        setRole(characterMap.role)
+    }
+
+    useEffect(() => {
+        init()
+    }, [characterMap])
+
+    const handleLoadConnections = async () => {
+        await fetchAllConnections().then((connections) => {
             setSavedConnections(connections)
             setCurrentConnection(connections[0])
             
         })
     }
 
-    const handleLoadSettings = () => {
-        fetchAllSettings().then((connections) => {
+    const handleLoadSettings = async () => {
+        await fetchAllSettings().then((connections) => {
             setAvailablePresets(connections)
         })
-        fetchDefaultSettings().then((connections) => {
+        await fetchDefaultSettings().then((connections) => {
             setDefaultPresets(connections)
         })
-    }
-
-    useEffect(() => {
-        handleLoadSettings()
-        handleLoadConnections()
-    }, [])
-
-    useEffect(() => {
-        if(dataset === null) return
-        if(character === null) return console.log('Character is null')
-        const characterMap = dataset.characters.find((char) => char.characterId === character._id);
-        console.log(characterMap)
-        setConnectionModel(characterMap?.model ?? '')
-        setRole(characterMap?.role ?? 'Assistant')
-        setCurrentPreset(availablePresets.find((preset) => preset.id === characterMap?.settingsId) ?? null)
-        setCurrentConnection(savedConnections.find((connection) => connection.id === characterMap?.connectionId) ?? null)
-    }, [dataset, character, availablePresets, savedConnections])
-
-    const handlePresetChange = (e: any) => {
-        const preset = availablePresets.find((preset) => preset.id === e.target.value)
-        if(preset === undefined) return
-        setCurrentPreset(preset)
     }
 
     const handleConnectionChange = (e: any) => {
@@ -118,27 +119,6 @@ const ContactItem = (props: ContactItemProps) => {
         }
     }
 
-    const isCharacterSelected = () => {
-        if(character === null) return false
-        return dataset?.characters.find((char) => char.characterId === character._id) !== undefined
-    }
-
-    const handleAddCharacter = () => {
-        if(character === null) return console.log('Character is null')
-        if(dataset === null) return console.log('Dataset is null')
-        const newCharacterMap: CharacterMap = {
-            characterId: character._id,
-            connectionId: currentConnection?.id,
-            model: connectionModel,
-            settingsId: currentPreset?.id,
-            role: role
-        }
-        const newCharacters = dataset.characters.filter((char) => char.characterId !== character._id)
-        newCharacters.push(newCharacterMap)
-        updateCharacters(newCharacters)
-        updateDataset({characters: newCharacters})
-    }
-
     const handleUpdateCharacter = () => {
         if(character === null) return console.log('Character is null')
         if(dataset === null) return console.log('Dataset is null')
@@ -190,6 +170,17 @@ const ContactItem = (props: ContactItemProps) => {
         handleTestConnection()
     }, [currentConnection])
 
+    useEffect(() => {
+        if(currentPresetId === null) return
+        const preset = availablePresets.find((preset) => preset.id === currentPresetId)
+        if(preset === undefined) return
+        setCurrentPreset(preset)
+    }, [currentPresetId])
+
+    useEffect(() => {
+        handleConnectionChange({target: {value: currentConnectionId}})
+    }, [currentConnectionId])
+
     return (
         <div className="rounded-box bg-base-200 min-h-[300px] max-h-[300px] p-4 w-full grid gird-rows-3 gap-2 overflow-y-auto">
             <div className="flex flex-row w-full items-center justify-between gap-2 row-span-1">
@@ -203,10 +194,7 @@ const ContactItem = (props: ContactItemProps) => {
                     </div>
                 </div>
                 <div className="flex flex-row items-center gap-2">
-                    <button onClick={(e)=>{handleAddCharacter()}}className={"dy-btn h-full dy-btn-accent " + (!isCharacterSelected() ? '' : 'hidden')}>
-                        <Plus/>
-                    </button>
-                    <button onClick={(e)=>{handleRemoveCharacter()}}className={"dy-btn h-full dy-btn-error " + (isCharacterSelected() ? '' : 'hidden')}>
+                    <button onClick={(e)=>{()=>handleRemoveCharacter()}} className={"dy-btn h-full dy-btn-error "}>
                         <Minus/>
                     </button>
                 </div>
@@ -215,7 +203,7 @@ const ContactItem = (props: ContactItemProps) => {
                 <div className="flex flex-col w-full">
                     <p className="text-lg font-bold">Connection</p>
                     <div className="flex flex-row w-full items-center gap-2">
-                        <select onChange={handleConnectionChange} className="dy-select dy-select-bordered w-full">
+                        <select onChange={(e)=>{setCurrentConnectionId(e.target.value)}} className="dy-select dy-select-bordered w-full" value={currentConnectionId}>
                             {savedConnections.map((connection) => {
                                 return (
                                     <option value={connection.id}>{connection.name}</option>
@@ -227,7 +215,7 @@ const ContactItem = (props: ContactItemProps) => {
                 <div className="flex flex-col w-full">
                     <p className="text-lg font-bold">Model</p>
                     <div className="flex flex-row w-full items-center gap-2">
-                        <select onChange={handleModelChange} className="dy-select dy-select-bordered w-full">
+                        <select onChange={handleModelChange} className="dy-select dy-select-bordered w-full" value={connectionModel}>
                             {connectionModelList.map((model) => {
                                 return (
                                     <option value={model}>{model}</option>
@@ -241,7 +229,7 @@ const ContactItem = (props: ContactItemProps) => {
                 <div className="flex flex-col w-full">
                     <p className="text-lg font-bold">Settings</p>
                     <div className="flex flex-row w-full items-center gap-2">
-                        <select onChange={handlePresetChange} className="dy-select dy-select-bordered w-full">
+                        <select onChange={(e)=>{setCurrentPresetId(e.target.value)}} className="dy-select dy-select-bordered w-full" value={currentPresetId}>
                             {availablePresets.concat(defaultPresets).map((preset) => {
                                 return (
                                     <option value={preset.id}>{preset.name}</option>
@@ -262,7 +250,7 @@ const ContactItem = (props: ContactItemProps) => {
                 <div className="flex flex-col w-full">
                     <p className="text-lg font-bold">Settings</p>
                     <div className="flex flex-row w-full items-center gap-2">
-                        <select onChange={(e)=> setRole(e.target.value as Role)} className="dy-select dy-select-bordered w-full" >
+                        <select onChange={(e)=> setRole(e.target.value as Role)} className="dy-select dy-select-bordered w-full" value={role}>
                             {roles.map((preset) => {
                                 return (
                                     <option value={preset}>{preset}</option>
@@ -271,7 +259,7 @@ const ContactItem = (props: ContactItemProps) => {
                         </select>
                     </div>
                 </div>
-                <div className={"flex flex-col w-full" + (isCharacterSelected() ? '' : 'hidden')}>
+                <div className={"flex flex-col w-full"}>
                     <p className="text-lg font-bold">Actions</p>
                     <div className="flex flex-row w-full items-center gap-2">
                         <button onClick={()=> handleUpdateCharacter()} className="dy-btn dy-btn-primary">Update</button>

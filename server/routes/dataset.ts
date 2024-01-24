@@ -122,7 +122,7 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                 connectionid: characterMap.connectionId,
                 persona: {
                     name: nextCharacter.name,
-                    description: nextCharacter.description,
+                    description: '',
                     _id: nextCharacter._id,
                     importance: 'low',
                     avatar: nextCharacter.avatar,
@@ -147,10 +147,10 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                         throw new Error('Failed to generate response');
                     }
                     value = unparsedResponse?.choices[0]?.text.trim();
-                    refinedResponse = breakUpCommands(character.name, value, nextCharacter.name, stopList, false);
+                    refinedResponse = breakUpCommands(character.name, value, nextCharacter.name, stopList, true);
                     tries++;
                     for(let i = 0; i < badWords.length; i++){
-                        if(refinedResponse.toLowerCase().includes(badWords[i].toLowerCase())){
+                        if(refinedResponse.toLowerCase().includes(badWords[i].trim().toLowerCase())){
                             refinedResponse = '';
                             tries = 0;
                             badWordsGenerated++;

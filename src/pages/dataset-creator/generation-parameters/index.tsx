@@ -68,6 +68,19 @@ const GenerationParameters = () => {
             saveDataset(localDataset);
         }
     };
+
+    const handleDownloadAsJson = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.preventDefault();
+        const json = JSON.stringify(dataset.toJson(), null, 4);
+        const blob = new Blob([json], { type: "application/json" });
+        const href = await URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = href;
+        link.download = `${dataset.name}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
   
     return (
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="rounded-box bg-base-100 h-full w-full p-2 flex gap-2 flex-col overflow-y-scroll">
@@ -89,6 +102,7 @@ const GenerationParameters = () => {
             <label className="font-semibold">System Prompts</label>
             <textarea name="systemPrompts" value={localDataset?.systemPrompts?.join('\n')} onChange={handleChange} placeholder={`System\nPrompts`} className='dy-textarea dy-textarea-bordered'></textarea>
             <button type="submit" className='dy-btn dy-btn-primary'>Save Changes</button>
+            <button type="button" onClick={(e)=>{handleDownloadAsJson(e)}} className='dy-btn dy-btn-primary'>Download as JSON</button>
         </form>
     );
 }

@@ -7,7 +7,6 @@ import RequiredInputField, { RequiredSelectField, RequiredTextAreaField } from '
 import { useNavigate, useParams } from 'react-router-dom';
 import { confirmModal } from '../../components/shared/confirm-modal';
 import { Character, Origin } from '../../global_classes/Character';
-import StringArrayEditorCards from '../../components/shared/string-array-editor-cards';
 import TokenTextarea from '../../components/shared/token-textarea';
 import ImgRefresh from '../../components/shared/img-refresh';
 import { Alert, initTE } from "tw-elements";
@@ -17,7 +16,6 @@ import { Message } from '../../global_classes/CompletionRequest';
 import { importTavernCharacter, useWindowSize } from '../../helpers/character-card';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import ReactMarkdown from 'react-markdown';
-import { getCharacter } from '../../api/characterDB';
 import { uploadFile } from '../../api/fileServer';
 import { fetchCharacterById } from '../../api/characterAPI';
 import { useUser } from '../../components/shared/auth-provider';
@@ -87,6 +85,21 @@ const CharacterCRUD = () => {
         const fileName = await uploadFile(file);
         setAvatar(fileName);
         setWaitingForImage(false);
+        //check if file is json
+        if(file.type === 'application/json'){
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const text = e.target?.result;
+                if(typeof text === 'string'){
+                    const character = JSON.parse(text);
+                    if(character !== null){
+                        characterToForm(character);
+                    }
+                }
+            }
+            reader.readAsText(file);
+            return;
+        }
         try {
             const newCharacter = await importTavernCharacter(file).then((character) => {
                 return character;
@@ -360,7 +373,7 @@ const CharacterCRUD = () => {
                     <div className='w-full flex flex-col md:flex-row gap-4'>
                         <div className="flex flex-col w-fit">
                             <label className="font-bold w-full text-left">Avatar*</label>
-                            <span className="text-sm italic">(Click to upload. Vanilla Images and Character Cards are accepted.)</span>
+                            <span className="text-sm italic">(Click to upload. Vanilla Images and Character Cards are accepted. JSON is also accepted)</span>
                             <label htmlFor="image-upload" className="relative">
                                 <ImgRefresh src={avatar} alt={name} className="character-image" loading={waitingForImage} setLoading={setLoading}/>
                             </label>
@@ -371,7 +384,7 @@ const CharacterCRUD = () => {
                                 name="profilePicture"
                                 id="image-upload" 
                                 className="hidden" 
-                                accept=".png, .jpg, .jpeg"
+                                accept=".png, .jpg, .jpeg, .json"
                                 onChange={(e) => handleProfilePictureChange(e.target.files)}
                             />
                         </div>
