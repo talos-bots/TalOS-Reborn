@@ -143,7 +143,7 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                     avatar: nextCharacter.avatar,
                 } as UserPersona,
                 args: {
-                    modelOverride: newDataset.characters[i].model,
+                    modelOverride: characterMap.model,
                     floatingGuidance: newDataset.systemPrompts[Math.floor(Math.random() * newDataset.systemPrompts.length)],
                 }
             };
@@ -174,31 +174,31 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                     }
                     if(refinedResponse !== ''){
                         unfinished = false;
+                    } else {
+                        unfinished = true;
+                        continue;
+                    }
+                    const message: Message = {
+                        userId: character._id,
+                        fallbackName: character.name,
+                        swipes: [refinedResponse],
+                        currentIndex: 0,
+                        role: characterMap.role,
+                        thought: false,
+                    };
+                    if(compareMessageSets(messages, message)){
+                        tries = 0;
+                        unfinished = true;
+                        retries++;
+                        refinedResponse = '';
+                    } else {
+                        messages.push(message);
+                        messagesCount = messages.length;
                     }
                 } catch (error) {
                     console.error('Error during response generation:', error);
                     tries++;
                 }
-            }
-            if(refinedResponse === ''){
-                throw new Error('Failed to generate response');
-            }
-            const message: Message = {
-                userId: character._id,
-                fallbackName: character.name,
-                swipes: [refinedResponse],
-                currentIndex: 0,
-                role: characterMap.role,
-                thought: false,
-            };
-            if(compareMessageSets(messages, message)){
-                tries = 0;
-                unfinished = true;
-                retries++;
-                refinedResponse = '';
-            } else {
-                messages.push(message);
-                messagesCount = messages.length;
             }
         }
         newDataset = {...newDataset, messages: messages};
@@ -216,8 +216,8 @@ datasetsRouter.post('/generate/dataset', async (req, res) => {
     const batches = req.body.batches;
     let generatedDataset = dataset;
     for(let i = 0; i < batches; i++){
-        // if the batches are greater than 5, if the current batch is divisible by 5, insert a system note
-        if(batches > 5 && i % 5 === 0){
+        // if the batches are greater than 5, if the current message length is divisible by 5, insert a system note
+        if(dataset.messages.length > 10 && dataset.messages.length % 10 === 0){
             const systemNote: Message = {
                 userId: 'system',
                 fallbackName: 'System',

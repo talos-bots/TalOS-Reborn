@@ -113,7 +113,7 @@ export type CompletionRequest = {
 }
 
 export interface UsageArguments {
-    overrideSettings?: string | null;
+    overrideSettings?: Partial<SettingsInterface> | null;
     overrideConnection?: string | null;
     overrideInstruct?: InstructMode | null;
     humanReplyChance?: number | null;

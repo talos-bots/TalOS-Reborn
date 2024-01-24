@@ -553,6 +553,9 @@ function getSettingsAndStops(request: CompletionRequest): {settingsInfo: Setting
         stopSequences.push("You:");
         stopSequences.push("<BOT>:");
     }
+    if(request.args?.overrideSettings){
+        settingsInfo = {...settingsInfo, ...request.args.overrideSettings};
+    }
     return { settingsInfo: settingsInfo, stopSequences: stopSequences, modelInfo: modelInfo };
 }
 
