@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { ArrowLeft, ArrowRight, Cog, Contact, Plus, Smile } from "lucide-react";
+import { ArrowLeft, ArrowRight, Cog, Contact, Play, Plus, Smile, Trash } from "lucide-react";
 import { Character, UserPersona } from "../../../global_classes/Character";
 import { useEffect, useRef, useState } from "react";
 import { StoredChatLog, StoredChatMessage } from "../../../global_classes/StoredChatLog";
@@ -13,6 +13,11 @@ import ReactAnimatedEllipsis from 'react-animated-ellipsis';
 import ReactMarkdown from 'react-markdown';
 import { useNewChatLogListener, useSelectedChatLogChangedListener } from '../../../helpers/events';
 import { TEAlert } from 'tw-elements-react';
+import { useDataset } from '../../../components/dataset/DatasetProvider';
+import { generateBatchForDataset, saveDataset } from '../../../api/datasetAPI';
+import { Message } from '../../../types';
+import { fetchCharacterById } from '../../../api/characterAPI';
+import CharacterMultiSelect from '../../../components/shared/character-multi';
 
 interface ChatWindowProps {
     character: Character | null;
@@ -23,13 +28,18 @@ interface ChatWindowProps {
 }
 
 const chatWindow = (props: ChatWindowProps) => {
-    const { character, persona } = props;
+    const { dataset, setDataset } = useDataset();
     const [chatLog, setChatLog] = useState<StoredChatLog | null>(null);
-    const [chatMessages, setChatMessages] = useState<StoredChatMessage[]>([]);
+    const [chatMessages, setChatMessages] = useState<Message[]>([]);
     const [messageText, setMessageText] = useState<string>('');
     const [showTypingIndicator, setShowTypingIndicator] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
     const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
+    const [numBatches, setNumBatches] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [currentCharacters, setCurrentCharacters] = useState<Character[]>([]);
+    const [characterIds, setCharacterIds] = useState<string[]>([]);
+    const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null);
 
     const isDesktop = window.innerWidth > 768;
 
@@ -44,6 +54,51 @@ const chatWindow = (props: ChatWindowProps) => {
         setChatMessages(newChatLog.getMessages());
     });
 
+    const init = async () => {
+        if(dataset === null) return;
+        setChatMessages(dataset.messages);
+        const newCharacters: Character[] = [];
+        for(let i = 0; i < dataset.characters.length; i++){
+            const character = dataset.characters[i];
+            await fetchCharacterById(character.characterId).then((character) => {
+                if(!character) return;
+                newCharacters.push(character);
+            }).catch((error) => {
+                console.log(error);
+            });
+        }
+        setCharacterIds(dataset.characters.map((char) => char.characterId));
+        setCurrentCharacters(newCharacters);
+        if(dataset.characters.length > 0 && dataset.messages.length === 0){
+            if(!sendGreetingFromCharacter(newCharacters[0])){
+                sendGreetingFromCharacter(newCharacters[1]);
+            }
+        }
+    }
+
+    const sendGreetingFromCharacter = async (character: Character) => {
+        if(character.hasGreetings){
+            const message = character.createGreetingStoredMessage();
+            // find a character who is not the current character
+            const ch = currentCharacters.find((char) => char._id !== character._id);
+            if(!ch) return;
+            if(!message) return;
+            message.role = dataset.characters.find((char) => char.characterId === character._id)?.role ?? 'User';
+            message.replacePlaceholders(ch.name);
+            const newDataset = dataset;
+            newDataset.messages.push(message);
+            setChatMessages(newDataset.messages);
+            setDataset(newDataset);
+            saveDataset(newDataset);
+            return true;
+        }
+        return false;
+    }
+
+    useEffect(() => {
+        init();
+    }, [dataset]);
+
     useEffect(() => {
         const handleResize = () => {
             const keyboardVisible = window.innerHeight < window.outerHeight / 2;
@@ -57,90 +112,27 @@ const chatWindow = (props: ChatWindowProps) => {
             window.removeEventListener('resize', handleResize);
         };
     }, []);
-
-    useEffect(() => {
-        if(endOfChatRef.current !== null){
-            endOfChatRef?.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [chatMessages]);
-
-    useEffect(() => {
-        // Check if chatLog is not null
-        if (chatLog) {
-            if(!chatLog) return;
-            if(!character) return;
-            if(!chatLog.characters.includes(character?._id)) return;
-            setChatMessages(chatLog.getMessages());
-        } else {
-            // If chatLog is null, clear the messages
-            setChatMessages([]);
-        }
-    }, [chatLog]);
     
     const handleSendMessage = async (newMessageText: string) => {
-        if(character === null) return;
+        if(!dataset) return;
         setMessageText('');
-        const newMessage = StoredChatMessage.fromUserPersonaAndString(persona, newMessageText);
-        setChatMessages([...chatMessages, newMessage]);
-        setShowTypingIndicator(true);
-        const returnedLog: StoredChatLog = await chatLog.continueChatLogFromNewMessage(newMessageText, character, persona).then((returnedLog) => {
-            return returnedLog;
-        }).catch((error) => {
-            console.log(error);
-            setShowError(true);
-            return null;
-        });
-        setShowTypingIndicator(false);
-        if(!returnedLog) return;
-        setChatLog(returnedLog);
-        await returnedLog.saveToDB();
+        const newMessage: Message = {
+            userId: currentCharacter?._id ?? 'System',
+            role: dataset.characters.find((char) => char.characterId === currentCharacter?._id)?.role ?? 'System',
+            swipes: [newMessageText],
+            currentIndex: 0,
+            fallbackName: currentCharacter?.name ?? 'System',
+            thought: false,
+        };
+        console.log(newMessage);
+        const newDataset = dataset;
+        newDataset.messages.push(newMessage);
+        setChatMessages(newDataset.messages);
+        setDataset(newDataset);
+        saveDataset(newDataset);
     }
-
-    useNewChatLogListener(() => {
-        setChatMessages([]);
-        const newChat = new StoredChatLog();
-        if(character.hasGreetings()){
-            newChat.addMessage(character.createGreetingStoredMessage().replacePlaceholders(persona?.name ?? 'You'));
-        }
-        setMessageText('');
-        setShowError(false);
-        setShowTypingIndicator(false);
-        setChatLog(newChat);
-    });
-
-    useEffect(() => {
-        setChatMessages([]);
-        const currentLog: StoredChatLog = new StoredChatLog();
-        if(!character) return;
-        if(currentLog.messages.length === 0){
-            if(character.hasGreetings()){
-                currentLog.addMessage(character.createGreetingStoredMessage().replacePlaceholders(persona?.name ?? 'You'));
-            }
-        }
-        setChatLog(currentLog);
-    }, [character]);
-
-    const findLastAssistantMessage = () => {
-        for(let i = chatMessages.length - 1; i >= 0; i--){
-            if(chatMessages[i].role === 'Assistant'){
-                return chatMessages[i];
-            }
-        }
-        return null;
-    }
-
-    useEffect(() => {
-        const message = findLastAssistantMessage();
-        if(message === null) return;
-        const emotion = message.getEmotion();
-    }, [chatMessages]);
 
     const chatContainerStyle = isKeyboardVisible ? { maxHeight: '40vh', overflow: 'scroll' } : null;
-
-    const handleCharacterInfoClick = () => {
-        if(character === null) return;
-        props.showCharacterPopup(character);
-    }
 
     const toggleMessageBox = () => {
         setIsMessageBoxOpen(!isMessageBoxOpen);
@@ -192,6 +184,38 @@ const chatWindow = (props: ChatWindowProps) => {
         };
     }, [isMessageBoxOpen]);    
 
+    useEffect(() => {
+        if(endOfChatRef.current !== null){
+            endOfChatRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [chatMessages]);
+
+    const generateData = async () => {
+        let currentDataset = dataset;
+        setLoading(true);
+        for(let i = 0; i < numBatches; i++){
+            await generateBatchForDataset(currentDataset).then((newDataset) => {
+                setDataset(newDataset);
+                currentDataset = newDataset;
+                setChatMessages(newDataset.messages);
+                saveDataset(newDataset);
+            }).catch((error) => {
+                console.log(error);
+                setShowError(true);
+            });
+        }
+        setChatMessages(dataset.messages)
+        setLoading(false);
+    }
+
+    const clearMessages = () => {
+        const newDataset = dataset;
+        setChatMessages([]);
+        newDataset.messages = [];
+        setDataset(newDataset);
+        saveDataset(newDataset);
+    }
+
     return (
         <div className="col-span-full md:col-span-7 md:rounded-box bg-base-300 md:p-4 md:max-h-[90vh] flex flex-col gap-2 p-2" style={chatContainerStyle}>
             <TEAlert dismiss delay={5000} open={showError} autohide onClose={
@@ -205,55 +229,73 @@ const chatWindow = (props: ChatWindowProps) => {
                     Please try again later.
                 </span>
             </TEAlert>
-            <h3 className={"font-bold text-center flex flex-row gap-2 justify-between md:justify-center items-center"}>
-                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm md:hidden" onClick={props.toggleLeftDrawer}>
-                    <Contact/>
-                </button>
-                <div className="flex flex-row gap-2 justify-center items-center">
-                    <span className="text-xl">Dataset Generation Tool</span>
-                </div>
-                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm md:hidden" onClick={props.toggleRightDrawer}>
-                    <Cog/>
-                </button>
-            </h3>
-            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 max-h-[calc(92.5vh-180px)] min-h-[calc(92.5vh-180px)]"}>
-                {chatMessages.map((message, index) => {
-                    return (
-                        <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
-                            <div className="dy-chat-header">
-                                {message.role !== 'User' ? (character?.name? character?.name : 'none') : persona?.name ?? 'You'}
-                            </div>
-                            <div className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
-                                <ReactMarkdown 
-                                    components={{
-                                        em: ({ node, ...props }) => <i {...props} />,
-                                        b: ({ node, ...props }) => <b {...props} />,
-                                        code: ({ node, ...props }) => <code {...props} />,
-                                    }}
-                                >
-                                    {message.swipes[message.currentIndex]}
-                                </ReactMarkdown>
-                            </div>
-                        </div>
-                    );
-                })}
-                {showTypingIndicator && 
-                    <div className="dy-chat dy-chat-start">
-                        <div className="dy-chat-header">
-                            {character?.name? character?.name : 'Them'}
-                        </div>
-                        <div className="dy-chat-bubble dy-chat-bubble-secondary">
-                            <ReactAnimatedEllipsis />
+            {loading && (
+                <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
+                    <div className="bg-base-300 rounded-box p-2 md:p-6">
+                        <div className="flex flex-row justify-center items-center">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
                         </div>
                     </div>
-                }
+                </div>
+            )}
+            <h3 className={"font-bold text-center flex flex-row gap-2 justify-between md:justify-center items-center"}>
+                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm" onClick={() => clearMessages()}>
+                    <Trash/>
+                </button>
+                <div className="flex flex-row gap-2 justify-center items-center">
+                    <span className="text-xl">Number of Batches</span>
+                </div>
+                <button className="dy-btn dy-btn-secondary dy-btn-outline dy-btn-sm" onClick={() => generateData()}>
+                    <Play/>
+                </button>
+                <input type="number" className="dy-input dy-input-bordered dy-input-sm" value={numBatches} onChange={(e) => setNumBatches(parseInt(e.target.value))} min={1} max={2000}/>
+                <div className='flex flex-col text-sm'>
+                    <select
+                        aria-label='Select a character to impersonate as'
+                        className="dy-select dy-select-bordered" 
+                        value={currentCharacter?._id} onChange={(e) => {
+                        const character = currentCharacters.find((char) => char._id === e.target.value);
+                        setCurrentCharacter(character ?? null);
+                    }}>
+                        <option value={''}>Impersonate as</option>
+                        {currentCharacters.map((character, index) => {
+                            return (
+                                <option key={index} value={character._id}>{character.name}</option>
+                            );
+                        })}
+                    </select>
+                </div>
+            </h3>
+            <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 max-h-[calc(92.5vh-180px)] min-h-[calc(92.5vh-180px)]"}>
+                {Array.isArray(chatMessages) && chatMessages.map((message, index) => {
+                    return (
+                        <>
+                            <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
+                                <div className="dy-chat-header">
+                                    {message.fallbackName ?? 'None'}
+                                </div>
+                                <div className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
+                                    <ReactMarkdown 
+                                        components={{
+                                            em: ({ node, ...props }) => <i {...props} />,
+                                            b: ({ node, ...props }) => <b {...props} />,
+                                            code: ({ node, ...props }) => <code {...props} />,
+                                        }}
+                                    >
+                                        {message.swipes[message.currentIndex]}
+                                    </ReactMarkdown>
+                                </div>
+                            </div>
+                        </>
+                    );
+                })}
                 <div ref={endOfChatRef}></div>
             </div>
             <div className={`flex flex-row gap-2 justify-center min-h-[115px] max-h-[115px] md:max-h-none md:min-h-[60px] md:flex-grow`}>
                 <textarea
-                    disabled={character === null || showError}
+                    disabled={showError || showTypingIndicator}
                     className="dy-textarea w-full h-full overflow-y-scroll resize-none"
-                    placeholder="Type a message..."
+                    placeholder={`Type a message as ${currentCharacter?.name ?? 'System'}`}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     onFocus={(e) => {
@@ -278,7 +320,7 @@ const chatWindow = (props: ChatWindowProps) => {
                     }}
                 />
                 <button
-                    disabled={character === null || showError || showTypingIndicator}
+                    disabled={showError || showTypingIndicator}
                     className="dy-btn dy-btn-accent flex-grow h-full"
                     onClick={(e) => {
                         if(showTypingIndicator) return;

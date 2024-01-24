@@ -141,23 +141,23 @@ export interface AppSettingsInterface {
 }
 
 export interface UsageArguments {
-    overrideSettings: string | null;
-    overrideConnection: string | null;
-    overrideInstruct: InstructMode | null;
-    humanReplyChance: number | null;
-    humanMentionReplyChance: number | null;
-    botReplyChance: number | null;
-    botMentionReplyChance: number | null;
-    doThoughts: boolean | null;
-    doSelfies: boolean | null;
-    doEmotions: boolean | null;
-    doSprites: boolean | null;
-    doBackgrounds: boolean | null;
-    doAnimations: boolean | null;
-    doSounds: boolean | null;
-    badWords: string[] | null;
-    modelOverride: string | null;
-    floatingGuidance: string | null;
+    overrideSettings?: string | null;
+    overrideConnection?: string | null;
+    overrideInstruct?: InstructMode | null;
+    humanReplyChance?: number | null;
+    humanMentionReplyChance?: number | null;
+    botReplyChance?: number | null;
+    botMentionReplyChance?: number | null;
+    doThoughts?: boolean | null;
+    doSelfies?: boolean | null;
+    doEmotions?: boolean | null;
+    doSprites?: boolean | null;
+    doBackgrounds?: boolean | null;
+    doAnimations?: boolean | null;
+    doSounds?: boolean | null;
+    badWords?: string[] | null;
+    modelOverride?: string | null;
+    floatingGuidance?: string | null;
 }
 
 export interface DiscordConfig {
@@ -203,4 +203,34 @@ export interface DatasetInterface {
     systemPrompts: string[];
     retries: number;
     badWordsGenerated: number;
+}
+
+export type Message = {
+    userId: string;
+    fallbackName: string;
+    swipes: string[];
+    currentIndex: number;
+    role: Role;
+    thought: boolean;
+};
+
+export const defaultPaLMFilters = {
+    HARM_CATEGORY_UNSPECIFIED: "BLOCK_NONE",
+    HARM_CATEGORY_DEROGATORY: "BLOCK_NONE",
+    HARM_CATEGORY_TOXICITY: "BLOCK_NONE",
+    HARM_CATEGORY_VIOLENCE: "BLOCK_NONE",
+    HARM_CATEGORY_SEXUAL: "BLOCK_NONE",
+    HARM_CATEGORY_MEDICAL: "BLOCK_NONE",
+    HARM_CATEGORY_DANGEROUS: "BLOCK_NONE"
+}
+
+export type PaLMFilterType = 'BLOCK_NONE' | 'BLOCK_ONLY_HIGH' | 'BLOCK_MEDIUM_AND_ABOVE' | 'BLOCK_LOW_AND_ABOVE' | 'HARM_BLOCK_THRESHOLD_UNSPECIFIED';
+export interface PaLMFilters {
+    HARM_CATEGORY_UNSPECIFIED: PaLMFilterType;
+    HARM_CATEGORY_DEROGATORY: PaLMFilterType;
+    HARM_CATEGORY_TOXICITY: PaLMFilterType;
+    HARM_CATEGORY_VIOLENCE: PaLMFilterType;
+    HARM_CATEGORY_SEXUAL: PaLMFilterType;
+    HARM_CATEGORY_MEDICAL: PaLMFilterType;
+    HARM_CATEGORY_DANGEROUS: PaLMFilterType;
 }

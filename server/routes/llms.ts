@@ -6,7 +6,7 @@ import express from 'express';
 import { authenticateToken } from './authenticate-token.js';
 import axios from 'axios';
 import { DefaultSettings } from '../defaults/settings.js';
-import { CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, OpenAIMessage, OpenAIRole, SettingsInterface, UserPersona } from '../typings/types.js';
+import { AppSettingsInterface, CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, OpenAIMessage, OpenAIRole, SettingsInterface, UserPersona } from '../typings/types.js';
 import { ChatMessage } from '../typings/discordBot.js';
 export const llmsRouter = express.Router();
 
@@ -377,47 +377,22 @@ async function formatCompletionRequest(request: CompletionRequest) {
     }else{
         character = request.character;
     }
-
     let prompt = "";
-
-    // Fetching settings information
-    let settingsid = request.settingsid;
-    const appSettings = fetchAllAppSettings();
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
+    const data = getSettingsAndStops(request);
+    if(!data){
+        return null;
     }
-    if(settingsid.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
-
+    const { settingsInfo, stopSequences, modelInfo } = data;
     // Handling character information for Mistral mode
+    let characterPrompt = "";
     if(character && settingsInfo.instruct_mode === "Mistral") {
-        let characterPrompt = getCharacterPromptFromConstruct(character);
+        characterPrompt = getCharacterPromptFromConstruct(character);
         if(characterPrompt.trim().length > 0) {
             prompt += `[INST] Write ${character.name}'s next reply in this fictional roleplay with ${request.persona?.name || "User"}.\n\n ${characterPrompt.trim()} [/INST]\n\n`;
         }
     }
 
     const characterPromptTokens = getTokens(prompt);
-    console.log(appSettings);
-
-    let connectionid = request.connectionid;
-    if(!connectionid) {
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid) {
-        return null;
-    }
-
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo) {
-        return null;
-    }
-
     if(request.persona && request.persona.description && request.persona.description.trim() !== "" && request.persona.importance === 'low') {
         prompt += `[${request.persona.description.trim()}]`;
     }
@@ -450,24 +425,9 @@ async function formatCompletionRequest(request: CompletionRequest) {
     return prompt.replace(new RegExp('{{user}}', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('{{char}}', 'g'), `${character.name}`).replace(new RegExp('<USER>', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('<user>', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('<char>', 'g'), `${character.name}`).replace(new RegExp('<CHAR>', 'g'), `${character.name}`);
 }
 
-function getStopSequences(messages: ChatMessage[]){
+function getSettingsAndStops(request: CompletionRequest): {settingsInfo: SettingsInterface, stopSequences: string[], modelInfo: GenericCompletionConnectionTemplate } | null{
     const stopSequences: string[] = [];
-    for(let i = 0; i < messages.length; i++){
-        const message = messages[i];
-        if(stopSequences.includes(`${message.fallbackName}:`) || message.role === "System" || message.thought === true || message.role === "Assistant"){
-            continue;
-        } else {
-            stopSequences.push(`${message.fallbackName}:`);
-        }
-    }
-    return stopSequences;
-}
-
-async function getMancerCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
-    const stopSequences = getStopSequences(request.messages);
     const appSettings = fetchAllAppSettings();
-    console.log(appSettings);
     let connectionid = request.connectionid;
     if(!connectionid){
         connectionid = appSettings?.defaultConnection ?? "";
@@ -483,92 +443,7 @@ async function getMancerCompletion(request: CompletionRequest){
     if(!settingsid){
         settingsid = appSettings?.defaultSettings ?? "1";
     }
-    if(!settingsid) return;
-    if(settingsid?.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
-    if(modelInfo.model === "weaver-alpha" || modelInfo.model === "mythomax"){
-        stopSequences.push("###");
-    }
-    if(modelInfo.model === "synthia-70b" || modelInfo.model === "goliath-120b"){
-        stopSequences.push("USER:");
-        stopSequences.push("ASSISTANT:");
-    }
-    if(modelInfo.model === "mythalion"){
-        stopSequences.push("<|user|>");
-        stopSequences.push("<|model|>");
-    }
-    if(settingsInfo.instruct_mode === "Alpaca"){
-        stopSequences.push("###");
-    }
-    if(settingsInfo.instruct_mode === "Vicuna"){
-        stopSequences.push("USER:");
-        stopSequences.push("ASSISTANT:");
-    }
-    if(settingsInfo.instruct_mode === "Metharme"){
-        stopSequences.push("<|user|>");
-        stopSequences.push("<|model|>");
-    }
-    if(settingsInfo.instruct_mode === "Pygmalion"){
-        stopSequences.push("You:");
-        stopSequences.push("<BOT>:");
-    }
-    const settingsProper = SettingsInterfaceToMancerSettings(settingsInfo);
-    const body = {
-        'model': modelInfo.model,
-        'prompt': prompt,
-        'stop': stopSequences,
-        ...settingsProper,
-    }
-    console.log(body);
-    try {
-        const response = await fetch(`https://neuro.mancer.tech/oai/v1/completions`, {
-            method: 'POST',
-            body: JSON.stringify(body),
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${modelInfo.key?.trim()}`,
-            },
-        });
-        const json = await response.json();
-        return json;
-    } catch (error) {
-        console.error('Error in getMancerCompletion:', error);
-        return null;
-    }
-}
-
-llmsRouter.post('/completions/mancer', authenticateToken, async (req, res) => {
-    const request = req.body as CompletionRequest;
-    const response = await getMancerCompletion(request);
-    res.send(response);
-});
-
-async function getGenericCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
-    const stopSequences = getStopSequences(request.messages);
-    const appSettings = fetchAllAppSettings();
-    console.log(appSettings);
-    let connectionid = request.connectionid;
-    if(!connectionid){
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid){
-        return null;
-    }
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
-    }
-    if(!settingsid) return;
+    if(!settingsid) return null;
     if(settingsid?.length < 1){
         settingsid = "1";
     }
@@ -602,8 +477,83 @@ async function getGenericCompletion(request: CompletionRequest){
         stopSequences.push("You:");
         stopSequences.push("<BOT>:");
     }
+    return { settingsInfo: settingsInfo, stopSequences: stopSequences, modelInfo: modelInfo };
+}
+
+function getStopSequences(messages: ChatMessage[]){
+    const stopSequences: string[] = [];
+    for(let i = 0; i < messages.length; i++){
+        const message = messages[i];
+        if(stopSequences.includes(`${message.fallbackName}:`) || message.role === "System" || message.thought === true || message.role === "Assistant"){
+            continue;
+        } else {
+            stopSequences.push(`${message.fallbackName}:`);
+        }
+    }
+    return stopSequences;
+}
+
+async function getMancerCompletion(request: CompletionRequest){
+    const prompt = await formatCompletionRequest(request);
+    const data = getSettingsAndStops(request);
+    if(!data){
+        return null;
+    }
+    const { settingsInfo, stopSequences, modelInfo } = data;
+    stopSequences.push(...getStopSequences(request.messages));
+    const settingsProper = SettingsInterfaceToMancerSettings(settingsInfo);
+    let model = modelInfo.model;
+    if(request.args?.modelOverride){
+        if(request.args.modelOverride.trim().length > 0){
+            model = request.args.modelOverride.trim();
+        }
+    }
     const body = {
-        'model': modelInfo.model,
+        'model': model,
+        'prompt': prompt,
+        'stop': stopSequences,
+        ...settingsProper,
+    }
+    console.log(body);
+    try {
+        const response = await fetch(`https://neuro.mancer.tech/oai/v1/completions`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${modelInfo.key?.trim()}`,
+            },
+        });
+        const json = await response.json();
+        return json;
+    } catch (error) {
+        console.error('Error in getMancerCompletion:', error);
+        return null;
+    }
+}
+
+llmsRouter.post('/completions/mancer', authenticateToken, async (req, res) => {
+    const request = req.body as CompletionRequest;
+    const response = await getMancerCompletion(request);
+    res.send(response);
+});
+
+async function getGenericCompletion(request: CompletionRequest){
+    const prompt = await formatCompletionRequest(request);
+    const data = getSettingsAndStops(request);
+    if(!data){
+        return null;
+    }
+    const { settingsInfo, stopSequences, modelInfo } = data;
+    stopSequences.push(...getStopSequences(request.messages));
+    let model = modelInfo.model;
+    if(request.args?.modelOverride){
+        if(request.args.modelOverride.trim().length > 0){
+            model = request.args.modelOverride.trim();
+        }
+    }
+    const body = {
+        'model': model,
         'prompt': prompt,
         'stop': stopSequences,
         'stream': false,
@@ -650,56 +600,17 @@ async function getGoogleCompletion(request: CompletionRequest){
     }
 }
 
-const defaultPaLMFilters = {
-    HARM_CATEGORY_UNSPECIFIED: "BLOCK_NONE",
-    HARM_CATEGORY_DEROGATORY: "BLOCK_NONE",
-    HARM_CATEGORY_TOXICITY: "BLOCK_NONE",
-    HARM_CATEGORY_VIOLENCE: "BLOCK_NONE",
-    HARM_CATEGORY_SEXUAL: "BLOCK_NONE",
-    HARM_CATEGORY_MEDICAL: "BLOCK_NONE",
-    HARM_CATEGORY_DANGEROUS: "BLOCK_NONE"
-}
-
-type PaLMFilterType = 'BLOCK_NONE' | 'BLOCK_ONLY_HIGH' | 'BLOCK_MEDIUM_AND_ABOVE' | 'BLOCK_LOW_AND_ABOVE' | 'HARM_BLOCK_THRESHOLD_UNSPECIFIED';
-interface PaLMFilters {
-    HARM_CATEGORY_UNSPECIFIED: PaLMFilterType;
-    HARM_CATEGORY_DEROGATORY: PaLMFilterType;
-    HARM_CATEGORY_TOXICITY: PaLMFilterType;
-    HARM_CATEGORY_VIOLENCE: PaLMFilterType;
-    HARM_CATEGORY_SEXUAL: PaLMFilterType;
-    HARM_CATEGORY_MEDICAL: PaLMFilterType;
-    HARM_CATEGORY_DANGEROUS: PaLMFilterType;
-}
-
 async function getPaLMCompletion(request: CompletionRequest){
     const prompt = await formatCompletionRequest(request);
-    const appSettings = fetchAllAppSettings();
     if(!prompt){
         return null;
     }
-    let connectionid = request.connectionid;
-    if(!connectionid){
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid){
+    const data = getSettingsAndStops(request);
+    if(!data){
         return null;
     }
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
-    }
-    if(!settingsid) return;
-    if(settingsid?.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
+    const { settingsInfo, stopSequences, modelInfo } = data;
+    stopSequences.push(...getStopSequences(request.messages));
     const PaLM_Payload = {
         "prompt": {
             text: `${prompt.toString()}`,
@@ -791,33 +702,15 @@ async function getPaLMCompletion(request: CompletionRequest){
 
 async function getGeminiCompletion(request: CompletionRequest){
     const prompt = await formatCompletionRequest(request);
-    const appSettings = fetchAllAppSettings();
     if(!prompt){
         return null;
     }
-    let connectionid = request.connectionid;
-    if(!connectionid){
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid){
+    const data = getSettingsAndStops(request);
+    if(!data){
         return null;
     }
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
-    }
-    if(!settingsid) return;
-    if(settingsid?.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
+    const { settingsInfo, stopSequences, modelInfo } = data;
+    stopSequences.push(...getStopSequences(request.messages));
     const PaLM_Payload = {
         "contents": [
             {
@@ -897,36 +790,20 @@ async function getGeminiCompletion(request: CompletionRequest){
 async function getOpenAICompletion(request: CompletionRequest){
     try {
         const messages = messagesToOpenAIChat(request.messages);
-        const stopSequences = getStopSequences(request.messages);
-        const appSettings = fetchAllAppSettings();
-        if(!messages){
+        const data = getSettingsAndStops(request);
+        if(!data){
             return null;
         }
-        let connectionid = request.connectionid;
-        if(!connectionid){
-            connectionid = appSettings?.defaultConnection ?? "";
-        }
-        if(!connectionid){
-            return null;
-        }
-        const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-        if(!modelInfo){
-            return null;
-        }
-        let settingsid = request.settingsid;
-        if(!settingsid){
-            settingsid = appSettings?.defaultSettings ?? "1";
-        }
-        if(!settingsid) return;
-        if(settingsid?.length < 1){
-            settingsid = "1";
-        }
-        let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-        if(!settingsInfo){
-            settingsInfo = DefaultSettings[0];
-        }
+        const { settingsInfo, stopSequences, modelInfo } = data;
+        stopSequences.push(...getStopSequences(request.messages));
         if(modelInfo.model === ''){
             throw new Error('No valid response from LLM.');
+        }
+        let model = modelInfo.model;
+        if(request.args?.modelOverride){
+            if(request.args.modelOverride.trim().length > 0){
+                model = request.args.modelOverride.trim();
+            }
         }
         const response = await axios('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -935,7 +812,7 @@ async function getOpenAICompletion(request: CompletionRequest){
                 "Authorization": `Bearer ${modelInfo.key?.trim()}`,
             },
             data: {
-                "model": modelInfo.model,
+                "model": model,
                 "messages": messages,
                 "stop": stopSequences,
                 "max_tokens": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
@@ -984,59 +861,20 @@ async function getOpenAICompletion(request: CompletionRequest){
 export async function getOpenRouterCompletion(request: CompletionRequest){
     try {
         const prompt = await formatCompletionRequest(request);
-        const stopSequences = getStopSequences(request.messages);
-        const appSettings = fetchAllAppSettings();
-        let connectionid = request.connectionid;
-        if(!connectionid){
-            connectionid = appSettings?.defaultConnection ?? "";
-        }
-        if(!connectionid){
+        const data = getSettingsAndStops(request);
+        if(!data){
             return null;
         }
-        const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-        if(!modelInfo){
-            return null;
-        }
-        let settingsid = request.settingsid;
-        if(!settingsid){
-            settingsid = appSettings?.defaultSettings ?? "1";
-        }
-        if(!settingsid) return;
-        if(settingsid?.length < 1){
-            settingsid = "1";
-        }
-        let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-        if(!settingsInfo){
-            settingsInfo = DefaultSettings[0];
-        }
-        if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
-            stopSequences.push("###");
-        }
-        if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
-            stopSequences.push("USER:");
-            stopSequences.push("ASSISTANT:");
-        }
-        if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
-            stopSequences.push("<|user|>");
-            stopSequences.push("<|model|>");
-        }
-        if(settingsInfo.instruct_mode === "Alpaca"){
-            stopSequences.push("###");
-        }
-        if(settingsInfo.instruct_mode === "Vicuna"){
-            stopSequences.push("USER:");
-            stopSequences.push("ASSISTANT:");
-        }
-        if(settingsInfo.instruct_mode === "Metharme"){
-            stopSequences.push("<|user|>");
-            stopSequences.push("<|model|>");
-        }
-        if(settingsInfo.instruct_mode === "Pygmalion"){
-            stopSequences.push("You:");
-            stopSequences.push("<BOT>:");
+        const { settingsInfo, stopSequences, modelInfo } = data;
+        stopSequences.push(...getStopSequences(request.messages));
+        let model = modelInfo.model;
+        if(request.args?.modelOverride){
+            if(request.args.modelOverride.trim().length > 0){
+                model = request.args.modelOverride.trim();
+            }
         }
         const body = {
-            'model': modelInfo.model,
+            'model': model,
             'prompt': prompt,
             'stop': stopSequences,
             'stream': false,
@@ -1095,58 +933,12 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
 
 export async function getKoboldAICompletion(request: CompletionRequest){
     const prompt = await formatCompletionRequest(request);
-    const stopSequences = getStopSequences(request.messages);
-    const appSettings = fetchAllAppSettings();
-    console.log(appSettings);
-    let connectionid = request.connectionid;
-    if(!connectionid){
-        connectionid = appSettings?.defaultConnection ?? "";
-    }
-    if(!connectionid){
+    const data = getSettingsAndStops(request);
+    if(!data){
         return null;
     }
-    const modelInfo = fetchConnectionById(connectionid) as GenericCompletionConnectionTemplate;
-    if(!modelInfo){
-        return null;
-    }
-    let settingsid = request.settingsid;
-    if(!settingsid){
-        settingsid = appSettings?.defaultSettings ?? "1";
-    }
-    if(!settingsid) return;
-    if(settingsid?.length < 1){
-        settingsid = "1";
-    }
-    let settingsInfo = fetchSettingById(settingsid) as SettingsInterface;
-    if(!settingsInfo){
-        settingsInfo = DefaultSettings[0];
-    }
-    if((settingsInfo.instruct_mode === 'Alpaca') || modelInfo.model?.includes("weaver-alpha") || modelInfo.model?.includes("mythomax")){
-        stopSequences.push("###");
-    }
-    if((settingsInfo.instruct_mode === 'Vicuna') || modelInfo.model?.includes("goliath-120b")){
-        stopSequences.push("USER:");
-        stopSequences.push("ASSISTANT:");
-    }
-    if(modelInfo.model?.includes("mythalion") || (settingsInfo.instruct_mode === 'Metharme')){
-        stopSequences.push("<|user|>");
-        stopSequences.push("<|model|>");
-    }
-    if(settingsInfo.instruct_mode === "Alpaca"){
-        stopSequences.push("###");
-    }
-    if(settingsInfo.instruct_mode === "Vicuna"){
-        stopSequences.push("USER:");
-        stopSequences.push("ASSISTANT:");
-    }
-    if(settingsInfo.instruct_mode === "Metharme"){
-        stopSequences.push("<|user|>");
-        stopSequences.push("<|model|>");
-    }
-    if(settingsInfo.instruct_mode === "Pygmalion"){
-        stopSequences.push("You:");
-        stopSequences.push("<BOT>:");
-    }
+    const { settingsInfo, stopSequences, modelInfo } = data;
+    stopSequences.push(...getStopSequences(request.messages));
     const body = {
         'prompt': prompt,
         'stop_sequence': stopSequences,

@@ -17,7 +17,7 @@ const DataSetCreator = () => {
     const { user } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
-
+    
     useEffect(() => {
         if(!user?.id) navigate(`/login?redirect=dataset`);
     }, [user, navigate, location]);

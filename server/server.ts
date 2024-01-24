@@ -25,6 +25,7 @@ import { discordConfigRoute } from './routes/discordConfig.js';
 import { DiscordManagementRouter, startDiscordRoutes } from './routes/discord.js';
 import { roomsRouter } from './routes/rooms.js';
 import { AppSettingsInterface } from './typings/types.js';
+import { datasetsRouter } from './routes/dataset.js';
 
 const defaultAppSettings: AppSettingsInterface = {
     defaultConnection: "",
@@ -441,6 +442,7 @@ async function main(){
     expressApp.use('/api', discordConfigRoute);
     expressApp.use('/api/discordManagement', DiscordManagementRouter)
     expressApp.use('/api/rooms', roomsRouter);
+    expressApp.use('/api', datasetsRouter);
     startDiscordRoutes();
 
     function checkIfTauriAppIsOpen() {

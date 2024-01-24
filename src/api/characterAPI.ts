@@ -45,7 +45,6 @@ export async function fetchAllCharacters(): Promise<Character[]> {
     }
 
     const data = await response.data
-    console.log(data);
     if(!Array.isArray(data)) return [];
     return data.map((character: any) => Character.fromJSON(character));
 }

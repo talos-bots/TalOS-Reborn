@@ -31,7 +31,6 @@ export async function fetchSettingById(id: string): Promise<SettingsInterface | 
     }
 
     const data = await response.data
-    console.log(data);
     return data as SettingsInterface;
 }
 
@@ -43,7 +42,6 @@ export async function fetchAllSettings(): Promise<SettingsInterface[]> {
     }
 
     const data = await response.data
-    console.log(data);
     return data.map((character: any) => character as SettingsInterface);
 }
 
@@ -55,7 +53,6 @@ export async function fetchDefaultSettings(): Promise<SettingsInterface[] | null
     }
 
     const data = await response.data
-    console.log(data);
     return data.map((character: any) => character as SettingsInterface);
 }
 

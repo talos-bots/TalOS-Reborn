@@ -87,7 +87,7 @@ export function convertDiscordMessageToRoomMessage(message: Message): RoomMessag
 }
 
 
-export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = false): string {
+export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = true): string {
     const lines = commandString.split('\n').filter((line) => {
         return line.trim() !== '';
     });
@@ -155,7 +155,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     const removedEmptyLines = formattedCommands.filter((command) => {
         return command.trim() !== '';
     });
-    const final = removedEmptyLines.join('\n');
+    const final = removedEmptyLines.join('   ');
     return final.replaceAll('<start>', '').replaceAll('<end>', '')
     .replaceAll('###', '').replaceAll('<user>', '')
     .replaceAll('user:', '').replaceAll('USER:', '')
