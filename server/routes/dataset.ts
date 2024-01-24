@@ -6,7 +6,7 @@ import { CharacterInterface, CompletionRequest, DatasetInterface, UserPersona } 
 import { Message } from '../typings/types.js';
 import { fetchCharacterById } from './characters.js';
 import { getSettingsAndStops, handleCompletionRequest } from './llms.js';
-import { breakUpCommands, getRandomSystemPrompt } from '../helpers/index.js';
+import { breakUpCommands, getRandomSystemPrompt, removeBrackets, removeSymbolsBasedOnFirstOccurrence } from '../helpers/index.js';
 export const datasetsRouter = express.Router();
 
 // get all datasets from the ../data/datasets/ folder
@@ -82,7 +82,7 @@ datasetsRouter.delete('/datasets/:id', (req, res) => {
 
 function compareMessageSets(a: Message[], b: Message) {
     // find out if the content of the message already exists in the dataset
-    const aMessages = a.map((message) => {
+    const aMessages = a.slice(a.length - 10, a.length - 1).map((message) => {
         return message.swipes[0];
     });
     const bMessages = b.swipes[0];
@@ -170,7 +170,7 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                         throw new Error('Failed to generate response');
                     }
                     value = unparsedResponse?.choices[0]?.text.trim();
-                    refinedResponse = breakUpCommands(character.name, value, nextCharacter.name, stopList);
+                    refinedResponse = removeSymbolsBasedOnFirstOccurrence(removeBrackets(breakUpCommands(character.name, value, nextCharacter.name, stopList)));
                     tries++;
                     for(let i = 0; i < badWords.length; i++){
                         if(refinedResponse.toLowerCase().includes(badWords[i].trim().toLowerCase())){
@@ -195,7 +195,6 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                         thought: false,
                     };
                     if(compareMessageSets(messages, message)){
-                        tries = 0;
                         unfinished = true;
                         retries++;
                         refinedResponse = '';
@@ -208,6 +207,10 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
                     console.error('Error during response generation:', error);
                     tries++;
                 }
+            }
+            if(refinedResponse === ''){
+                console.error('Failed to generate response');
+                continue;
             }
         }
         newDataset = {...newDataset, messages: messages};

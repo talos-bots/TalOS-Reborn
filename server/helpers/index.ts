@@ -86,7 +86,7 @@ export function convertDiscordMessageToRoomMessage(message: Message): RoomMessag
     }
 }
 
-function removeSymbolsBasedOnFirstOccurrence(input: string): string {
+export function removeSymbolsBasedOnFirstOccurrence(input: string): string {
     const firstAsteriskIndex = input.indexOf('*');
     const firstQuoteIndex = input.indexOf('"');
 
@@ -103,6 +103,14 @@ function removeSymbolsBasedOnFirstOccurrence(input: string): string {
     }
 }
 
+//create a function that removes any html tags from a string
+export function removeHTMLTags(input: string): string {
+    return input.replace(/<[^>]*>?/gm, '');
+}
+
+export function removeBrackets(input: string): string {
+    return input.replace(/\[.*?\]/g, '');
+}
 
 export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = true): string {
     const lines = commandString.split('\n').filter((line) => {
@@ -119,7 +127,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
                 command = lines[1];
             }
         }
-        return removeSymbolsBasedOnFirstOccurrence(command.replaceAll('<start>', '')
+        return removeHTMLTags(command.replaceAll('<start>', '')
         .replaceAll('<end>', '').replaceAll('###', '')
         .replaceAll('<user>', '').replaceAll('user:', '')
         .replaceAll('USER:', '').replaceAll('ASSISTANT:', '')
@@ -173,7 +181,7 @@ export function breakUpCommands(charName: string, commandString: string, user = 
         return command.trim() !== '';
     });
     const final = removedEmptyLines.join('\n');
-    return removeSymbolsBasedOnFirstOccurrence(final.replaceAll('<start>', '').replaceAll('<end>', '')
+    return removeHTMLTags(final.replaceAll('<start>', '').replaceAll('<end>', '')
     .replaceAll('###', '').replaceAll('<user>', '')
     .replaceAll('user:', '').replaceAll('USER:', '')
     .replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '')
