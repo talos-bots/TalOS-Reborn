@@ -117,13 +117,14 @@ const chatWindow = (props: ChatWindowProps) => {
         if(!dataset) return;
         setMessageText('');
         const newMessage: Message = {
-            userId: currentCharacter._id,
-            role: dataset.characters.find((char) => char.characterId === currentCharacter._id)?.role ?? 'User',
+            userId: currentCharacter?._id ?? 'System',
+            role: dataset.characters.find((char) => char.characterId === currentCharacter?._id)?.role ?? 'System',
             swipes: [newMessageText],
             currentIndex: 0,
-            fallbackName: currentCharacter?.name ?? 'User',
+            fallbackName: currentCharacter?.name ?? 'System',
             thought: false,
         };
+        console.log(newMessage);
         const newDataset = dataset;
         newDataset.messages.push(newMessage);
         setChatMessages(newDataset.messages);
@@ -292,9 +293,9 @@ const chatWindow = (props: ChatWindowProps) => {
             </div>
             <div className={`flex flex-row gap-2 justify-center min-h-[115px] max-h-[115px] md:max-h-none md:min-h-[60px] md:flex-grow`}>
                 <textarea
-                    disabled={!currentCharacter || showError || showTypingIndicator}
+                    disabled={showError || showTypingIndicator}
                     className="dy-textarea w-full h-full overflow-y-scroll resize-none"
-                    placeholder={`Type a message as ${currentCharacter?.name ?? 'User'}`}
+                    placeholder={`Type a message as ${currentCharacter?.name ?? 'System'}`}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     onFocus={(e) => {
@@ -319,7 +320,7 @@ const chatWindow = (props: ChatWindowProps) => {
                     }}
                 />
                 <button
-                    disabled={!currentCharacter || showError || showTypingIndicator}
+                    disabled={showError || showTypingIndicator}
                     className="dy-btn dy-btn-accent flex-grow h-full"
                     onClick={(e) => {
                         if(showTypingIndicator) return;
