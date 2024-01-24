@@ -100,7 +100,7 @@ export interface OpenAIMessage {
 
 export type Role = "System" | "Assistant" | "User";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion";
+export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion" | "ChatML";
 
 export class UserPersona{
     _id: string = (new Date().getTime()).toString();

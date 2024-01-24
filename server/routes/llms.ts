@@ -99,6 +99,20 @@ function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
                 return getTokens(`<BOT>: ${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
             }
             return getTokens(`${message.swipes[message.currentIndex]}`);
+        case "ChatML":
+            if(message.role === "System"){
+                return getTokens(`<|im_start|>system\n${message.swipes[message.currentIndex]}\n`);
+            }
+            else if(message.thought === true){
+                return getTokens(`<|im_start|>assistant\n${message.fallbackName}'s Thoughts: ${message.swipes[message.currentIndex]}\n`);
+            }
+            else if(message.role === "User"){
+                return getTokens(`<|im_start|>user\n${message.fallbackName}: ${message.swipes[message.currentIndex]}\n`);
+            }
+            else if(message.role === "Assistant"){
+                return getTokens(`<|im_start|>assistant\n${message.fallbackName}: ${message.swipes[message.currentIndex]}\n`);
+            }
+            return getTokens(`<|im_start|>system\n${message.swipes[message.currentIndex]}\n`);
         default:
             if(message.role === "System"){
                 return getTokens(message.swipes[message.currentIndex]);
@@ -354,6 +368,44 @@ function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: 
 	return prompt;
 }
 
+export function assembleChatMLFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
+    let prompt = "";
+    const newMessages = fillChatContextToLimit(messages, contextLength, "ChatML");
+    for(let i = 0; i < newMessages.length; i++){
+        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
+
+        if(newMessages[i].role === 'System'){
+            prompt += `<|im_start|>system\n${messageText}\n`;
+            continue;
+        } else if (newMessages[i].thought === true) {
+			prompt += `<|im_start|>assistant\n${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
+        } else {
+            if (newMessages[i].role === 'User') {
+                prompt += `<|im_start|>user\n${newMessages[i].fallbackName}: ${messageText}\n`;
+            } else {
+                prompt += `<|im_start|>assistant\n${newMessages[i].fallbackName}: ${messageText}\n`;
+            }
+        }
+        // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
+        if(i === newMessages.length - 3 && system_prompt.length > 0){
+            for(let j = 0; j < system_prompt.length; j++){
+                prompt += `<|im_start|>system\n${system_prompt[j]}\n`;
+            }
+        }
+        if(i === newMessages.length - 3 && persona){
+            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
+                prompt += `[${persona.description.trim()}]\n`;
+            }
+        }
+    }
+    // If the last message was not from the bot, we append an empty response for the bot
+    if (newMessages.length > 0) {
+        prompt += `<|im_start|>assistant\n${constructName}:`;
+    }
+
+    return prompt;
+}
+
 export function getCharacterPromptFromConstruct(character: CharacterInterface) {
     let prompt = '';
 
@@ -412,6 +464,11 @@ async function formatCompletionRequest(request: CompletionRequest) {
         if(characterPrompt.trim().length > 0) {
             prompt += `### Instruction:\n${characterPrompt.trim()}\n`;
         }
+    } else if (character && settingsInfo.instruct_mode === "ChatML"){
+        characterPrompt = getCharacterPromptFromConstruct(character);
+        if(characterPrompt.trim().length > 0) {
+            prompt += `<|im_start|>system\n${characterPrompt.trim()}\n`;
+        }
     } else {
         characterPrompt = getCharacterPromptFromConstruct(character);
         if(characterPrompt.trim().length > 0) {
@@ -438,6 +495,9 @@ async function formatCompletionRequest(request: CompletionRequest) {
                 case "Pygmalion":
                     systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
                     break;
+                case "ChatML":
+                    systemPrompts.push(`<|im_start|>system\n${request.args.floatingGuidance.trim()}\n`);
+                    break;
                 default:
                     systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
                     break;
@@ -446,29 +506,6 @@ async function formatCompletionRequest(request: CompletionRequest) {
     }
 
     const characterPromptTokens = getTokens(prompt);
-    if(request.persona && request.persona.description && request.persona.description.trim() !== "" && request.persona.importance === 'low') {
-        switch(settingsInfo.instruct_mode){
-            case "Alpaca":
-                prompt += `### Instruction:\n[${request.persona.description.trim()}]\n`;
-                break;
-            case "Vicuna":
-                prompt += `SYSTEM: [${request.persona.description.trim()}]\n`;
-                break;
-            case "Mistral":
-                prompt += `[INST]\n[${request.persona.description.trim()}]\n[/INST]\n\n`;
-                break;
-            case "Metharme":
-                prompt += `<|system|>[${request.persona.description.trim()}]`;
-                break;
-            case "Pygmalion":
-                prompt += `[${request.persona.description.trim()}]\n`;
-                break;
-            default:
-                prompt += `[${request.persona.description.trim()}]\n`;
-                break;
-        }
-    }
-
     const leftoverTokens = (settingsInfo.context_length - characterPromptTokens) - 800;
     if(character){
         if(character.system_prompt.trim().length > 0){
@@ -492,6 +529,9 @@ async function formatCompletionRequest(request: CompletionRequest) {
             break;
         case "Pygmalion":
             prompt += assemblePygmalionPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
+            break;
+        case "ChatML":
+            prompt += assembleChatMLFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
             break;
         default:
             prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);

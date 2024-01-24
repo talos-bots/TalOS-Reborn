@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { SettingsInterface } from "../../types";
+import { InstructMode, SettingsInterface } from "../../types";
 import { deleteSettingById, fetchAllSettings, fetchDefaultSettings, getAppSettingsSettings, saveSettingToLocal, setAppSettingsSettings } from "../../api/settingsAPI";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion";
-
-const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "Mistral", "None", "Metharme", "Pygmalion"];
+const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "Mistral", "None", "Metharme", "Pygmalion", "ChatML"];
 
 const GenerationSettings = () => {
     const [maxContextLength, setMaxContextLength] = useState<number>(localStorage.getItem('maxContextLength') ? parseInt(localStorage.getItem('maxContextLength') as string) : 2048);
