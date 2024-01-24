@@ -228,7 +228,7 @@ function assembleMistralPromptFromLog(messages: ChatMessage[], contextLength: nu
         systemInfo += `\n${persona.description.trim()}`;
     }
     if(systemInfo !== "") {
-        prompt += `[INST]\n${systemInfo}\n[/INST]\n\n`;
+        prompt += `${systemInfo}\n`;
     }
 
     const newMessages = fillChatContextToLimit(messages, contextLength, "Mistral");
@@ -237,14 +237,14 @@ function assembleMistralPromptFromLog(messages: ChatMessage[], contextLength: nu
         const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
 
         if(newMessages[i].role === 'User') {
-            prompt += `[INST] ${newMessages[i].fallbackName}: ${messageText} [/INST]\n`;
+            prompt += `[INST] ${newMessages[i].fallbackName}: ${messageText} [/INST] `;
         } else if(newMessages[i].role === 'Assistant') {
-            prompt += `${constructName}: ${messageText}\n`;
+            prompt += `${constructName}: ${messageText}`;
         }
     }
 
     // Append constructName for the AI to continue from there
-    prompt += `${constructName}:\n`;
+    prompt += `${constructName}:`;
 
     return prompt;
 }
@@ -442,7 +442,7 @@ async function formatCompletionRequest(request: CompletionRequest) {
     if(character && settingsInfo.instruct_mode === "Mistral") {
         characterPrompt = getCharacterPromptFromConstruct(character);
         if(characterPrompt.trim().length > 0) {
-            prompt += `[INST] Write ${character.name}'s next reply in this fictional roleplay with ${request.persona?.name || "User"}.\n\n ${characterPrompt.trim()} [/INST]\n\n`;
+            prompt += `${characterPrompt.trim()}\n`;
         }
     } else if(character && settingsInfo.instruct_mode === "Pygmalion") {
         characterPrompt = getCharacterPromptFromConstruct(character);
@@ -487,7 +487,7 @@ async function formatCompletionRequest(request: CompletionRequest) {
                     systemPrompts.push(`SYSTEM: ${request.args.floatingGuidance.trim()}\n`);
                     break;
                 case "Mistral":
-                    systemPrompts.push(`[INST]\n${request.args.floatingGuidance.trim()}\n[/INST]\n\n`);
+                    systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
                     break;
                 case "Metharme":
                     systemPrompts.push(`<|system|>${request.args.floatingGuidance.trim()}`);
