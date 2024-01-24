@@ -67,9 +67,9 @@ export const removeDatasetById = async (id : string) => {
 };
 
 // Generate data for a dataset
-export const generateBatchForDataset = async (dataset: Dataset) => {
+export const generateBatchForDataset = async (dataset: Dataset, batches: number) => {
   try {
-    const response = await api.post('/generate/dataset', dataset);
+    const response = await api.post('/generate/dataset', { dataset: dataset, batches: batches });
     return new Dataset(
         response.data.id,
         response.data.name,

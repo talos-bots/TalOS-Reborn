@@ -382,7 +382,7 @@ async function formatCompletionRequest(request: CompletionRequest) {
     if(!data){
         return null;
     }
-    const { settingsInfo, stopSequences, modelInfo } = data;
+    const { settingsInfo } = data;
     // Handling character information for Mistral mode
     let characterPrompt = "";
     if(character && settingsInfo.instruct_mode === "Mistral") {
@@ -390,11 +390,80 @@ async function formatCompletionRequest(request: CompletionRequest) {
         if(characterPrompt.trim().length > 0) {
             prompt += `[INST] Write ${character.name}'s next reply in this fictional roleplay with ${request.persona?.name || "User"}.\n\n ${characterPrompt.trim()} [/INST]\n\n`;
         }
+    } else if(character && settingsInfo.instruct_mode === "Pygmalion") {
+        characterPrompt = getCharacterPromptFromConstruct(character);
+        if(characterPrompt.trim().length > 0) {
+            prompt += `${characterPrompt.trim()}\n`;
+        }
+    } else if(character && settingsInfo.instruct_mode === "Metharme") {
+        characterPrompt = `<|system|> ${getCharacterPromptFromConstruct(character).replaceAll('\n', ' ')}`
+        if(characterPrompt.trim().length > 0) {
+            prompt += `${characterPrompt.trim()}`;
+        }
+    } else if(character && settingsInfo.instruct_mode === "Vicuna") {
+        characterPrompt = getCharacterPromptFromConstruct(character);
+        if(characterPrompt.trim().length > 0) {
+            prompt += `SYSTEM: ${characterPrompt.trim()}\n`;
+        }
+    } else if(character && settingsInfo.instruct_mode === "Alpaca") {
+        characterPrompt = getCharacterPromptFromConstruct(character);
+        if(characterPrompt.trim().length > 0) {
+            prompt += `### Instruction:\n${characterPrompt.trim()}\n`;
+        }
+    } else {
+        characterPrompt = getCharacterPromptFromConstruct(character);
+        if(characterPrompt.trim().length > 0) {
+            prompt += `${characterPrompt.trim()}\n`;
+        }
     }
 
+    // handle floatingGuidance
+    if(request.args?.floatingGuidance){
+        if(request.args.floatingGuidance.trim().length > 0){
+            switch(settingsInfo.instruct_mode){
+                case "Alpaca":
+                    prompt += `### Instruction:\n${request.args.floatingGuidance.trim()}\n`;
+                    break;
+                case "Vicuna":
+                    prompt += `SYSTEM: ${request.args.floatingGuidance.trim()}\n`;
+                    break;
+                case "Mistral":
+                    prompt += `[INST]\n${request.args.floatingGuidance.trim()}\n[/INST]\n\n`;
+                    break;
+                case "Metharme":
+                    prompt += `<|system|>${request.args.floatingGuidance.trim()}`;
+                    break;
+                case "Pygmalion":
+                    prompt += `${request.args.floatingGuidance.trim()}\n`;
+                    break;
+                default:
+                    prompt += `${request.args.floatingGuidance.trim()}\n`;
+                    break;
+            }
+        }
+    }
     const characterPromptTokens = getTokens(prompt);
     if(request.persona && request.persona.description && request.persona.description.trim() !== "" && request.persona.importance === 'low') {
-        prompt += `[${request.persona.description.trim()}]`;
+        switch(settingsInfo.instruct_mode){
+            case "Alpaca":
+                prompt += `### Instruction:\n[${request.persona.description.trim()}]\n`;
+                break;
+            case "Vicuna":
+                prompt += `SYSTEM: [${request.persona.description.trim()}]\n`;
+                break;
+            case "Mistral":
+                prompt += `[INST]\n[${request.persona.description.trim()}]\n[/INST]\n\n`;
+                break;
+            case "Metharme":
+                prompt += `<|system|>[${request.persona.description.trim()}]`;
+                break;
+            case "Pygmalion":
+                prompt += `[${request.persona.description.trim()}]\n`;
+                break;
+            default:
+                prompt += `[${request.persona.description.trim()}]\n`;
+                break;
+        }
     }
 
     const leftoverTokens = (settingsInfo.context_length - characterPromptTokens) - 800;

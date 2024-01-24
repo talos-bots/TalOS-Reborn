@@ -212,7 +212,16 @@ async function generateData(dataset: DatasetInterface): Promise<DatasetInterface
 }
 
 datasetsRouter.post('/generate/dataset', async (req, res) => {
-    const dataset = req.body;
-    const generatedDataset = await generateData(dataset);
+    const dataset = req.body.dataset;
+    const batches = req.body.batches;
+    let generatedDataset = dataset;
+    for(let i = 0; i < batches; i++){
+        const newData = await generateData(generatedDataset);
+        if(!newData){
+            res.status(500).send({ message: "Failed to generate data for dataset" });
+            return;
+        }
+        generatedDataset = newData;
+    }   
     res.send(generatedDataset);
 });

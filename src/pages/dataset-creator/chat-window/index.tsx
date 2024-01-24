@@ -17,7 +17,6 @@ import { useDataset } from '../../../components/dataset/DatasetProvider';
 import { generateBatchForDataset, saveDataset } from '../../../api/datasetAPI';
 import { Message } from '../../../types';
 import { fetchCharacterById } from '../../../api/characterAPI';
-import CharacterMultiSelect from '../../../components/shared/character-multi';
 
 interface ChatWindowProps {
     character: Character | null;
@@ -55,7 +54,7 @@ const chatWindow = (props: ChatWindowProps) => {
     });
 
     const init = async () => {
-        if(dataset === null) return;
+        if(dataset === null) return console.log('Dataset is null');
         setChatMessages(dataset.messages);
         const newCharacters: Character[] = [];
         for(let i = 0; i < dataset.characters.length; i++){
@@ -81,8 +80,8 @@ const chatWindow = (props: ChatWindowProps) => {
             const message = character.createGreetingStoredMessage();
             // find a character who is not the current character
             const ch = currentCharacters.find((char) => char._id !== character._id);
-            if(!ch) return;
-            if(!message) return;
+            if(!ch) return false;
+            if(!message) return false;
             message.role = dataset.characters.find((char) => char.characterId === character._id)?.role ?? 'User';
             message.replacePlaceholders(ch.name);
             const newDataset = dataset;
@@ -193,18 +192,16 @@ const chatWindow = (props: ChatWindowProps) => {
     const generateData = async () => {
         let currentDataset = dataset;
         setLoading(true);
-        for(let i = 0; i < numBatches; i++){
-            await generateBatchForDataset(currentDataset).then((newDataset) => {
-                setDataset(newDataset);
-                currentDataset = newDataset;
-                setChatMessages(newDataset.messages);
-                saveDataset(newDataset);
-            }).catch((error) => {
-                console.log(error);
-                setShowError(true);
-            });
-        }
-        setChatMessages(dataset.messages)
+        await generateBatchForDataset(currentDataset, numBatches).then((newDataset) => {
+            setDataset(newDataset);
+            currentDataset = newDataset;
+            setChatMessages(newDataset.messages);
+            saveDataset(newDataset);
+        }).catch((error) => {
+            console.log(error);
+            setShowError(true);
+        });
+        setChatMessages(currentDataset.messages);
         setLoading(false);
     }
 
@@ -269,24 +266,23 @@ const chatWindow = (props: ChatWindowProps) => {
             <div className={"w-full bg-base-100 rounded-box overflow-y-scroll pl-2 pt-2 max-h-[calc(92.5vh-180px)] min-h-[calc(92.5vh-180px)]"}>
                 {Array.isArray(chatMessages) && chatMessages.map((message, index) => {
                     return (
-                        <>
-                            <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
-                                <div className="dy-chat-header">
-                                    {message.fallbackName ?? 'None'}
-                                </div>
-                                <div className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
-                                    <ReactMarkdown 
-                                        components={{
-                                            em: ({ node, ...props }) => <i {...props} />,
-                                            b: ({ node, ...props }) => <b {...props} />,
-                                            code: ({ node, ...props }) => <code {...props} />,
-                                        }}
-                                    >
-                                        {message.swipes[message.currentIndex]}
-                                    </ReactMarkdown>
-                                </div>
+                        <div key={index} className={"dy-chat " + (message.role !== 'User' ? 'dy-chat-start' : 'dy-chat-end')}>
+                            <div key={index} className="dy-chat-header">
+                                {message.fallbackName ?? 'None'}
                             </div>
-                        </>
+                            <div key={index} className={(message.role !== 'User' ? 'dy-chat-bubble dy-chat-bubble-secondary' : 'dy-chat-bubble')}>
+                                <ReactMarkdown
+                                    key={index}
+                                    components={{
+                                        em: ({ node, ...props }) => <i {...props} />,
+                                        b: ({ node, ...props }) => <b {...props} />,
+                                        code: ({ node, ...props }) => <code {...props} />,
+                                    }}
+                                >
+                                    {message.swipes[message.currentIndex]}
+                                </ReactMarkdown>
+                            </div>
+                        </div>
                     );
                 })}
                 <div ref={endOfChatRef}></div>

@@ -191,9 +191,9 @@ const ContactItem = (props: ContactItemProps) => {
                     <p className="text-lg font-bold">Connection</p>
                     <div className="flex flex-row w-full items-center gap-2">
                         <select onChange={(e)=>{setCurrentConnectionId(e.target.value)}} className="dy-select dy-select-bordered w-full" value={currentConnectionId}>
-                            {savedConnections.map((connection) => {
+                            {savedConnections.map((connection, index) => {
                                 return (
-                                    <option value={connection.id}>{connection.name}</option>
+                                    <option key={index} value={connection.id}>{connection.name}</option>
                                 )
                             })}
                         </select>
@@ -204,9 +204,9 @@ const ContactItem = (props: ContactItemProps) => {
                     <div className="flex flex-row w-full items-center gap-2">
                         <select onChange={handleModelChange} className="dy-select dy-select-bordered w-full" value={connectionModel}>
                             <option value={''}>Default</option>
-                            {connectionModelList.map((model) => {
+                            {connectionModelList.map((model, index) => {
                                 return (
-                                    <option value={model}>{model}</option>
+                                    <option key={index} value={model}>{model}</option>
                                 )
                             })}
                         </select>
@@ -219,9 +219,9 @@ const ContactItem = (props: ContactItemProps) => {
                     <div className="flex flex-row w-full items-center gap-2">
                         <select onChange={(e) => {setCurrentPresetId(e.target.value)}} className="dy-select dy-select-bordered w-full" value={currentPresetId}>
                             <option value={''}>Default</option>
-                            {availablePresets.concat(defaultPresets).map((preset) => {
+                            {availablePresets.concat(defaultPresets).map((preset, index) => {
                                 return (
-                                    <option value={preset.id}>{preset.name}</option>
+                                    <option key={index} value={preset.id}>{preset.name}</option>
                                 )
                             })}
                         </select>
@@ -240,9 +240,9 @@ const ContactItem = (props: ContactItemProps) => {
                     <p className="text-lg font-bold">Settings</p>
                     <div className="flex flex-row w-full items-center gap-2">
                         <select onChange={(e)=> setRole(e.target.value as Role)} className="dy-select dy-select-bordered w-full" value={role}>
-                            {roles.map((preset) => {
+                            {roles.map((preset, index) => {
                                 return (
-                                    <option value={preset}>{preset}</option>
+                                    <option key={index} value={preset}>{preset}</option>
                                 )
                             })}
                         </select>
