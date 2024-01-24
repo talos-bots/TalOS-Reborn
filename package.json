@@ -11,7 +11,7 @@
     "dev-react": "vite --host",
     "start-server": "cd ./server && npm run start",
     "build-all": "concurrently \"npm run build\" \"cd ./server && npm run build\"",
-    "build-react": "vite build",
+    "build-react": "NODE_OPTIONS='--max-old-space-size=4096' vite build",
     "build-server": "cd ./server && npm run build",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
