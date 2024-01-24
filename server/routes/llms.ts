@@ -501,7 +501,7 @@ async function formatCompletionRequest(request: CompletionRequest) {
     return prompt.replace(new RegExp('{{user}}', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('{{char}}', 'g'), `${character.name}`).replace(new RegExp('<USER>', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('<user>', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('<char>', 'g'), `${character.name}`).replace(new RegExp('<CHAR>', 'g'), `${character.name}`);
 }
 
-function getSettingsAndStops(request: CompletionRequest): {settingsInfo: SettingsInterface, stopSequences: string[], modelInfo: GenericCompletionConnectionTemplate } | null{
+export function getSettingsAndStops(request: CompletionRequest): {settingsInfo: SettingsInterface, stopSequences: string[], modelInfo: GenericCompletionConnectionTemplate } | null{
     const stopSequences: string[] = [];
     const appSettings = fetchAllAppSettings();
     let connectionid = request.connectionid;
