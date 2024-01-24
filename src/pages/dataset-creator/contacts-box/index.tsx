@@ -30,14 +30,12 @@ const ContactsBox = () => {
         }
         const newCharacters = dataset.characters.filter((char) => char.characterId !== character._id)
         newCharacters.push(newCharacterMap)
-        setCharacterIds(newCharacters.map((char) => char.characterId))
         updateDataset({characters: newCharacters})
     }
 
     const handleRemoveCharacter = ( characterId: string ) => {
         if(dataset === null) return console.log('Dataset is null')
         const newCharacters = dataset.characters.filter((char) => char.characterId !== characterId)
-        setCharacterIds(newCharacters.map((char) => char.characterId))
         updateDataset({characters: newCharacters})
     }
 
@@ -75,12 +73,12 @@ const ContactsBox = () => {
 
     useEffect(() => {
         if(dataset === null) return;
+        // see if the characters in the dataset have changed
         const oldIds = dataset.characters.map((char) => char.characterId);
+        if(oldIds.length === characterIds.length) return;
         for (const id of characterIds) {
             if (!oldIds.includes(id)) {
                 handleAddCharacter(id);
-            } else {
-                console.log('Character already exists in dataset')
             }
         }
         // find characters that are in the old dataset but not in the new one

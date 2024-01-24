@@ -127,7 +127,7 @@ const ContactItem = (props: ContactItemProps) => {
             characterId: character._id,
             connectionId: currentConnection?.id,
             model: connectionModel ?? '',
-            settingsId: currentPreset?.id ?? '',
+            settingsId: currentPresetId,
             role: role
         }
         const newCharacters = dataset.characters.filter((char) => char.characterId !== character._id)
@@ -156,12 +156,6 @@ const ContactItem = (props: ContactItemProps) => {
         }
         console.log('fail Updated dataset')
     };
-
-    
-    useEffect(() => {
-        if(currentConnection === null) return
-        handleTestConnection()
-    }, [currentConnection])
 
     useEffect(() => {
         if(currentPresetId === null) return
@@ -209,6 +203,7 @@ const ContactItem = (props: ContactItemProps) => {
                     <p className="text-lg font-bold">Model</p>
                     <div className="flex flex-row w-full items-center gap-2">
                         <select onChange={handleModelChange} className="dy-select dy-select-bordered w-full" value={connectionModel}>
+                            <option value={''}>Default</option>
                             {connectionModelList.map((model) => {
                                 return (
                                     <option value={model}>{model}</option>
@@ -222,7 +217,8 @@ const ContactItem = (props: ContactItemProps) => {
                 <div className="flex flex-col w-full">
                     <p className="text-lg font-bold">Settings</p>
                     <div className="flex flex-row w-full items-center gap-2">
-                        <select onChange={(e)=>{setCurrentPresetId(e.target.value)}} className="dy-select dy-select-bordered w-full" value={currentPresetId}>
+                        <select onChange={(e) => {setCurrentPresetId(e.target.value)}} className="dy-select dy-select-bordered w-full" value={currentPresetId}>
+                            <option value={''}>Default</option>
                             {availablePresets.concat(defaultPresets).map((preset) => {
                                 return (
                                     <option value={preset.id}>{preset.name}</option>
