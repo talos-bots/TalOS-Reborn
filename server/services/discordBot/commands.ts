@@ -70,103 +70,107 @@ export const DefaultCommands: SlashCommand[] = [
         name: 'swapchar',
         description: 'Opens character management menu.',
         execute: async (interaction: CommandInteraction) => {
-            if (interaction.channelId === null) {
-                await interaction.reply({
-                content: "This command can only be used in a server channel.",
-                });
-                return;
-            }
-            if(interaction.guildId === null){
-                await interaction.reply({
-                content: "This command can only be used in a server channel.",
-                });
-                return;
-            }
-            const pipeline = RoomPipeline.getRoomByChannelId(interaction.channelId);
-            if(!pipeline){
-                await interaction.reply({
-                    content: "This channel is not a room.",
-                });
-                return;
-            }
-            let currentPage = 0;
-            const itemsPerPage = 10;
-            const charEmbed = new EmbedBuilder().setTitle("Choose a Character").setDescription('React with the number of the character to add or remove it from the chat log.').addFields([{name: 'Characters', value: 'Loading...'}])
-            const charArray = await fetchAllCharacters();
-            const menuMessage = await interaction.reply({ embeds: [charEmbed], fetchReply: true }) as Message;
-            const updateMenu = async (page: number) => {
-                const start = page * itemsPerPage;
-                const end = start + itemsPerPage;
-                const fields = [];
-                let number = 1;
-                for (let i = start; i < end && i < charArray.length; i++) {
-                    console.log(charArray[i]);
-                    fields.push({
-                        name: `${getEmojiByNumber(number)} ${charArray[i].name}`,
-                        value: `${pipeline?.characters.includes(charArray[i]._id) ? '(Currently in Chat) ✅' : '(Not in Chat) ❎'}`,
+            try {
+                if (interaction.channelId === null) {
+                    await interaction.reply({
+                    content: "This command can only be used in a server channel.",
                     });
-                    number++;
+                    return;
                 }
-                fields.push({
-                    name: 'Page:',
-                    value: `${page + 1}/${Math.ceil(charArray.length / itemsPerPage)}`,
-                });
-                const newEmbed = new EmbedBuilder().setTitle("Choose which Characters to add to the Channel").setFields(fields).setDescription('React with the number of the char to add or remove it from the chat log.');
-                await menuMessage.edit({ embeds: [newEmbed] });
-                if (currentPage > 0) await menuMessage.react('◀');
-                if ((currentPage + 1) * itemsPerPage < charArray.length) await menuMessage.react('▶');
-                // Add number reactions based on items in current page
-                for (let i = start; i < end && i < charArray.length; i++) {
-                    await menuMessage.react(['1️⃣', `2️⃣`, '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'][i % 10]);
+                if(interaction.guildId === null){
+                    await interaction.reply({
+                    content: "This command can only be used in a server channel.",
+                    });
+                    return;
                 }
-            };
-
-            const collector = menuMessage.createReactionCollector({ time: 60000 });
-
-            collector.on('collect', async (reaction: any, user: any) => {
-                if (user.bot) return;
-                if(!reaction.message.guild) return;
-                if(!reaction) return;
-                if(!reaction.emoji) return;
-                if(!reaction.emoji.name) return;
-
-                const index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'].indexOf(reaction.emoji.name);
-                if (index !== -1) {
-                    const charIndex = currentPage * itemsPerPage + index;
-                    if (charIndex < charArray.length) {
-                        // Call addCharacterToChatLog with appropriate char ID
-                        if(!pipeline?.characters.includes(charArray[charIndex]._id)){
-                            pipeline.addCharacter(charArray[charIndex]._id);
-                            pipeline.saveToFile();
-                        }else{
-                            pipeline.removeCharacter(charArray[charIndex]._id);
-                            pipeline.saveToFile();
-                        }
+                const pipeline = RoomPipeline.getRoomByChannelId(interaction.channelId);
+                if(!pipeline){
+                    await interaction.reply({
+                        content: "This channel is not a room.",
+                    });
+                    return;
+                }
+                let currentPage = 0;
+                const itemsPerPage = 10;
+                const charEmbed = new EmbedBuilder().setTitle("Choose a Character").setDescription('React with the number of the character to add or remove it from the chat log.').addFields([{name: 'Characters', value: 'Loading...'}])
+                const charArray = await fetchAllCharacters();
+                const menuMessage = await interaction.reply({ embeds: [charEmbed], fetchReply: true }) as Message;
+                const updateMenu = async (page: number) => {
+                    const start = page * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    const fields = [];
+                    let number = 1;
+                    for (let i = start; i < end && i < charArray.length; i++) {
+                        console.log(charArray[i]);
+                        fields.push({
+                            name: `${getEmojiByNumber(number)} ${charArray[i].name}`,
+                            value: `${pipeline?.characters.includes(charArray[i]._id) ? '(Currently in Chat) ✅' : '(Not in Chat) ❎'}`,
+                        });
+                        number++;
                     }
-                    await updateMenu(currentPage);
-                } else if (reaction.emoji.name === '◀' && currentPage > 0) {
-                    currentPage--;
-                    await updateMenu(currentPage);
-                } else if (reaction.emoji.name === '▶' && (currentPage + 1) * itemsPerPage < charArray.length) {
-                    currentPage++;
-                    await updateMenu(currentPage);
-                } else if (reaction.emoji.name === '❎') {
-                    // clear all chars
-                    pipeline.clearAllCharacters();
-                    pipeline.saveToFile();
-                } else if(reaction.emoji.name === '🗑️'){
-                    menuMessage.delete();
-                    collector.stop();
-                    pipeline.saveToFile();
+                    fields.push({
+                        name: 'Page:',
+                        value: `${page + 1}/${Math.ceil(charArray.length / itemsPerPage)}`,
+                    });
+                    const newEmbed = new EmbedBuilder().setTitle("Choose which Characters to add to the Channel").setFields(fields).setDescription('React with the number of the char to add or remove it from the chat log.');
+                    await menuMessage.edit({ embeds: [newEmbed] });
+                    if (currentPage > 0) await menuMessage.react('◀');
+                    if ((currentPage + 1) * itemsPerPage < charArray.length) await menuMessage.react('▶');
+                    // Add number reactions based on items in current page
+                    for (let i = start; i < end && i < charArray.length; i++) {
+                        await menuMessage.react(['1️⃣', `2️⃣`, '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'][i % 10]);
+                    }
+                };
+    
+                const collector = menuMessage.createReactionCollector({ time: 60000 });
+    
+                collector.on('collect', async (reaction: any, user: any) => {
+                    if (user.bot) return;
+                    if(!reaction.message.guild) return;
+                    if(!reaction) return;
+                    if(!reaction.emoji) return;
+                    if(!reaction.emoji.name) return;
+    
+                    const index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'].indexOf(reaction.emoji.name);
+                    if (index !== -1) {
+                        const charIndex = currentPage * itemsPerPage + index;
+                        if (charIndex < charArray.length) {
+                            // Call addCharacterToChatLog with appropriate char ID
+                            if(!pipeline?.characters.includes(charArray[charIndex]._id)){
+                                pipeline.addCharacter(charArray[charIndex]._id);
+                                pipeline.saveToFile();
+                            }else{
+                                pipeline.removeCharacter(charArray[charIndex]._id);
+                                pipeline.saveToFile();
+                            }
+                        }
+                        await updateMenu(currentPage);
+                    } else if (reaction.emoji.name === '◀' && currentPage > 0) {
+                        currentPage--;
+                        await updateMenu(currentPage);
+                    } else if (reaction.emoji.name === '▶' && (currentPage + 1) * itemsPerPage < charArray.length) {
+                        currentPage++;
+                        await updateMenu(currentPage);
+                    } else if (reaction.emoji.name === '❎') {
+                        // clear all chars
+                        pipeline.clearAllCharacters();
+                        pipeline.saveToFile();
+                    } else if(reaction.emoji.name === '🗑️'){
+                        menuMessage.delete();
+                        collector.stop();
+                        pipeline.saveToFile();
+                    }
+    
+                    // Remove the user's reaction
+                    await reaction.users.remove(user.id);
+                });
+                try{
+                    updateMenu(0);
+                }catch(e){
+                    console.log(e);
                 }
-
-                // Remove the user's reaction
-                await reaction.users.remove(user.id);
-            });
-            try{
-                updateMenu(0);
-            }catch(e){
-                console.log(e);
+            } catch (error) {
+                console.log(error);
             }
         },
     } as SlashCommand,

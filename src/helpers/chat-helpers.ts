@@ -2,6 +2,7 @@
 import { sendCompletionRequest } from "../api/connectionAPI";
 import { Character } from "../global_classes/Character";
 import { Message } from "../global_classes/CompletionRequest";
+import { CharacterInterface, InstructMode } from "../types";
 
 export async function continueConversation(messages: Message[], character: Character){
     const unparsedResponse = await sendCompletionRequest(messages, character).then((response) => {
@@ -129,4 +130,78 @@ export function breakUpCommands(charName: string, commandString: string, user = 
     .replaceAll('<|model|>', '').replaceAll(`${charName}: `, '')
     .replaceAll(`${user}: `, '').replaceAll(`<BOT>`, charName)
     .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
+}
+
+function getNamesFromMessages(messages: Message[]): string[] {
+    const names: string[] = [];
+    messages.forEach((message) => {
+        if (!names.includes(message.fallbackName)) {
+            names.push(message.fallbackName);
+        }
+    });
+    return names;
+}
+
+export function breakUpStringToMessages(string: string, messages: Message[], stopList: string[], character: CharacterInterface): Message[] {
+    const lines = string.split('\n').filter(line => line.trim() !== '');
+    const names = getNamesFromMessages(messages);
+    const formattedMessages: Message[] = [];
+    let currentMessage = '';
+    let isFirstLine = true;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lineLower = line.toLocaleLowerCase();
+
+        // Check if line is in stop list
+        if (stopList.some(stop => lineLower.startsWith(stop.toLocaleLowerCase()))) {
+            break;
+        }
+
+        const colonIndex = line.indexOf(':');
+        if (colonIndex === -1) {
+            currentMessage += (isFirstLine ? '' : '\n') + line;
+            isFirstLine = false;
+            continue;
+        }
+
+        const potentialName = line.substring(0, colonIndex);
+        if (names.includes(potentialName)) {
+            if (currentMessage) {
+                formattedMessages.push(createMessage(currentMessage, character._id, potentialName));
+            }
+            currentMessage = line.substring(colonIndex + 1).trim();
+            isFirstLine = true;
+        } else {
+            // Stop processing if the line before the colon is not a name and is less than 32 characters
+            if (colonIndex < 32) {
+                break;
+            }
+            currentMessage += (isFirstLine ? '' : '\n') + line;
+            isFirstLine = false;
+        }
+    }
+
+    if (currentMessage) {
+        formattedMessages.push(createMessage(currentMessage, character._id, names[0])); // Default to the first name if no match found
+    }
+
+    return formattedMessages;
+}
+
+function createMessage(text: string, userId: string, fallbackName: string): Message {
+    const swipeText = removeHTMLTags(text.trim().replaceAll('<start>', '').replaceAll('<end>', '')
+    .replaceAll('###', '').replaceAll('<user>', '')
+    .replaceAll('user:', '').replaceAll('USER:', '')
+    .replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '')
+    .replaceAll('<|model|>', '').replaceAll('</s>', '')
+    .replaceAll('<s>', ''));
+    return {
+        userId: userId,
+        fallbackName: fallbackName,
+        swipes: [swipeText],
+        currentIndex: 0,
+        role: 'Assistant',
+        thought: false,
+    };
 }

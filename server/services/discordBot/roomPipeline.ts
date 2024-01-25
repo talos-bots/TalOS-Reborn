@@ -7,6 +7,7 @@ import { fetchCharacterById } from "../../routes/characters.js";
 import { handleCompletionRequest } from "../../routes/llms.js";
 import { breakUpCommands } from "../../helpers/index.js";
 import { CompletionRequest, Role, UsageArguments, UserPersona } from "../../typings/types.js";
+import { updateRoomFromFile } from "../../routes/discord.js";
 
 export class RoomPipeline implements Room {
     public _id: string = '';
@@ -182,6 +183,7 @@ export class RoomPipeline implements Room {
         } catch (error) {
             console.error('Failed to save room to file:', error);
         }
+        updateRoomFromFile(this._id)
     }
 
     public static loadFromFile(roomId: string): RoomPipeline {
