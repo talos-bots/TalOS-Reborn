@@ -121,7 +121,7 @@ export const DefaultCommands: SlashCommand[] = [
                     }
                 };
     
-                const collector = menuMessage.createReactionCollector({ time: 20000 });
+                const collector = menuMessage.createReactionCollector({ time: 60000 });
     
                 collector.on('collect', async (reaction: any, user: any) => {
                     try {

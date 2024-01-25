@@ -127,7 +127,7 @@ async function processCharacterData(characterData: any): Promise<Character> {
     if(characterData.system_prompt && characterData.system_prompt.trim().length > 0){
         construct.system_prompt = characterData.system_prompt.replaceAll('\r', '')
     }
-    if (characterData.alternate_greetings && characterData.alternate_greetings.length > 0) {
+    if (characterData.alternate_greetings && characterData.alternate_greetings.length > 0 && Array.isArray(characterData.alternate_greetings)) {
         characterData.alternate_greetings.forEach((greeting: string) => {
             construct.alternate_greetings.push(greeting.replaceAll('\r', ''));
         });
