@@ -112,6 +112,7 @@ export const DefaultCommands: SlashCommand[] = [
                         name: 'Page:',
                         value: `${page + 1}/${Math.ceil(charArray.length / itemsPerPage)}`,
                     });
+                    if(!menuMessage) return;
                     const newEmbed = new EmbedBuilder().setTitle("Choose which Characters to add to the Channel").setFields(fields).setDescription('React with the number of the char to add or remove it from the chat log.');
                     await menuMessage.edit({ embeds: [newEmbed] });
                     if (currentPage > 0) await menuMessage.react('◀');
@@ -159,8 +160,10 @@ export const DefaultCommands: SlashCommand[] = [
                         menuMessage.delete();
                         collector.stop();
                         pipeline.saveToFile();
+                        return;
                     }
-    
+                    // check if the message exists
+                    if(!menuMessage) return;
                     // Remove the user's reaction
                     await reaction.users.remove(user.id);
                 });
