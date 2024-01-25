@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import { ActivityType, Client, GatewayIntentBits, Collection, REST, Routes, Partials, TextChannel, DMChannel, NewsChannel, Snowflake, Webhook, Message, CommandInteraction, Events, PartialGroupDMChannel, Channel } from 'discord.js';
 import { base642Buffer } from '../helpers/index.js';
 import { SlashCommand } from '../typings/discordBot.js';
@@ -61,6 +62,17 @@ export class DiscordBotService {
         if (!this.token) {
             throw new Error('Discord bot token is not set!');
         }
+
+        process.on('uncaughtException', (error) => {
+            console.error('Uncaught Exception:', error);
+            this.restartClient().catch(console.error);
+        });
+
+        process.on('unhandledRejection', (error) => {
+            console.error('Unhandled Rejection:', error);
+            this.restartClient().catch(console.error);
+        });
+
         this.client = new Client(intents);
 
         this.client.on('ready', async () => {
@@ -72,21 +84,13 @@ export class DiscordBotService {
             if (!interaction.isCommand()) return;
             const command = this.commands.find(cmd => cmd.name === interaction.commandName);
             if (!command) return;
-            if(command.requiresAdmin){
-                const isAdministrator = await this.isAdministrator(interaction.user.id);
-                if(!isAdministrator){
-                    await interaction.reply({ content: 'You do not have permission to use this command!', ephemeral: true });
-                    return;
-                }
-            }
-            try {
-                await command.execute(interaction);
-            } catch (error) {
-                console.error(error);
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-            }
+        
+            this.handleCommand(command, interaction).catch(error => {
+                console.error(`Error executing command ${command.name}:`, error);
+                interaction.reply({ content: 'An error occurred while executing the command.', ephemeral: true }).catch(console.error);
+            });
         });
-
+        
         this.client.on('error', (error) => {
             console.error('Discord client error:', error);
         });
@@ -124,6 +128,23 @@ export class DiscordBotService {
         await this.client.login(this.token);
     }
 
+    async handleCommand(command: SlashCommand, interaction: CommandInteraction) {
+        if (command.requiresAdmin) {
+            const isAdministrator = await this.isAdministrator(interaction.user.id);
+            if (!isAdministrator) {
+                await interaction.reply({ content: 'You do not have permission to use this command!', ephemeral: true });
+                return;
+            }
+        }
+    
+        try {
+            await command.execute(interaction);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+            
     public sendTypingByChannelId(channelId: string){
         if(!this.client) return;
         const channel = this.client.channels.cache.get(channelId);
@@ -628,4 +649,14 @@ export class DiscordBotService {
         }
     }
     
+    private async restartClient(): Promise<void> {
+        try {
+            console.log('Attempting to restart Discord client...');
+            this.client?.destroy();
+            this.start().catch(console.error);
+            console.log('Discord client restarted successfully.');
+        } catch (error) {
+            console.error('Failed to restart Discord client:', error);
+        }
+    }
 }

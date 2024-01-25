@@ -9,7 +9,7 @@ import { Alias, RoomMessage } from "../typings/discordBot.js";
 
 const activePipelines: RoomPipeline[] = [];
 
-const activeDiscordClient: DiscordBotService = new DiscordBotService();
+const activeDiscordClient: DiscordBotService = new DiscordBotService()
 let isProcessing = false;
 
 export async function processMessage(){
@@ -114,7 +114,7 @@ async function generateDiscordResponse(room: RoomPipeline, message: RoomMessage)
 export async function startDiscordRoutes(){
     const globalConfig = getGlobalConfig();
     if(globalConfig.autoRestart){
-        await activeDiscordClient.start()
+        await activeDiscordClient.start().catch(console.error);
     }
 }
 
@@ -190,7 +190,7 @@ DiscordManagementRouter.post('/start', async (req, res) => {
     if(req.body.config){
         config = req.body.config;
     }
-    await activeDiscordClient?.start(config);
+    await activeDiscordClient?.start(config).catch(console.error);
     res.send(activeDiscordClient?.isLoggedIntoDiscord());
 });
 

@@ -478,15 +478,7 @@ async function main(){
     expressApp.use('*', (req, res) => res.sendFile(path.join(__dirname, '../dist-react', 'index.html')));
 }
 
-// eslint-disable-next-line no-constant-condition
-while(true){
-    try{
-        main();
-        break;
-    }catch(err){
-        console.log(err);
-    }
-}
+main().catch(console.error)
 
 //make it so when the terminal is closed, the server is closed
 process.on('SIGINT', () => {
@@ -499,4 +491,14 @@ process.on('SIGTERM', () => {
 
 process.on('exit', () => {
     process.exit();
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    main().catch(console.error);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
+    main().catch(console.error);
 });

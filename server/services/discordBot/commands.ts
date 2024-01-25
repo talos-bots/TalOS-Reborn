@@ -101,7 +101,6 @@ export const DefaultCommands: SlashCommand[] = [
                     const fields = [];
                     let number = 1;
                     for (let i = start; i < end && i < charArray.length; i++) {
-                        console.log(charArray[i]);
                         fields.push({
                             name: `${getEmojiByNumber(number)} ${charArray[i].name}`,
                             value: `${pipeline?.characters.includes(charArray[i]._id) ? '(Currently in Chat) ✅' : '(Not in Chat) ❎'}`,
@@ -112,7 +111,6 @@ export const DefaultCommands: SlashCommand[] = [
                         name: 'Page:',
                         value: `${page + 1}/${Math.ceil(charArray.length / itemsPerPage)}`,
                     });
-                    if(!menuMessage) return;
                     const newEmbed = new EmbedBuilder().setTitle("Choose which Characters to add to the Channel").setFields(fields).setDescription('React with the number of the char to add or remove it from the chat log.');
                     await menuMessage.edit({ embeds: [newEmbed] });
                     if (currentPage > 0) await menuMessage.react('◀');
@@ -123,57 +121,66 @@ export const DefaultCommands: SlashCommand[] = [
                     }
                 };
     
-                const collector = menuMessage.createReactionCollector({ time: 60000 });
+                const collector = menuMessage.createReactionCollector({ time: 20000 });
     
                 collector.on('collect', async (reaction: any, user: any) => {
-                    if (user.bot) return;
-                    if(!reaction.message.guild) return;
-                    if(!reaction) return;
-                    if(!reaction.emoji) return;
-                    if(!reaction.emoji.name) return;
-    
-                    const index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'].indexOf(reaction.emoji.name);
-                    if (index !== -1) {
-                        const charIndex = currentPage * itemsPerPage + index;
-                        if (charIndex < charArray.length) {
-                            // Call addCharacterToChatLog with appropriate char ID
-                            if(!pipeline?.characters.includes(charArray[charIndex]._id)){
-                                pipeline.addCharacter(charArray[charIndex]._id);
-                                pipeline.saveToFile();
-                            }else{
-                                pipeline.removeCharacter(charArray[charIndex]._id);
-                                pipeline.saveToFile();
+                    try {
+                        if(user.bot) return
+                        if(!reaction.message) return collector.stop();
+                        if(!reaction.message.guild) return collector.stop();
+                        if(!reaction) return collector.stop();
+                        if(!reaction.emoji) return collector.stop();
+                        if(!reaction.emoji.name) return collector.stop();
+        
+                        const index = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'].indexOf(reaction.emoji.name);
+                        if (index !== -1) {
+                            const charIndex = currentPage * itemsPerPage + index;
+                            if (charIndex < charArray.length) {
+                                // Call addCharacterToChatLog with appropriate char ID
+                                if(!pipeline?.characters.includes(charArray[charIndex]._id)){
+                                    pipeline.addCharacter(charArray[charIndex]._id);
+                                    pipeline.saveToFile();
+                                }else{
+                                    pipeline.removeCharacter(charArray[charIndex]._id);
+                                    pipeline.saveToFile();
+                                }
                             }
+                            await updateMenu(currentPage);
+                        } else if (reaction.emoji.name === '◀' && currentPage > 0) {
+                            currentPage--;
+                            await updateMenu(currentPage);
+                        } else if (reaction.emoji.name === '▶' && (currentPage + 1) * itemsPerPage < charArray.length) {
+                            currentPage++;
+                            await updateMenu(currentPage);
+                        } else if (reaction.emoji.name === '❎') {
+                            // clear all chars
+                            pipeline.clearAllCharacters();
+                            pipeline.saveToFile();
+                        } else if(reaction.emoji.name === '🗑️'){
+                            collector.stop();
+                            await menuMessage.delete();
+                            pipeline.saveToFile();
+                            return;
                         }
-                        await updateMenu(currentPage);
-                    } else if (reaction.emoji.name === '◀' && currentPage > 0) {
-                        currentPage--;
-                        await updateMenu(currentPage);
-                    } else if (reaction.emoji.name === '▶' && (currentPage + 1) * itemsPerPage < charArray.length) {
-                        currentPage++;
-                        await updateMenu(currentPage);
-                    } else if (reaction.emoji.name === '❎') {
-                        // clear all chars
-                        pipeline.clearAllCharacters();
-                        pipeline.saveToFile();
-                    } else if(reaction.emoji.name === '🗑️'){
-                        menuMessage.delete();
-                        collector.stop();
-                        pipeline.saveToFile();
-                        return;
+                        // check if the message exists
+                        if(!menuMessage) return collector.stop();
+                        // Remove the user's reaction
+                        await reaction.users.remove(user.id).catch(console.error); // Handle errors in reaction removal
+                    } catch (error) {
+                        console.log(error);
+                        throw error;
                     }
-                    // check if the message exists
-                    if(!menuMessage) return;
-                    // Remove the user's reaction
-                    await reaction.users.remove(user.id);
                 });
+
                 try{
                     updateMenu(0);
                 }catch(e){
                     console.log(e);
+                    throw e;
                 }
             } catch (error) {
                 console.log(error);
+                throw error;
             }
         },
     } as SlashCommand,
