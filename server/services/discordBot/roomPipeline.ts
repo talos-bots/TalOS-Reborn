@@ -242,10 +242,12 @@ export class RoomPipeline implements Room {
         }
         return stopList;
     }
+
     getLastUserMessage(): RoomMessage | undefined {
         const userMessages = this.messages.filter(message => message.message.role === 'User');
         return userMessages[userMessages.length - 1];
     }
+
     async generateResponse(roomMessage: RoomMessage, characterId: string): Promise<RoomMessage> {
         const messages = this.messages;
         if(!this.messages.includes(roomMessage)){
@@ -327,6 +329,84 @@ export class RoomPipeline implements Room {
         return characterResponse;
     }
     
+    async continueChat(): Promise<RoomMessage> {
+        const characterId = this.characters[Math.floor(Math.random() * this.characters.length)];
+        const messages = this.messages;
+        const processedMessages = [];
+        for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
+            const alias = this.aliases.find(alias => alias.userId === message.message.userId);
+            message.message.fallbackName = alias?.name || message.message.fallbackName;
+            processedMessages.push(message);
+        }
+        this.messages = processedMessages;
+        const requestMessages = this.roomMessagesToChatMessages();
+        const character = await fetchCharacterById(characterId);
+        if (!character) {
+            throw new Error(`Character not found: ${characterId}`);
+        }
+        const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
+        const lastMessage = this.getLastUserMessage();
+        const completionRequest: CompletionRequest = {
+            messages: requestMessages,
+            character: characterId,
+            args: characterSettingsOverride?.args || undefined,
+            persona: {
+                _id: lastMessage?.message.userId || 'system',
+                name: this.getLastUserMessage()?.message.fallbackName || 'User',
+                description: '',
+                avatar: '',
+            } as UserPersona,
+        }
+        let tries = 0;
+        let unfinished = true;
+        let value = '';
+        let refinedResponse = '';
+        while(unfinished && tries <= 3){
+            try {
+                const unparsedResponse = await handleCompletionRequest(completionRequest);
+                if(unparsedResponse === null){
+                    throw new Error('Failed to generate response');
+                }
+                console.log(unparsedResponse);
+                if(unparsedResponse?.choices[0]?.text === undefined){
+                    throw new Error('Failed to generate response');
+                }
+                value = unparsedResponse?.choices[0]?.text.trim();
+                refinedResponse = breakUpCommands(character.name, value, this.getLastUserMessage()?.message.fallbackName , this.getStopList(), false);
+                tries++;
+                if(refinedResponse !== ''){
+                    unfinished = false;
+                }
+            } catch (error) {
+                console.error('Error during response generation:', error);
+                tries++;
+            }
+        }
+        if(refinedResponse === ''){
+            throw new Error('Failed to generate response');
+        }
+        const characterResponse: RoomMessage = {
+            _id: new Date().getTime().toString(),
+            timestamp: new Date().getTime(),
+            attachments: [],
+            embeds: [],
+            discordChannelId: this.channelId,
+            discordGuildId: this.guildId,
+            message: {
+                userId: character._id,
+                fallbackName: character.name,
+                swipes: [refinedResponse],
+                currentIndex: 0,
+                role: 'Assistant' as Role,
+                thought: false,
+            }
+        };
+        this.addRoomMessage(characterResponse);
+        this.saveToFile();
+        return characterResponse;
+    }
+
     public createSystemMessage(message: string): RoomMessage {
         const systemMessage: RoomMessage = {
             _id: new Date().getTime().toString(),

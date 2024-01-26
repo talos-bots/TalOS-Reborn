@@ -1,7 +1,7 @@
 import { AttachmentBuilder, CommandInteraction, EmbedBuilder, Message } from "discord.js";
 import { Alias, Room, SlashCommand } from "../../typings/discordBot.js";
 import { RoomPipeline } from "./roomPipeline.js";
-import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages, clearWebhooks, sendCharacterGreeting } from "../../routes/discord.js";
+import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages, clearWebhooks, continueGenerateResponse, sendCharacterGreeting } from "../../routes/discord.js";
 import { fetchAllCharacters } from "../../routes/characters.js";
 import { findNovelAIConnection, generateNovelAIImage, novelAIDefaults } from "../../routes/diffusion.js";
 import { NovelAIModels, novelAIUndesiredContentPresets, samplersArray, sizePresets } from "../../typings/novelAI.js";
@@ -628,6 +628,36 @@ export const DefaultCommands: SlashCommand[] = [
             await interaction.reply({
                 content: "Webhooks cleared.", ephemeral: true,
             });
+        }
+    } as SlashCommand,
+    {
+        name: 'cont',
+        description: 'Sends a system message to the current channel.',
+        execute: async (interaction: CommandInteraction) => {
+            await interaction.deferReply({ephemeral: true});
+            if (interaction.channelId === null) {
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            if(interaction.guildId === null){
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            const registered = RoomPipeline.getRoomByChannelId(interaction.channelId);
+            if(!registered){
+                await interaction.editReply({
+                    content: "This channel is not a room.",
+                });
+                return;
+            }
+            await interaction.editReply({
+                content: `Continuing...`,
+            });
+            continueGenerateResponse(registered._id);
         }
     } as SlashCommand,
 ];

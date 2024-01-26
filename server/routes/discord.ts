@@ -151,6 +151,19 @@ export async function addSystemMessageAndGenerateResponse(roomId: string, messag
     await generateDiscordResponse(roomPipeline, newMessage);
 }
 
+export async function continueGenerateResponse(roomId: string){
+    let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
+    if(!roomPipeline) return;
+    const newMessage = await roomPipeline.continueChat();
+    roomPipeline.addRoomMessage(newMessage);
+    roomPipeline.saveToFile();
+    activeDiscordClient.sendTypingByChannelId(roomPipeline.channelId);
+    const character = await fetchCharacterById(newMessage.message.userId);
+    if(!newMessage || !character) return;
+    await activeDiscordClient?.sendMessageAsCharacter(roomPipeline.channelId, character, newMessage.message.swipes[newMessage.message.currentIndex]);
+}
+
 export const DiscordManagementRouter = Router();
 
 export function removeRoomFromActive(id: string){
