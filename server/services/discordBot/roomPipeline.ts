@@ -178,6 +178,17 @@ export class RoomPipeline implements Room {
     }
 
     saveToFile(): void {
+        //check for duplicate messages
+        const messages = this.messages;
+        const processedMessages: RoomMessage[] = [];
+        for(let i = 0; i < messages.length; i++){
+            const message = messages[i];
+            if(!processedMessages.includes(message)){
+                processedMessages.push(message);
+            }
+        }
+        this.messages = processedMessages;
+        this.updateLastModified();
         try {
             fs.writeFileSync(path.join(roomsPath, `${this._id}.json`), JSON.stringify(this.toRoom(), null, 4));
         } catch (error) {
