@@ -156,8 +156,6 @@ export async function continueGenerateResponse(roomId: string){
     if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
     if(!roomPipeline) return;
     const newMessage = await roomPipeline.continueChat();
-    roomPipeline.addRoomMessage(newMessage);
-    roomPipeline.saveToFile();
     activeDiscordClient.sendTypingByChannelId(roomPipeline.channelId);
     const character = await fetchCharacterById(newMessage.message.userId);
     if(!newMessage || !character) return;
