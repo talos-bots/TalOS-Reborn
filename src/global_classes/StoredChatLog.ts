@@ -120,7 +120,7 @@ export class StoredChatLog {
                 return null;
             }
             value = unparsedResponse?.choices[0]?.text.trim();
-            refinedResponse = breakUpCommands(character.name, value, persona?.name ?? 'You', null, false);
+            refinedResponse = breakUpCommands(character.name, value, persona?.name ?? 'You', null, true);
             if(refinedResponse !== ''){
                 unfinished = false;
             }

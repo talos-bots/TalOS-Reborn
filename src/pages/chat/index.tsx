@@ -14,7 +14,6 @@ import { useWindowSize } from "../../helpers/character-card";
 import CharacterPopup from "../../components/shared/character-popup";
 import ChatLogs from './chat-logs';
 import { useCloseSidesListener } from '../../helpers/events';
-import { getCharacter } from '../../api/characterDB';
 import { useUser } from '../../components/shared/auth-provider';
 import { fetchCharacterById } from '../../api/characterAPI';
 import { Helmet } from 'react-helmet-async';
@@ -160,7 +159,7 @@ const ChatPage = () => {
                                 </button>
                             </div> */}
                         </h3>
-                        <UserPersonaWindow persona={null} setPersona={() => {}}/>
+                        <UserPersonaWindow persona={null} setPersona={setPersona}/>
                         <button className="dy-btn dy-btn-error dy-btn-outline dy-btn-sm md:hidden" onClick={toggleLeftDrawer}>
                             <ArrowRight/>
                         </button>

@@ -37,7 +37,7 @@ function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
             }else if(message.thought === true){
                 return getTokens(`### Response:\n${message.fallbackName}'s Thoughts: ${message.swipes[message.currentIndex]}`);
             }else if(message.role === "User"){
-                return getTokens(`### Instruction:\n${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
+                return getTokens(`### Input:\n${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
             }else if(message.role === "Assistant"){
                 return getTokens(`### Response:\n${message.fallbackName}: ${message.swipes[message.currentIndex]}`);
             }
@@ -195,7 +195,7 @@ function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: num
 			prompt += `### Response:\n${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
         } else {
             if (newMessages[i].role === 'User') {
-                prompt += `### Instruction:\n${newMessages[i].fallbackName}: ${messageText}\n`;
+                prompt += `### Input:\n${newMessages[i].fallbackName}: ${messageText}\n`;
             } else {
                 prompt += `### Response:\n${newMessages[i].fallbackName}: ${messageText}\n`;
             }
