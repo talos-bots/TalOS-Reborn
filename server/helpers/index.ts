@@ -113,9 +113,7 @@ export function removeBrackets(input: string): string {
 }
 
 export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = true): string {
-    const lines = commandString.split('\n').filter((line) => {
-        return line.trim() !== '';
-    });
+    const lines = commandString.split('\n');
     const formattedCommands = [];
     let currentCommand = '';
     let isFirstLine = true;
@@ -146,47 +144,53 @@ export function breakUpCommands(charName: string, commandString: string, user = 
         if (lineToTest.startsWith(`${user.toLocaleLowerCase()}:`) || lineToTest.startsWith('you:') || lineToTest.startsWith('<start>') || lineToTest.startsWith('<end>') || lineToTest.startsWith('<user>') || lineToTest.toLocaleLowerCase().startsWith('user:')) {
           break;
         }
-        
+        let isStopListed = false;
         if (stopList !== null) {
             for(let j = 0; j < stopList.length; j++){
                 if(lineToTest.startsWith(`${stopList[j].toLocaleLowerCase()}`)){
+                    isStopListed = true;
                     break;
                 }
             }
+        }
+        if(isStopListed){
+            break;
         }
         
         if (lineToTest.startsWith(`${charName}:`)) {
             isFirstLine = false;
             if (currentCommand !== '') {
                 // Push the current command to the formattedCommands array
-                currentCommand = currentCommand.replaceAll(`${charName}:`, '')
-                formattedCommands.push(currentCommand.trim());
+                formattedCommands.push(currentCommand);
             }
-            currentCommand = lines[i];
-        } if(lineToTest.includes(':') && i >= 1){ // if the line has a colon, it's a new message from a different user. Return commands up to this point
-            return formattedCommands.join('\n');
         } else {
             if (currentCommand !== '' || isFirstLine){
-                currentCommand += (isFirstLine ? '' : '\n') + lines[i];
+                currentCommand += (isFirstLine ? '' : '\n') + lines[i]
             }
-            if (isFirstLine) isFirstLine = false;
+            if (isFirstLine){
+                isFirstLine = false;
+                currentCommand += '\n'
+            }
         }
     }
-    
+    let final = '';
     // Don't forget to add the last command
     if (currentCommand !== '') {
-        formattedCommands.push(currentCommand.replaceAll(`${charName}:`, ''));
+        formattedCommands.push(currentCommand);
     }
-    const removedEmptyLines = formattedCommands.filter((command) => {
-        return command.trim() !== '';
-    });
-    const final = removedEmptyLines.join('\n');
+    // if(!get1PP()){
+        const removedEmptyLines = formattedCommands.filter((command) => {
+            return command.trim() !== '';
+        });
+        final = removedEmptyLines.join('\n\n');
+    // }else {
+    //     final = formattedCommands.join('\n');
+    // }
     return removeHTMLTags(final.replaceAll('<start>', '').replaceAll('<end>', '')
     .replaceAll('###', '').replaceAll('<user>', '')
     .replaceAll('user:', '').replaceAll('USER:', '')
     .replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '')
-    .replaceAll('<|model|>', '').replaceAll(`${charName}: `, '')
-    .replaceAll(`${user}: `, '').replaceAll(`<BOT>`, charName)
+    .replaceAll('<|model|>', '').replaceAll(`${user}: `, '').replaceAll(`<BOT>`, charName)
     .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
 }
 
