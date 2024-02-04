@@ -18,7 +18,7 @@ TalOS, now called TalOS reborn, is a desktop application with external web servi
 - **Entertainment Features** - A range of fun, engaging elements to entertain users, adding a leisure aspect to the application.
 - **Image Gen Features** - Generate images on the Image Gen page, using OpenAI Keys for Dall-E models, NovelAI keys for NAI models, ComfyUI URL, Stable Diffusion API, and Stability API, and Auto1111 URL. 
 - **Image Gen Discord Bot** - Generate any of the available image gen services through the discord bot integration.
-- 
+
 TalOS: Reborn is currently in development, and is not yet ready for full release. However, you can still join the Wayward Wyverns Softworks Discord server to keep up to date with the latest news and updates. [Join the Discord server here](https://discord.com/invite/HNSaTjExYy).
 
 ## How to run?
