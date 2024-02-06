@@ -267,7 +267,7 @@ export async function generateNovelAIImage(requestBody: NovelAIRequest) {
             input: prompt || 'A painting of a cat',
             model: selectedModel || 'nai-diffusion-3',
             parameters: {
-                negative_prompt: negative_prompt ?? 'loli, patreon, text, twitter, child',
+                negative_prompt: negative_prompt ?? '',
                 height: height ?? novelAIDefaults.height,
                 width: width ?? novelAIDefaults.width,
                 scale: guidance ?? novelAIDefaults.scale,

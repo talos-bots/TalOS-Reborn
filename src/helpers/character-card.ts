@@ -197,11 +197,11 @@ const decodeBase64 = (base64String: string) => {
 
 export async function createTavernCardV2(construct: Character): Promise<any> {
     const data = {
-        name: construct.name,
+        name: construct.name || "",
         description: "",
-        personality: construct.personality,
-        scenario: construct.scenario,
-        first_mes: construct.first_mes,
+        personality: construct.personality || "",
+        scenario: construct.scenario || "",
+        first_mes: construct.first_mes || "",
         thought_pattern: construct.thought_pattern || "",
         visual_description: construct.visual_description || "",
         mes_example: construct.mes_example || "",
@@ -212,13 +212,14 @@ export async function createTavernCardV2(construct: Character): Promise<any> {
         character_book: undefined,
         tags: construct.tags || [],
         creator: construct.creator || "",
-        character_version: "2",
+        character_version: "v2",
         extensions: {},
     };
 
     return {
         spec: 'chara_card_v2',
         spec_version: '2.0',
+        ...data,
         data,
     };
 }
