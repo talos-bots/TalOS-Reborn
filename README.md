@@ -47,17 +47,31 @@ For MacOS, you can follow this guide here:
 https://docs.docker.com/desktop/install/mac-install/
 
 After you've installed Docker or Docker Desktop, run the build script
+
 `docker-build.bat` (Win)
+
 `docker-build.sh` (Linux/Mac)
 
+
 Okay! There you go, the container should've already started, you can find it on ```http://127.0.0.1:3003```
+
 ### Running after build (Needed only after machine restart, or crash)
 `docker-run.bat` (Win)
+
 `docker-run.sh` (Linux/Mac)
 
 Done, same URL as above.
+
 ### Updating after a Git pull
+
 `docker-update.bat` (Win)
+
 `docker-update.sh` (Linux/Mac)
 
 Done, same URL as above.
+
+### (Optional) Migrate already existing local data from a non-docker installation to your new container.
+
+`migrate-to-docker.bat` (Win)
+
+`migrate-to-docker.sh` (Linux/Mac)
