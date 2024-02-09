@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { RiQuestionMark } from "react-icons/ri";
 import { Emotion } from "../../helpers/constants";
+import { QuestionMark } from "@mui/icons-material";
 
 interface SpriteCrudProps {
     emotion: Emotion;
@@ -72,7 +72,7 @@ const SpriteBox = (props: SpriteCrudProps) => {
                             className="max-h-[90%] min-h-[90%]"
                         />
                     ) : (
-                        <RiQuestionMark className="max-h-[90%] min-h-[90%] w-full"/>
+                        <QuestionMark className="max-h-[90%] min-h-[90%] w-full"/>
                     )}
                     <input
                         id={`emotion-select-${emotion}`}

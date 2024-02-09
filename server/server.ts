@@ -19,7 +19,6 @@ import { connectionsRouter } from './routes/connections.js';
 import { llmsRouter } from './routes/llms.js';
 import { transformersRouter } from './helpers/transformers.js';
 import { lorebooksRouter } from './routes/lorebooks.js';
-import WebSocket from 'ws';
 import { diffusionRouter } from './routes/diffusion.js';
 import { discordConfigRoute } from './routes/discordConfig.js';
 import { DiscordManagementRouter, startDiscordRoutes } from './routes/discord.js';
@@ -39,15 +38,10 @@ const defaultAppSettings: AppSettingsInterface = {
     defaultDiffusionConnection: "",
     jwtSecret: ""
 };
-
-let dev = false;
 let useVarFolder = false;
 const args = process.argv.slice(2);
 
 args.forEach(arg => {
-    if (arg.startsWith('--dev')) {
-        dev = true;
-    }
     if (arg.startsWith('--linux-server')) {
         useVarFolder = true;
         console.log("Using /var/local for data storage");
@@ -281,7 +275,9 @@ async function main(){
 
     server.listen(port, () => {
         console.log(`Server started on http://localhost:${port}`);
-        console.log(`Frontend runs by default on http://localhost:5173`);
+        if(!useVarFolder){
+            console.log(`Frontend runs by default on http://localhost:5173`);
+        }
     });
 
     const storage = multer.diskStorage({
@@ -444,36 +440,6 @@ async function main(){
     expressApp.use('/api/rooms', roomsRouter);
     expressApp.use('/api', datasetsRouter);
     startDiscordRoutes();
-
-    function checkIfTauriAppIsOpen() {
-        return new Promise((resolve, reject) => {
-            const ws = new WebSocket('ws://localhost:8080');
-
-            ws.on('open', function open() {
-                console.log('Tauri app is open');
-                ws.close();
-                resolve(true);
-            });
-
-            ws.on('error', function error() {
-                console.log('Tauri app is not open');
-                resolve(false);
-            });
-        });
-    }
-
-    let numberOfTries = 0;
-    if(!dev){
-        setInterval(() => {
-            checkIfTauriAppIsOpen().then((isOpen) => {
-                numberOfTries++;
-                if (!isOpen && numberOfTries > 15) {
-                    console.log("Tauri app is not running. Exiting Node.js server.");
-                    process.exit(1);
-                }
-            });
-        }, 5000);
-    }
 
     expressApp.use('*', (req, res) => res.sendFile(path.join(__dirname, '../dist-react', 'index.html')));
 }

@@ -21,15 +21,40 @@ TalOS, now called TalOS reborn, is a desktop application with external web servi
 
 TalOS: Reborn is currently in development, and is not yet ready for full release. However, you can still join the Wayward Wyverns Softworks Discord server to keep up to date with the latest news and updates. [Join the Discord server here](https://discord.com/invite/HNSaTjExYy).
 
-## How to run?
+## How to run dev enviornment?
 ```cmd
 npm install
 npm run build-react
 npm run dev
 ```
-### How to run for a linux userless server enviornment?
+## How to run for a linux userless server enviornment?
 ```cmd
 npm install
 npm run build-react
 npm run dev-linux-server
 ```
+## How to run inside of a Docker Container?
+### Building the Container
+First, ensure you have Docker installed. 
+For Windows, you can follow this guide here:
+https://docs.docker.com/desktop/install/windows-install/
+For Linux, you can follow this guide here:
+https://docs.docker.com/desktop/install/linux-install/
+For MacOS, you can follow this guide here:
+https://docs.docker.com/desktop/install/mac-install/
+
+After you've installed Docker or Docker Desktop, run the build script
+`docker-build.bat` (Win)
+`docker-build.sh` (Linux/Mac)
+
+Okay! There you go, the container should've already started, you can find it on ```http://127.0.0.1:3003```
+### Running after build (Needed only after machine restart, or crash)
+`docker-run.bat` (Win)
+`docker-run.sh` (Linux/Mac)
+
+Done, same URL as above.
+### Updating after a Git pull
+`docker-update.bat` (Win)
+`docker-update.sh` (Linux/Mac)
+
+Done, same URL as above.
