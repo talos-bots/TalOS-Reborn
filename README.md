@@ -35,11 +35,14 @@ npm run dev-linux-server
 ```
 ## How to run inside of a Docker Container?
 ### Building the Container
-First, ensure you have Docker installed. 
+First, ensure you have Docker installed.
+
 For Windows, you can follow this guide here:
 https://docs.docker.com/desktop/install/windows-install/
+
 For Linux, you can follow this guide here:
 https://docs.docker.com/desktop/install/linux-install/
+
 For MacOS, you can follow this guide here:
 https://docs.docker.com/desktop/install/mac-install/
 
