@@ -688,6 +688,14 @@ async function getGenericCompletion(request: CompletionRequest){
         'prompt': prompt,
         'stop': stopSequences,
         'stream': false,
+        'repetitition_penality': settingsInfo.rep_pen,
+        'repetitition_penality_slope': settingsInfo.rep_pen_slope,
+        'repetitition_penality_range': settingsInfo.rep_pen_range,
+        'token_repetitition_penality': settingsInfo.rep_pen,
+        'token_repetitition_penality_slope': settingsInfo.rep_pen_slope,
+        'token_repetitition_penality_range': settingsInfo.rep_pen_range,
+        'token_frequency_penalty': settingsInfo.frequency_penalty,
+        'token_presence_penalty': settingsInfo.presence_penalty,
         ...settingsInfo
     }
     try {
