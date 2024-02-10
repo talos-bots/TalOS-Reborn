@@ -696,6 +696,7 @@ async function getGenericCompletion(request: CompletionRequest){
         'token_repetitition_penality_range': settingsInfo.rep_pen_range,
         'token_frequency_penalty': settingsInfo.frequency_penalty,
         'token_presence_penalty': settingsInfo.presence_penalty,
+        'dynatemp_range': settingsInfo.dynatemp_max,
         ...settingsInfo
     }
     try {

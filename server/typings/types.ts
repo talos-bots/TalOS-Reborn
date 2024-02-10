@@ -70,6 +70,13 @@ export type SettingsInterface = {
     mirostat_tau: number;
     mirostat_eta: number;
     instruct_mode: InstructMode;
+    use_beam_search: boolean;
+    eta_cutoff: number;
+    epsilon_cutoff: number;
+    dynatemp_exponent: number;
+    dynatemp_min: number;
+    dynatemp_max: number;
+    length_penalty: boolean;
 }
 
 export type MancerSettingsInterface = {

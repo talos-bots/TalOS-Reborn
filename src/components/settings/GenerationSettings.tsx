@@ -27,6 +27,13 @@ const GenerationSettings = () => {
     const [mirostatTau, setMirostatTau] = useState<number>(localStorage.getItem('mirostatTau') ? parseFloat(localStorage.getItem('mirostatTau') as string) : 0.0);
     const [mirostatEta, setMirostatEta] = useState<number>(localStorage.getItem('mirostatEta') ? parseFloat(localStorage.getItem('mirostatEta') as string) : 0.0);
     const [instructMode, setInstructMode] = useState<InstructMode>(localStorage.getItem('instructMode') ? localStorage.getItem('instructMode') as InstructMode : "None");
+    const [use_beam_search, setUseBeamSearch] = useState<boolean>(localStorage.getItem('use_beam_search') ? localStorage.getItem('use_beam_search') === 'true' : false);
+    const [eta_cutoff, setEtaCutoff] = useState<number>(localStorage.getItem('eta_cutoff') ? parseFloat(localStorage.getItem('eta_cutoff') as string) : 0.0);
+    const [epsilon_cutoff, setEpsilonCutoff] = useState<number>(localStorage.getItem('epsilon_cutoff') ? parseFloat(localStorage.getItem('epsilon_cutoff') as string) : 0.0);
+    const [dynatemp_exponent, setDynatempExponent] = useState<number>(localStorage.getItem('dynatemp_exponent') ? parseFloat(localStorage.getItem('dynatemp_exponent') as string) : 0.0);
+    const [dynatemp_min, setDynatempMin] = useState<number>(localStorage.getItem('dynatemp_min') ? parseFloat(localStorage.getItem('dynatemp_min') as string) : 0.0);
+    const [dynatemp_max, setDynatempMax] = useState<number>(localStorage.getItem('dynatemp_max') ? parseFloat(localStorage.getItem('dynatemp_max') as string) : 0.0);
+    const [length_penalty, setLengthPenalty] = useState<boolean>(localStorage.getItem('length_penalty') ? localStorage.getItem('length_penalty') === 'true' : false);
     const [presetID, setPresetID] = useState<string>(localStorage.getItem('presetID') ? localStorage.getItem('presetID') as string : '');
     const [presetName, setPresetName] = useState<string>(localStorage.getItem('presetName') ? localStorage.getItem('presetName') as string : '');
     const [availablePresets, setAvailablePresets] = useState<SettingsInterface[]>([] as SettingsInterface[]);
@@ -75,6 +82,13 @@ const GenerationSettings = () => {
             mirostat_mode: mirostatMode,
             mirostat_tau: mirostatTau,
             instruct_mode: instructMode,
+            use_beam_search: use_beam_search,
+            eta_cutoff: eta_cutoff,
+            epsilon_cutoff: epsilon_cutoff,
+            dynatemp_exponent: dynatemp_exponent,
+            dynatemp_min: dynatemp_min,
+            dynatemp_max: dynatemp_max,
+            length_penalty: length_penalty,
         }
         setPresetID(newID)
         if (availablePresets.some((connection) => connection.id === presetID)) {
@@ -417,6 +431,43 @@ const GenerationSettings = () => {
                 <div className="flex flex-col">
                     <span className=" font-semibold">Sampler Order</span>
                     <input className="dy-input dy-input-bordered" type="text" value={samplerOrder.toString()} onChange={async (e) => {setSamplerOrder(e.target.value.split(',').map(Number))}} />
+                </div>
+                <div className="flex flex-col">
+                    <span className=" font-semibold">Stop Brackets</span>
+                    <input className="dy-input dy-input-bordered" type="checkbox" checked={stopBrackets} onChange={async (e) => {setStopBrackets(e.target.checked)}} />
+                </div>
+                <div className="flex flex-col">
+                    <span>Use Beam Search</span>
+                    <input className="dy-input dy-input-bordered" type="checkbox" checked={use_beam_search} onChange={async (e) => {setUseBeamSearch(e.target.checked)}} />
+                </div>
+                <div className="flex flex-col">
+                    <span>Eta Cutoff</span>
+                    <input className="dy-input dy-input-bordered" type="number" min='0' value={eta_cutoff} onChange={async (e) => {setEtaCutoff(parseFloat(e.target.value))}} />
+                    <input className="dy-input dy-input-bordered" type="range" min='0' max="100" step="0.01" value={eta_cutoff} onChange={async (e) => {setEtaCutoff(parseFloat(e.target.value))}} />
+                </div>
+                <div className="flex flex-col">
+                    <span>Epsilon Cutoff</span>
+                    <input className="dy-input dy-input-bordered" type="number" min='0' value={epsilon_cutoff} onChange={async (e) => {setEpsilonCutoff(parseFloat(e.target.value))}} />
+                    <input className="dy-input dy-input-bordered" type="range" min='0' max="100" step="0.01" value={epsilon_cutoff} onChange={async (e) => {setEpsilonCutoff(parseFloat(e.target.value))}} />
+                </div>
+                <div className="flex flex-col">
+                    <span>Dynatemp Exponent</span>
+                    <input className="dy-input dy-input-bordered" type="number" min='0' value={dynatemp_exponent} onChange={async (e) => {setDynatempExponent(parseFloat(e.target.value))}} />
+                    <input className="dy-input dy-input-bordered" type="range" min='0' max="100" step="0.01" value={dynatemp_exponent} onChange={async (e) => {setDynatempExponent(parseFloat(e.target.value))}} />
+                </div>
+                <div className="flex flex-col">
+                    <span>Dynatemp Min</span>
+                    <input className="dy-input dy-input-bordered" type="number" min='0' value={dynatemp_min} onChange={async (e) => {setDynatempMin(parseFloat(e.target.value))}} />
+                    <input className="dy-input dy-input-bordered" type="range" min='0' max="100" step="0.01" value={dynatemp_min} onChange={async (e) => {setDynatempMin(parseFloat(e.target.value))}} />
+                </div>
+                <div className="flex flex-col">
+                    <span>Dynatemp Max</span>
+                    <input className="dy-input dy-input-bordered" type="number" min='0' value={dynatemp_max} onChange={async (e) => {setDynatempMax(parseFloat(e.target.value))}} />
+                    <input className="dy-input dy-input-bordered" type="range" min='0' max="100" step="0.01" value={dynatemp_max} onChange={async (e) => {setDynatempMax(parseFloat(e.target.value))}} />
+                </div>
+                <div className="flex flex-col">
+                    <span>Length Penalty</span>
+                    <input className="dy-input dy-input-bordered" type="checkbox" checked={length_penalty} onChange={async (e) => {setLengthPenalty(e.target.checked)}} />
                 </div>
             </div>
         </div>
