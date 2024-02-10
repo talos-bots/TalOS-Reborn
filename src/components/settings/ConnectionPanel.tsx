@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { EndpointType, GenericCompletionConnectionTemplate } from "../../types";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
-import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels, fetchOpenRouterModels, fetchKoboldModel } from "../../api/connectionAPI";
+import { deleteConnectionById, saveConnectionToLocal, fetchAllConnections, fetchConnectionModels, fetchMancerModels, fetchPalmModels, fetchOpenAIModels, fetchOpenRouterModels, fetchKoboldModel, fetchClaudeModel } from "../../api/connectionAPI";
 import { getAppSettingsConnection, getAppSettingsSettings, setAppSettingsConnection } from "../../api/settingsAPI";
 
 function getForwardFacingName(type: EndpointType): string {
@@ -14,13 +14,17 @@ function getForwardFacingName(type: EndpointType): string {
             return 'OpenAI Key';
         case 'Kobold':
             return 'KoboldAI (Classic)';
+        case 'P-AWS-Claude':
+            return 'AWS Claude (Proxy)';
+        case 'P-Claude':
+            return 'Claude (Proxy)';
         default:
             return type;
     }
 }
 
 const ConnectionPanel = () => {
-    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM', 'OpenRouter', 'Kobold']
+    const connectionTypes: EndpointType[] = ['OAI-Compliant-API', 'Mancer', 'OAI', 'PaLM', 'OpenRouter', 'Kobold', 'P-AWS-Claude', 'P-Claude']
     const [savedConnections, setSavedConnections] = useState<GenericCompletionConnectionTemplate[]>([])
     const [connectionType, setConnectionType] = useState<EndpointType>(localStorage.getItem('connectionType') as EndpointType || 'OAI-Compliant-API')
     const [connectionID, setConnectionID] = useState<string>(localStorage.getItem('connectionID') as string || '')
@@ -128,7 +132,18 @@ const ConnectionPanel = () => {
                 setConnectionStatus('Connection Failed')
             });
             setConnectionStatus('Connection Successful!')
-        } else {
+        } else if (connectionType === 'P-AWS-Claude' || connectionType === 'P-Claude'){
+            setConnectionStatus('Connecting...')
+            fetchClaudeModel(connectionURL, connectionPassword, (connectionType === 'P-AWS-Claude')).then((models) => {
+                if(models === null) return
+                console.log(models)
+                setConnectionStatus('Connection Successful!')
+                setConnectionModelList(models)
+            }).catch((error) => {
+                setConnectionStatus('Connection Failed')
+            });
+            setConnectionStatus('Connection Successful!')
+        }  else {
             setConnectionStatus('Connecting...')
             fetchConnectionModels(connectionURL, connectionPassword).then((models) => {
                 if(models === null) return

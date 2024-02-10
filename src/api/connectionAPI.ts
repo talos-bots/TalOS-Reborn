@@ -262,6 +262,36 @@ export async function fetchKoboldModel(url: string, key?: string){
     }
 }
 
+export async function fetchClaudeModel(url: string, key?: string, aws: boolean = false){
+    try {
+        const response = await api(`/api/test/claude`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({ url, key, aws }),
+        });
+        if (response.status !== 200) {
+            throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.data.data.data;
+        if(!data){
+            return null;
+        }
+        if(data.error) {
+            console.error('Error fetching claude models:', data.error);
+            return null;
+        }else{
+            return data.map((model: any) => model.id);
+        }
+    } catch (error) {
+        console.error('Error in fetchClaudeModel:', error);
+        return null;
+    }
+}
+
 export async function sendCompletionRequest(messages: Message[], character: CharacterInterface, persona?: UserPersona, connectionid?: string, settingsid?: string){
     const newRequest: CompletionRequest = {
         lorebookid: 'mancer',

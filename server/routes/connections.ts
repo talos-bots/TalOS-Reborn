@@ -299,3 +299,39 @@ connectionsRouter.post('/test/kobold', async (req, res) => {
     const data = await getKobold(url as string, key as string);
     res.send({data});
 });
+
+async function getClaude(url: string, key?: string, aws: boolean = false){
+    try{
+        const endpointURLObject = new URL(url);
+        const response = await fetch(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}` + (aws ? '/proxy/aws/claude/v1/models' : '/proxy/anthropic/v1/models'), {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': (key? key.length > 0? `Bearer ${key.trim()}` : '' : ''),
+                'x-api-key': (key? key.length > 0? `${key.trim()}` : '' : ''),
+            },
+        }).then((response) => {
+            return response;
+        }).catch((error) => {
+            console.log(error);
+            return error;
+        });
+        if (!response.ok) {
+            console.log('Connection models not found');
+            throw Error(`Error: ${response.status}`);
+        }
+        const json = await response.json();
+        return json;
+    }catch(error){
+        console.log(error);
+        return error;
+    }
+}
+
+connectionsRouter.post('/test/claude', async (req, res) => {
+    const url = req.body.url;
+    const key = req.body.key;
+    const aws = req.body.aws;
+    const data = await getClaude(url as string, key as string, aws as boolean);
+    res.send({data});
+});
