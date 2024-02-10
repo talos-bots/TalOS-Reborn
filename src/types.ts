@@ -74,7 +74,7 @@ export type SettingsInterface = {
     dynatemp_exponent: number;
     dynatemp_min: number;
     dynatemp_max: number;
-    length_penalty: number;
+    length_penalty: boolean;
 }
 
 export type CharacterInterface = {
