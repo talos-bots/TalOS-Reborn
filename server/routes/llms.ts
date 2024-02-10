@@ -1139,6 +1139,69 @@ export async function getKoboldAICompletion(request: CompletionRequest){
     }
 }
 
+async function getClaudeCompletion(request: CompletionRequest){
+    const prompt = await formatCompletionRequest(request);
+    let character: CharacterInterface;
+    if(typeof request.character === "string") {
+        character = await fetchCharacterById(request.character) as CharacterInterface;
+    }else{
+        character = request.character;
+    }
+    const promptString = `\n\nHuman:\nWrite ${character.name}'s next reply in a fictional chat between ${character.name} and ${request.persona?.name}. Write 1 reply only in internet RP style, italicize actions, and avoid quotation marks. Use markdown. Be proactive, creative, and drive the plot and conversation forward. Write at least 1 sentence, up to 4. Always stay in character and avoid repetition.\n${prompt}\n\nAssistant: Okay, here is my response as ${character.name}:`;
+    const data = getSettingsAndStops(request);
+    if(!data){
+        return null;
+    }
+    const { settingsInfo, stopSequences, modelInfo } = data;
+    stopSequences.push(...getStopSequences(request.messages));
+    let model = modelInfo.model;
+    if(request.args?.modelOverride){
+        if(request.args.modelOverride.trim().length > 0){
+            model = request.args.modelOverride.trim();
+        }
+    }
+    const body = {
+        'model': model ? model : 'claude-instant-v1',
+        'prompt': promptString,
+        'stop_sequences': stopSequences,
+        'stream': false,
+        "temperature": settingsInfo.temperature ? settingsInfo.temperature : 0.9,
+        "top_p": settingsInfo.top_p ? settingsInfo.top_p : 0.9,
+        "top_k": settingsInfo.top_k ? settingsInfo.top_k : 0,
+        "max_tokens_to_sample": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
+    }
+    try {
+        const newURL = new URL(modelInfo.url as string);
+        const response = await fetch(`${newURL.protocol}//${newURL.hostname}${newURL.port? `:${newURL.port}` : ''}` + (modelInfo.type === 'P-AWS-Claude' ? '/proxy/aws/claude/v1/complete' : '/proxy/anthropic/v1/complete'), {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${modelInfo.key? modelInfo.key.length > 0? `${modelInfo.key.trim()}` : '' : ''}`,
+                'x-api-key': (modelInfo.key? modelInfo.key.length > 0? `${modelInfo.key.trim()}` : '' : ''),
+            },
+        });
+        if(response.ok){
+            const json = await response.json();
+            return {
+                choices: [
+                    {
+                        text: json.completion.trimStart(),
+                        index: 0,
+                        logprobs: null,
+                        finish_reason: 'stop',
+                    }
+                ]
+            }
+        }else{
+            throw new Error('No valid response from LLM.');
+        }
+    } catch (error) {
+        console.error('Error in getGenericCompletion:', error);
+        return null;
+    }
+}
+
 export async function handleCompletionRequest(request: CompletionRequest){
     const appSettings = fetchAllAppSettings();
     console.log(appSettings);
@@ -1164,6 +1227,9 @@ export async function handleCompletionRequest(request: CompletionRequest){
             return await getOpenRouterCompletion(request);
         case 'Kobold':
             return await getKoboldAICompletion(request);
+        case 'P-Claude':
+        case 'P-AWS-Claude':
+            return await getClaudeCompletion(request);
         default:
             return await getGenericCompletion(request);
     }
