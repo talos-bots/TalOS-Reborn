@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DiffusionCompletionConnectionTemplate, DiffusionType, dalleModels } from '../../types';
-import { deleteDiffusionConnectionById, fetchAllDiffusionConnections, saveDiffusionConnectionToLocal, testDallekey, testNovelAIKey } from '../../api/diffusionAPI';
+import { deleteDiffusionConnectionById, fetchAllDiffusionConnections, getSDXLModels, saveDiffusionConnectionToLocal, testDallekey, testNovelAIKey } from '../../api/diffusionAPI';
 import { getAppSettingsDiffusionConnection, setAppSettingsDiffusion } from '../../api/settingsAPI';
 import RequiredInputField, { RequiredSelectField } from '../../components/shared/required-input-field';
 
@@ -146,6 +146,20 @@ const DiffusionPanel = () => {
                         setConnectionStatus('Failed')
                     }
                 })
+                break;
+            case 'Auto1111':
+                if(currentConnection.url){
+                    getSDXLModels(currentConnection.url, currentConnection.key).then((response) => {
+                        if(response){
+                            setConnectionModelList(response.map((model: any) => model.model_name))
+                            setConnectionStatus('Connected')
+                        }else{
+                            setConnectionStatus('Failed')
+                        }
+                    })
+                } else {
+                    setConnectionStatus('Failed')
+                }
                 break;
             default:
                 break;

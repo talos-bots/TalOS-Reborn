@@ -202,3 +202,20 @@ export async function generateNovelAIImage(data: NovelAIRequest): Promise<any> {
     }
     return response.data as DiffusionResponseObject[];
 }
+
+export async function getSDXLModels(link: string, key: string){
+    const response = await api('/api/sdxl/models', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify({ link, key }),
+    });
+
+    if (response.status !== 200) {
+        throw new Error(`Error: ${response.status}`);
+    }
+
+    const data = await response.data;
+    return data;
+}

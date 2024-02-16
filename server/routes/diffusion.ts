@@ -1,5 +1,6 @@
+/* eslint-disable prefer-const */
 /* eslint-disable no-case-declarations */
-import { diffusionConnectionsPath } from "../server.js";
+import { diffusionConnectionsPath, uploadsPath } from "../server.js";
 import express from 'express';
 import fs from "fs";
 import path from "path";
@@ -8,6 +9,7 @@ import OpenAI from 'openai';
 import { extractFileFromZipBuffer, extractFilesFromZipBuffer, writeBase64ToPNGFile } from "../helpers/index.js";
 import e from "express";
 import { NovelAIRequest } from "../typings/novelAI.js";
+import axios from "axios";
 
 export type DiffusionType = 'Dalle' | 'Auto1111' | 'SDAPI' | 'Reborn' | 'Google' | 'Stability' | 'NovelAI'
 export type DiffusionCompletionConnectionTemplate = {
@@ -54,7 +56,7 @@ diffusionRouter.post('/save/diffusion-connection', (req, res) => {
 });
 
 // get a connection by id from the ../data/connections/ folder
-export function fetchConnectionById(id: string) {
+export function fetchConnectionById(id: string): DiffusionCompletionConnectionTemplate | null{
     const connectionFolderPath = path.join(diffusionConnectionsPath);
     const filePath = path.join(connectionFolderPath, `${id}.json`);
     if (fs.existsSync(filePath)) {
@@ -231,11 +233,19 @@ export async function findNovelAIConnection(): Promise<DiffusionCompletionConnec
     return novelAIConnection;
 }
 
+export async function findSDXLConnection(): Promise<DiffusionCompletionConnectionTemplate | undefined>{
+    const connections = fetchAllConnections();
+    const sdxlConnection = connections.find((connection) => {
+        return connection.type as DiffusionType === 'Auto1111';
+    });
+    return sdxlConnection;
+}
+
 export const novelAIDefaults = {
     height: 1024,
     width: 1024,
     scale: 5,
-    sampler: 'k_dpmpp_2m',
+    sampler: 'k_euler',
     steps: 28,
     n_samples: 1,
     ucPreset: 0,
@@ -336,5 +346,141 @@ diffusionRouter.post('/novelai/generate-image', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send({ message: error });
+    }
+});
+
+export const sdxlImage = async (request: NovelAIRequest): Promise<any> => {
+    const { prompt, negative_prompt, height, width, guidance, sampler, steps, number_of_samples, ucPreset, seed, model, connectionId } = request;
+    try {
+        const response = await makeImage(prompt ?? '', negative_prompt, steps, guidance, width, height, .25, connectionId)
+        return response;
+    } catch (error: any) {
+        throw new Error(`Failed to send data: ${error.message}`);
+    }
+}
+
+export async function makePromptData(
+    prompt: string, 
+    negativePrompt: string = '', 
+    steps: number = 26, 
+    cfg: number = 7, 
+    width: number = 1024, 
+    height: number = 1024, 
+    denoisingStrength: number = 0.25
+    ){
+    const data = {
+        "denoising_strength": denoisingStrength,
+        "firstphase_width": width,
+        "firstphase_height": height,
+        "prompt": prompt,
+        "seed": -1,
+        "sampler_name": "Euler a",
+        "batch_size": 1,
+        "steps": steps,
+        "cfg_scale": cfg,
+        "width": width,
+        "height": height,
+        "do_not_save_samples": true,
+        "do_not_save_grid": true,
+        "negative_prompt": negativePrompt,
+        "sampler_index": "Euler a",
+        "send_images": true,
+        "save_images": false,
+    };
+    return JSON.stringify(data);
+}
+
+export async function makeImage(prompt: string, negativePrompt?: string, steps?: number, cfg?: number, width?: number, height?: number, denoisingStrength?: number, connectionId?: string){
+    if(!connectionId){
+        throw new Error("Connection ID not provided");
+    }
+    const connection = fetchConnectionById(connectionId);
+    if (!connection) {
+        throw new Error("Connection not found");
+    }
+    const url = new URL(connection.url as string);
+    url.pathname = '/sdapi/v1/txt2img';
+    const data = await makePromptData(prompt, negativePrompt, steps, cfg, width, height, denoisingStrength);
+    const res = await axios({
+        method: 'post',
+        url: url.toString(),
+        data: data,
+        headers: { 'Content-Type': 'application/json' },
+    }).then((res) => {
+        return res;
+    }).catch((err) => {
+        console.log(err);
+    });
+    url.pathname = '/sdapi/v1/options';
+    const model = await axios.get(url.toString()).then((res) => {
+        return res.data.sd_model_checkpoint;
+    }).catch((err) => {
+        console.log(err);
+    });
+    if(!res){
+        return null;
+    }
+    const fileName = `image_${getTimestamp()}.png`;
+    // Save image to uploads folder
+    const newPath = path.join(uploadsPath, fileName);
+    const buffer = Buffer.from(res.data.images[0].split(';base64,').pop(), 'base64');
+    await fs.promises.writeFile(newPath, buffer);
+    return {name: fileName, base64: res.data.images[0].split(';base64,').pop(), model: model};
+}
+
+function getTimestamp() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed in JavaScript
+    const day = String(now.getDate()).padStart(2, '0');
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    return `${year}${month}${day}_${hours}${minutes}${seconds}`;
+}
+
+export async function getSDXLModels(link: string, key: string){
+    let url = new URL(link);
+    url.pathname = '/sdapi/v1/sd-models';
+    const res = await axios({
+        method: 'get',
+        url: url.toString(),
+        headers: { 'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${key}` },
+    }).then((res) => {
+        return res;
+    }).catch((err) => {
+        console.log('Failed to get SD models');
+    });
+    if(!res){
+        return null;
+    }
+    return res.data;
+}
+
+diffusionRouter.post('/sdxl/generate-image', async (req, res) => {
+    try {
+        const response = await sdxlImage(req.body);
+        if(response){
+            return res.send(response);
+        }else {
+            return res.status(500).send({ message: 'SDXL said no :(' })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: error });
+    }
+});
+
+diffusionRouter.post('/sdxl/models', async (req, res) => {
+    const { link, key } = req.body;
+    const response = await getSDXLModels(link, key);
+    if(response){
+        return res.send(response);
+    }else {
+        return res.status(500).send({ message: 'SDXL said no :(' })
     }
 });
