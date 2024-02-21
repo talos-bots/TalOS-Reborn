@@ -98,7 +98,7 @@ export type CharacterInterface = {
 
 export type Role = "System" | "Assistant" | "User";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion" | "ChatML";
+export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion" | "ChatML" | "GemmaInstruct";
 
 export type Message = {
     userId: string;

@@ -113,6 +113,20 @@ function getInstructTokens(message: ChatMessage, instructFormat: InstructMode){
                 return getTokens(`<|im_start|>assistant\n${message.fallbackName}: ${message.swipes[message.currentIndex]}\n`);
             }
             return getTokens(`<|im_start|>system\n${message.swipes[message.currentIndex]}\n`);
+        case "GemmaInstruct":
+            if(message.role === "System"){
+                return getTokens(`<start_of_turn>system\n${message.swipes[message.currentIndex]}\n`);
+            }
+            else if(message.thought === true){
+                return getTokens(`<start_of_turn>model\n${message.fallbackName}'s Thoughts: ${message.swipes[message.currentIndex]}\n`);
+            }
+            else if(message.role === "User"){
+                return getTokens(`<start_of_turn>user\n${message.fallbackName}: ${message.swipes[message.currentIndex]}\n`);
+            }
+            else if(message.role === "Assistant"){
+                return getTokens(`<start_of_turn>model\n${message.fallbackName}: ${message.swipes[message.currentIndex]}\n`);
+            }
+            return getTokens(`<start_of_turn>system\n${message.swipes[message.currentIndex]}\n`);
         default:
             if(message.role === "System"){
                 return getTokens(message.swipes[message.currentIndex]);
@@ -406,6 +420,44 @@ export function assembleChatMLFromLog(messages: ChatMessage[], contextLength: nu
     return prompt;
 }
 
+export function assembleGemmaInstructFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
+    let prompt = "";
+    const newMessages = fillChatContextToLimit(messages, contextLength, "ChatML");
+    for(let i = 0; i < newMessages.length; i++){
+        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
+
+        if(newMessages[i].role === 'System'){
+            prompt += `<start_of_turn>system\n${messageText}\n`;
+            continue;
+        } else if (newMessages[i].thought === true) {
+			prompt += `<start_of_turn>model\n${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
+        } else {
+            if (newMessages[i].role === 'User') {
+                prompt += `<start_of_turn>user\n${newMessages[i].fallbackName}: ${messageText}\n`;
+            } else {
+                prompt += `<start_of_turn>model\n${newMessages[i].fallbackName}: ${messageText}\n`;
+            }
+        }
+        // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
+        if(i === newMessages.length - 3 && system_prompt.length > 0){
+            for(let j = 0; j < system_prompt.length; j++){
+                prompt += `<start_of_turn>system\n${system_prompt[j]}\n`;
+            }
+        }
+        if(i === newMessages.length - 3 && persona){
+            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
+                prompt += `[${persona.description.trim()}]\n`;
+            }
+        }
+    }
+    // If the last message was not from the bot, we append an empty response for the bot
+    if (newMessages.length > 0) {
+        prompt += `<start_of_turn>assistant\n${constructName}:`;
+    }
+
+    return prompt;
+}
+
 export function getCharacterPromptFromConstruct(character: CharacterInterface) {
     let prompt = '';
 
@@ -469,7 +521,12 @@ async function formatCompletionRequest(request: CompletionRequest) {
         if(characterPrompt.trim().length > 0) {
             prompt += `<|im_start|>system\n${characterPrompt.trim()}\n`;
         }
-    } else {
+    } else if (character && settingsInfo.instruct_mode === "GemmaInstruct"){
+        characterPrompt = getCharacterPromptFromConstruct(character);
+        if(characterPrompt.trim().length > 0) {
+            prompt += `<start_of_turn>system\n${characterPrompt.trim()}\n`;
+        }
+    }else {
         characterPrompt = getCharacterPromptFromConstruct(character);
         if(characterPrompt.trim().length > 0) {
             prompt += `${characterPrompt.trim()}\n`;
@@ -497,6 +554,9 @@ async function formatCompletionRequest(request: CompletionRequest) {
                     break;
                 case "ChatML":
                     systemPrompts.push(`<|im_start|>system\n${request.args.floatingGuidance.trim()}\n`);
+                    break;
+                case "GemmaInstruct":
+                    systemPrompts.push(`<start_of_turn>system\n${request.args.floatingGuidance.trim()}\n`);
                     break;
                 default:
                     systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
@@ -532,6 +592,9 @@ async function formatCompletionRequest(request: CompletionRequest) {
             break;
         case "ChatML":
             prompt += assembleChatMLFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
+            break;
+        case "GemmaInstruct":
+            prompt += assembleGemmaInstructFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
             break;
         default:
             prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
@@ -600,6 +663,10 @@ export function getSettingsAndStops(request: CompletionRequest): {settingsInfo: 
     if(settingsInfo.instruct_mode === "ChatML"){
         stopSequences.push("<|im_start|>user");
         stopSequences.push("<|im_start|>assistant");
+    }
+    if(settingsInfo.instruct_mode === "GemmaInstruct"){
+        stopSequences.push("<start_of_turn>user");
+        stopSequences.push("<start_of_turn>model");
     }
     if(request.args?.overrideSettings){
         settingsInfo = {...settingsInfo, ...request.args.overrideSettings};

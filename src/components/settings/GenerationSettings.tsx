@@ -3,7 +3,7 @@ import { InstructMode, SettingsInterface } from "../../types";
 import { deleteSettingById, fetchAllSettings, fetchDefaultSettings, getAppSettingsSettings, saveSettingToLocal, setAppSettingsSettings } from "../../api/settingsAPI";
 import RequiredInputField, { RequiredSelectField } from "../shared/required-input-field";
 
-const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "Mistral", "None", "Metharme", "Pygmalion", "ChatML"];
+const instructModes: InstructMode[] = ["Alpaca", "Vicuna", "Mistral", "None", "Metharme", "Pygmalion", "ChatML", "GemmaInstruct"];
 
 const GenerationSettings = () => {
     const [maxContextLength, setMaxContextLength] = useState<number>(localStorage.getItem('maxContextLength') ? parseInt(localStorage.getItem('maxContextLength') as string) : 2048);

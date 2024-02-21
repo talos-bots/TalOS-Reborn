@@ -107,7 +107,7 @@ export interface OpenAIMessage {
 
 export type Role = "System" | "Assistant" | "User";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion" | "ChatML";
+export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion" | "ChatML" | "GemmaInstruct";
 
 export class UserPersona{
     _id: string = (new Date().getTime()).toString();
