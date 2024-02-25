@@ -679,7 +679,7 @@ export function getSettingsAndStops(request: CompletionRequest): {settingsInfo: 
 }
 
 function getStopSequences(messages: ChatMessage[]){
-    const stopSequences: string[] = [];
+    let stopSequences: string[] = [];
     for(let i = 0; i < messages.length; i++){
         const message = messages[i];
         if(stopSequences.includes(`${message.fallbackName}:`) || message.role === "System" || message.thought === true || message.role === "Assistant"){
@@ -688,7 +688,11 @@ function getStopSequences(messages: ChatMessage[]){
             stopSequences.push(`${message.fallbackName}:`);
         }
     }
-    return stopSequences;
+    //filter out empty stop sequences
+    stopSequences = stopSequences.filter((stop) => stop.trim().length > 0);
+    //filter out duplicate stop sequences
+    stopSequences = [...new Set(stopSequences)];
+    return stopSequences
 }
 
 async function getMancerCompletion(request: CompletionRequest){
