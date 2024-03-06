@@ -38,7 +38,7 @@ export async function processMessage(){
         roomPipeline.saveToFile();
         activeDiscordClient.removeMessageFromQueue(message);
         if(message.content.startsWith('-')) return isProcessing = false;
-        if(activeDiscordClient?.messageQueue[activeDiscordClient.messageQueue.length - 1]?.author.id === message.author.id) return isProcessing = false;
+        if(activeDiscordClient?.messageQueue[activeDiscordClient.messageQueue.length - 1]?.channel.id === message.channel.id) return isProcessing = false;
         await handleMessageProcessing(roomPipeline, roomMessage, message);
     } catch (error) {
         console.error('Error during message processing:', error);
