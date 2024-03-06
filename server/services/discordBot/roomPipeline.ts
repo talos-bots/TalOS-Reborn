@@ -79,7 +79,7 @@ export class RoomPipeline implements Room {
             message: {
                 userId: message.author.id,
                 fallbackName: alias?.name || message.author.username,
-                swipes: [message.cleanContent],
+                swipes: [message.cleanContent.startsWith('-') ? message.cleanContent.replace('-', '') : message.cleanContent],
                 currentIndex: 0,
                 role: 'User' as Role,
                 thought: false
