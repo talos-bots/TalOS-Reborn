@@ -119,9 +119,6 @@ const CharacterCRUD = () => {
     const characterToForm = (character: Character) => {
         if(character !== null){
             setName(character?.name);
-            if(character?.avatar !== undefined && character?.avatar !== null && character?.avatar !== ''){
-                setAvatar(character?.avatar);
-            }
             setDescription(character?.description);
             setPersonality(character?.personality);
             setMesExample(character?.mes_example);
