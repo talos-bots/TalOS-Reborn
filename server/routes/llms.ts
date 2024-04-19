@@ -915,7 +915,12 @@ llmsRouter.post('/completions', authenticateToken, async (req, res) => {
 });
 
 export async function formatOldRequest(request: CompletionRequest, alpacaLength?: string) {
-    const character: CharacterInterface = request.character as CharacterInterface;
+    let character: CharacterInterface;
+    if(typeof request.character === "string") {
+        character = await fetchCharacterById(request.character) as CharacterInterface;
+    } else {
+        character = request.character;
+    }
     let prompt: string = "";
     const data = getSettingsAndStops(request);
     if(!data){
