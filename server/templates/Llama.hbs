@@ -1,0 +1,17 @@
+<|begin_of_text|>{{#if loreBefore}}<|start_header_id|>system<|end_header_id|>
+{{loreBefore}}{{/if}}<|start_header_id|>system<|end_header_id|>{{#if character.description}}
+{{character.description}}{{/if}}{{#if character.personality}}
+{{character.personality}}{{/if}}{{#if character.scenario}}
+{{character.scenario}}{{/if}}{{#if character.mes_example}}
+{{character.mes_example}}{{/if}}{{#if jailbreak}}
+{{jailbreak}}{{/if}}{{#if systemInfo}}
+[ {{systemInfo}} ]{{/if}}{{#if showPersonaAtTop}}
+[ {{personaDesc}} ]{{/if}}
+{{#each allMessages}}
+{{#if loreentries}}[ {{join loreentries.content ' \n'}} ]{{/if}}
+<|start_header_id|>{{#if system}}system{{else}}{{#ifEquals role 'User'}}user{{else}}assistant{{/ifEquals}}<|end_header_id|>
+{{name}}: {{/if}}{{message}}{{#if showPersona}}
+<|start_header_id|>system<|end_header_id|>
+[{{personaDesc}}]{{/if}}{{/each}}
+<|start_header_id|>assistant<|end_header_id|>
+{{character.name}}:

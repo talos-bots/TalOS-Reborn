@@ -1,0 +1,21 @@
+{{#if loreBefore}}
+<start_of_turn>system
+{{loreBefore}}<end_of_turn>{{/if}}<start_of_turn>system{{#if character.description}}
+{{character.description}}{{/if}}{{#if character.personality}}
+{{character.personality}}{{/if}}{{#if character.scenario}}
+{{character.scenario}}{{/if}}{{#if character.mes_example}}
+{{character.mes_example}}{{/if}}{{#if jailbreak}}
+{{jailbreak}}{{/if}}{{#if systemInfo}}
+[ {{systemInfo}} ]{{/if}}{{#if showPersonaAtTop}}
+[ {{personaDesc}} ]{{/if}}
+<end_of_turn>
+{{#each allMessages}}
+{{#if loreentries}}[ {{join loreentries.content ' \n'}} ]{{/if}}
+{{#if system}}<start_of_turn>system{{else}}{{#ifEquals role 'User'}}<start_of_turn>user{{else}}<start_of_turn>model{{/ifEquals}}
+{{name}}: {{/if}}{{message}}
+<end_of_turn>{{#if showPersona}}
+<start_of_turn>system
+[{{personaDesc}}]{{/if}}
+<end_of_turn>{{/each}}
+<start_of_turn>model
+{{character.name}}:

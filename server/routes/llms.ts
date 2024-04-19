@@ -1,3 +1,4 @@
+/* eslint-disable no-control-regex */
 import llamaTokenizer from '../helpers/llama-tokenizer-modified.js';
 import { fetchCharacterById } from './characters.js';
 import { SettingsInterfaceToMancerSettings, fetchConnectionById } from './connections.js';
@@ -6,8 +7,13 @@ import express from 'express';
 import { authenticateToken } from './authenticate-token.js';
 import axios from 'axios';
 import { DefaultSettings } from '../defaults/settings.js';
-import { AppSettingsInterface, CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, OpenAIMessage, OpenAIRole, SettingsInterface, UserPersona } from '../typings/types.js';
+import { AppSettingsInterface, CharacterInterface, CompletionRequest, GenericCompletionConnectionTemplate, InstructMode, LoreEntryInterface, OpenAIMessage, OpenAIRole, Role, SettingsInterface, UserPersona } from '../typings/types.js';
 import { ChatMessage } from '../typings/discordBot.js';
+import Handlebars from 'handlebars';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { decodeHTML } from 'entities';
+const __dirname = resolve();
 export const llmsRouter = express.Router();
 
 function getTokens(text: string){
@@ -160,448 +166,22 @@ function fillChatContextToLimit(chatLog: ChatMessage[], tokenLimit: number, inst
     return messagesToInclude;
 }
 
-function assemblePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
-	let prompt = "";
-	const newMessages = fillChatContextToLimit(messages, contextLength, "None");
-	for(let i = 0; i < newMessages.length; i++){
-        const messageText = newMessages[i].swipes[messages[i].currentIndex].trim();
-		if(newMessages[i].role === 'System'){
-			prompt += `${messageText}\n`;
-			continue;
-		}else{
-			if(newMessages[i].thought === true){
-                prompt += `${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
-            }else{
-                prompt += `${newMessages[i].fallbackName}: ${messageText}\n`;
-            }
-		}
-	}
-    // insert system prompt at the 4th line from the end
-    if(newMessages.length > 0){
-        const lines = prompt.split("\n");
-        if(system_prompt.length > 0){
-            lines.splice(lines.length - 3, 0, ...system_prompt);
-        }
-        if(persona){
-            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
-            }
-        }
-        prompt = lines.join("\n");
-    }
-    // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0) {
-        prompt += `${constructName}:`;
-    }
-	return prompt;
-}
-
-function assembleAlpacaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
-    let prompt = "";
-    const newMessages = fillChatContextToLimit(messages, contextLength, "Alpaca");
-    for(let i = 0; i < newMessages.length; i++){
-        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
-
-        if(newMessages[i].role === 'System'){
-            prompt += `### Instruction:\n${messageText}\n`;
-            continue;
-        } else if (newMessages[i].thought === true) {
-			prompt += `### Response:\n${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
-        } else {
-            if (newMessages[i].role === 'User') {
-                prompt += `### Input:\n${newMessages[i].fallbackName}: ${messageText}\n`;
-            } else {
-                prompt += `### Response:\n${newMessages[i].fallbackName}: ${messageText}\n`;
-            }
-        }
-        // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
-        if(i === newMessages.length - 3 && system_prompt.length > 0){
-            for(let j = 0; j < system_prompt.length; j++){
-                prompt += `${system_prompt[j]}\n`;
-            }
-        }
-        if(i === newMessages.length - 3 && persona){
-            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                prompt += `[${persona.description.trim()}]\n`;
-            }
-        }
-    }
-    // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0) {
-        prompt += `### Response:\n${constructName}:`;
-    }
-
-    return prompt;
-}
-
-function assembleMistralPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null) {
-    let prompt = "";
-
-    let systemInfo = system_prompt.map(prompt => prompt.trim()).join("\n");
-    if(persona && persona.description.trim() !== "" && persona.importance === 'high') {
-        systemInfo += `\n${persona.description.trim()}`;
-    }
-    if(systemInfo !== "") {
-        prompt += `${systemInfo}\n`;
-    }
-
-    const newMessages = fillChatContextToLimit(messages, contextLength, "Mistral");
-
-    for (let i = 0; i < newMessages.length; i++) {
-        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
-
-        if(newMessages[i].role === 'User') {
-            prompt += `[INST] ${newMessages[i].fallbackName}: ${messageText} [/INST] `;
-        } else if(newMessages[i].role === 'Assistant') {
-            prompt += `${constructName}: ${messageText}`;
-        }
-    }
-
-    // Append constructName for the AI to continue from there
-    prompt += `${constructName}:`;
-
-    return prompt;
-}
-
-function assembleVicunaPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
-    let prompt = "";
-    const newMessages = fillChatContextToLimit(messages, contextLength, "Vicuna");
-    for(let i = 0; i < newMessages.length; i++){
-        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
-
-        if(newMessages[i].role === 'System'){
-            prompt += `SYSTEM: ${messageText}\n`;
-            continue;
-        } else if (newMessages[i].thought === true) {
-			prompt += `ASSISTANT: ${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
-        } else {
-            if (newMessages[i].role === 'User') {
-                prompt += `USER: ${newMessages[i].fallbackName}: ${messageText}\n`;
-            } else {
-                prompt += `ASSISTANT: ${newMessages[i].fallbackName}: ${messageText}\n`;
-            }
-        }
-    }
-    // insert system prompt at the 4th line from the end
-    if(newMessages.length > 0){
-        const lines = prompt.split("\n");
-        if(system_prompt.length > 0){
-            lines.splice(lines.length - 3, 0, ...system_prompt);
-        }
-        if(persona){
-            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
-            }
-        }
-        prompt = lines.join("\n");
-    }
-    // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0) {
-        prompt += `ASSISTANT: ${constructName}:`;
-    }
-
-    return prompt;
-}
-
-function assembleMetharmePromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
-    let prompt = "";
-    const newMessages = fillChatContextToLimit(messages, contextLength, "Metharme");
-    for(let i = 0; i < newMessages.length; i++){
-        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
-
-        if(newMessages[i].role === 'System'){
-            prompt += `<|system|>${messageText}`;
-            continue;
-        } else if (newMessages[i].thought === true) {
-			prompt += `<|model|>${newMessages[i].fallbackName}'s Thoughts: ${messageText}`;
-        } else {
-            if (newMessages[i].role === 'User') {
-                prompt += `<|user|>${newMessages[i].fallbackName}: ${messageText}`;
-            } else {
-                prompt += `<|model|>${newMessages[i].fallbackName}: ${messageText}`;
-            }
-        }
-        // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
-        if(i === newMessages.length - 3 && system_prompt.length > 0){
-            prompt += `<|system|>${system_prompt.join(" ")}`;
-        }
-        if(i === newMessages.length - 3 && persona){
-            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                prompt += `<|system|>[${persona.description.trim()}]`;
-            }
-        }
-    }
-    // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0) {
-        prompt += `<|model|>${constructName}:`;
-    }
-    return prompt;
-}
-
-function assemblePygmalionPromptFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
-	let prompt = "";
-	const newMessages = fillChatContextToLimit(messages, contextLength, "Pygmalion");
-	for(let i = 0; i < newMessages.length; i++){
-        const messageText = newMessages[i].swipes[messages[i].currentIndex].trim();
-		if(newMessages[i].role === 'System'){
-			prompt += `${messageText}\n`;
-			continue;
-		}else{
-			if(newMessages[i].thought === true){
-                if(newMessages[i].role === "User"){
-                    prompt += `You: ${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
-                }else{
-                    prompt += `<BOT>: ${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
-                }
-            }else{
-                if(newMessages[i].role === "User"){
-                    prompt += `You: ${newMessages[i].fallbackName}: ${messageText}\n`;
-                }else{
-                    prompt += `<BOT>: ${newMessages[i].fallbackName}: ${messageText}\n`;
-                }
-            }
-		}
-	}
-    // insert system prompt at the 4th line from the end
-    if(newMessages.length > 0){
-        const lines = prompt.split("\n");
-        if(system_prompt.length > 0){
-            lines.splice(lines.length - 3, 0, ...system_prompt);
-        }
-        if(persona){
-            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                lines.splice(lines.length - 4, 0,`[${persona.description.trim()}]\n`);
-            }
-        }
-        prompt = lines.join("\n");
-    }
-    // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0) {
-        prompt += `<BOT>: ${constructName}:`;
-    }
-	return prompt;
-}
-
-export function assembleChatMLFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
-    let prompt = "";
-    const newMessages = fillChatContextToLimit(messages, contextLength, "ChatML");
-    for(let i = 0; i < newMessages.length; i++){
-        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
-
-        if(newMessages[i].role === 'System'){
-            prompt += `<|im_start|>system\n${messageText}\n`;
-            continue;
-        } else if (newMessages[i].thought === true) {
-			prompt += `<|im_start|>assistant\n${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
-        } else {
-            if (newMessages[i].role === 'User') {
-                prompt += `<|im_start|>user\n${newMessages[i].fallbackName}: ${messageText}\n`;
-            } else {
-                prompt += `<|im_start|>assistant\n${newMessages[i].fallbackName}: ${messageText}\n`;
-            }
-        }
-        // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
-        if(i === newMessages.length - 3 && system_prompt.length > 0){
-            for(let j = 0; j < system_prompt.length; j++){
-                prompt += `<|im_start|>system\n${system_prompt[j]}\n`;
-            }
-        }
-        if(i === newMessages.length - 3 && persona){
-            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                prompt += `[${persona.description.trim()}]\n`;
-            }
-        }
-    }
-    // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0) {
-        prompt += `<|im_start|>assistant\n${constructName}:`;
-    }
-
-    return prompt;
-}
-
-export function assembleGemmaInstructFromLog(messages: ChatMessage[], contextLength: number = 4048, constructName: string = "Bot", system_prompt: string[] = [], persona?: UserPersona | null){
-    let prompt = "";
-    const newMessages = fillChatContextToLimit(messages, contextLength, "ChatML");
-    for(let i = 0; i < newMessages.length; i++){
-        const messageText = newMessages[i].swipes[newMessages[i].currentIndex].trim();
-
-        if(newMessages[i].role === 'System'){
-            prompt += `<start_of_turn>system\n${messageText}\n`;
-            continue;
-        } else if (newMessages[i].thought === true) {
-			prompt += `<start_of_turn>model\n${newMessages[i].fallbackName}'s Thoughts: ${messageText}\n`;
-        } else {
-            if (newMessages[i].role === 'User') {
-                prompt += `<start_of_turn>user\n${newMessages[i].fallbackName}: ${messageText}\n`;
-            } else {
-                prompt += `<start_of_turn>model\n${newMessages[i].fallbackName}: ${messageText}\n`;
-            }
-        }
-        // ?? idk if im doing this right, feel kinda dumb, TODO: fix this
-        if(i === newMessages.length - 3 && system_prompt.length > 0){
-            for(let j = 0; j < system_prompt.length; j++){
-                prompt += `<start_of_turn>system\n${system_prompt[j]}\n`;
-            }
-        }
-        if(i === newMessages.length - 3 && persona){
-            if((persona?.description) && (persona?.description.trim() !== "") && (persona?.importance === 'high')){
-                prompt += `[${persona.description.trim()}]\n`;
-            }
-        }
-    }
-    // If the last message was not from the bot, we append an empty response for the bot
-    if (newMessages.length > 0) {
-        prompt += `<start_of_turn>assistant\n${constructName}:`;
-    }
-
-    return prompt;
-}
-
 export function getCharacterPromptFromConstruct(character: CharacterInterface) {
     let prompt = '';
 
-    if(character.description.trim().length > 0){
+    if(character.description?.trim().length > 0){
         prompt += character.description + '\n';
     }
-    if(character.personality.trim().length > 0){
+    if(character.personality?.trim().length > 0){
         prompt += character.personality + '\n';
     }
-    if(character.mes_example.trim().length > 0){
+    if(character.mes_example?.trim().length > 0){
         prompt += character.mes_example + '\n';
     }
-    if(character.scenario.trim().length > 0){
+    if(character.scenario?.trim().length > 0){
         prompt += character.scenario + '\n\n';
     }
     return prompt;
-}
-
-async function formatCompletionRequest(request: CompletionRequest) {
-    let character: CharacterInterface;
-    if(typeof request.character === "string") {
-        character = await fetchCharacterById(request.character) as CharacterInterface;
-    }else{
-        character = request.character;
-    }
-    let prompt = "";
-    const data = getSettingsAndStops(request);
-    if(!data){
-        return null;
-    }
-    const { settingsInfo } = data;
-    // Handling character information for Mistral mode
-    let characterPrompt = "";
-    if(character && settingsInfo.instruct_mode === "Mistral") {
-        characterPrompt = getCharacterPromptFromConstruct(character);
-        if(characterPrompt.trim().length > 0) {
-            prompt += `${characterPrompt.trim()}\n`;
-        }
-    } else if(character && settingsInfo.instruct_mode === "Pygmalion") {
-        characterPrompt = getCharacterPromptFromConstruct(character);
-        if(characterPrompt.trim().length > 0) {
-            prompt += `${characterPrompt.trim()}\n`;
-        }
-    } else if(character && settingsInfo.instruct_mode === "Metharme") {
-        characterPrompt = `<|system|> ${getCharacterPromptFromConstruct(character).replaceAll('\n', ' ')}`
-        if(characterPrompt.trim().length > 0) {
-            prompt += `${characterPrompt.trim()}`;
-        }
-    } else if(character && settingsInfo.instruct_mode === "Vicuna") {
-        characterPrompt = getCharacterPromptFromConstruct(character);
-        if(characterPrompt.trim().length > 0) {
-            prompt += `SYSTEM: ${characterPrompt.trim()}\n`;
-        }
-    } else if(character && settingsInfo.instruct_mode === "Alpaca") {
-        characterPrompt = getCharacterPromptFromConstruct(character);
-        if(characterPrompt.trim().length > 0) {
-            prompt += `### Instruction:\n${characterPrompt.trim()}\n`;
-        }
-    } else if (character && settingsInfo.instruct_mode === "ChatML"){
-        characterPrompt = getCharacterPromptFromConstruct(character);
-        if(characterPrompt.trim().length > 0) {
-            prompt += `<|im_start|>system\n${characterPrompt.trim()}\n`;
-        }
-    } else if (character && settingsInfo.instruct_mode === "GemmaInstruct"){
-        characterPrompt = getCharacterPromptFromConstruct(character);
-        if(characterPrompt.trim().length > 0) {
-            prompt += `<start_of_turn>system\n${characterPrompt.trim()}\n`;
-        }
-    }else {
-        characterPrompt = getCharacterPromptFromConstruct(character);
-        if(characterPrompt.trim().length > 0) {
-            prompt += `${characterPrompt.trim()}\n`;
-        }
-    }
-    const systemPrompts: string[] = [];
-    // handle floatingGuidance
-    if(request.args?.floatingGuidance){
-        if(request.args.floatingGuidance.trim().length > 0){
-            switch(settingsInfo.instruct_mode){
-                case "Alpaca":
-                    systemPrompts.push(`### Instruction:\n${request.args.floatingGuidance.trim()}\n`);
-                    break;
-                case "Vicuna":
-                    systemPrompts.push(`SYSTEM: ${request.args.floatingGuidance.trim()}\n`);
-                    break;
-                case "Mistral":
-                    systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
-                    break;
-                case "Metharme":
-                    systemPrompts.push(`<|system|>${request.args.floatingGuidance.trim()}`);
-                    break;
-                case "Pygmalion":
-                    systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
-                    break;
-                case "ChatML":
-                    systemPrompts.push(`<|im_start|>system\n${request.args.floatingGuidance.trim()}\n`);
-                    break;
-                case "GemmaInstruct":
-                    systemPrompts.push(`<start_of_turn>system\n${request.args.floatingGuidance.trim()}\n`);
-                    break;
-                default:
-                    systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
-                    break;
-            }
-        }
-    }
-
-    const characterPromptTokens = getTokens(prompt);
-    const leftoverTokens = (settingsInfo.context_length - characterPromptTokens) - 800;
-    if(character){
-        if(character.system_prompt.trim().length > 0){
-            systemPrompts.push(character.system_prompt.trim());
-        }
-    }
-    // Assemble prompts based on instruct mode
-    switch (settingsInfo.instruct_mode) {
-        case "Alpaca":
-            prompt += assembleAlpacaPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
-            break;
-        case "Vicuna":
-            prompt += assembleVicunaPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
-            break;
-        case "Mistral":
-            // For Mistral, character prompt is already included
-            prompt += assembleMistralPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", [], request.persona);
-            break;
-        case "Metharme":
-            prompt += assembleMetharmePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
-            break;
-        case "Pygmalion":
-            prompt += assemblePygmalionPromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
-            break;
-        case "ChatML":
-            prompt += assembleChatMLFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
-            break;
-        case "GemmaInstruct":
-            prompt += assembleGemmaInstructFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
-            break;
-        default:
-            prompt += assemblePromptFromLog(request.messages, leftoverTokens, character ? character.name : "Bot", systemPrompts, request.persona);
-            break;
-    }
-
-    return prompt.replace(new RegExp('{{user}}', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('{{char}}', 'g'), `${character.name}`).replace(new RegExp('<USER>', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('<user>', 'g'), `${request.persona?.name ?? 'You'}`).replace(new RegExp('<char>', 'g'), `${character.name}`).replace(new RegExp('<CHAR>', 'g'), `${character.name}`);
 }
 
 export function getSettingsAndStops(request: CompletionRequest): {settingsInfo: SettingsInterface, stopSequences: string[], modelInfo: GenericCompletionConnectionTemplate } | null{
@@ -696,7 +276,11 @@ function getStopSequences(messages: ChatMessage[]){
 }
 
 async function getMancerCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
+    const promptData = await formatOldRequest(request);
+    if(!promptData){
+        return null;
+    }
+    const { prompt, stop } = promptData;
     const data = getSettingsAndStops(request);
     if(!data){
         return null;
@@ -713,7 +297,7 @@ async function getMancerCompletion(request: CompletionRequest){
     const body = {
         'model': model,
         'prompt': prompt,
-        'stop': stopSequences,
+        'stop': stop,
         ...settingsProper,
     }
     console.log(body);
@@ -741,7 +325,11 @@ llmsRouter.post('/completions/mancer', authenticateToken, async (req, res) => {
 });
 
 async function getGenericCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
+    const promptData = await formatOldRequest(request);
+    if(!promptData){
+        return null;
+    }
+    const { prompt, stop } = promptData;
     const data = getSettingsAndStops(request);
     if(!data){
         return null;
@@ -757,7 +345,7 @@ async function getGenericCompletion(request: CompletionRequest){
     const body = {
         'model': model,
         'prompt': prompt,
-        'stop': stopSequences,
+        'stop': stop,
         'stream': false,
         'repetition_penality': settingsInfo.rep_pen,
         'repetition_penality_slope': settingsInfo.rep_pen_slope,
@@ -812,10 +400,11 @@ async function getGoogleCompletion(request: CompletionRequest){
 }
 
 async function getPaLMCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
-    if(!prompt){
+    const promptData = await formatOldRequest(request);
+    if(!promptData){
         return null;
     }
+    const { prompt, stop } = promptData;
     const data = getSettingsAndStops(request);
     if(!data){
         return null;
@@ -912,10 +501,11 @@ async function getPaLMCompletion(request: CompletionRequest){
 }
 
 async function getGeminiCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
-    if(!prompt){
+    const promptData = await formatOldRequest(request);
+    if(!promptData){
         return null;
     }
+    const { prompt, stop } = promptData;
     const data = getSettingsAndStops(request);
     if(!data){
         return null;
@@ -1071,7 +661,11 @@ async function getOpenAICompletion(request: CompletionRequest){
 
 export async function getOpenRouterCompletion(request: CompletionRequest){
     try {
-        const prompt = await formatCompletionRequest(request);
+        const promptData = await formatOldRequest(request);
+        if(!promptData){
+            return null;
+        }
+        const { prompt, stop } = promptData;
         const data = getSettingsAndStops(request);
         if(!data){
             return null;
@@ -1087,7 +681,7 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
         const body = {
             'model': model,
             'prompt': prompt,
-            'stop': stopSequences,
+            'stop': stop,
             'stream': false,
             'temperature': (settingsInfo?.temperature !== undefined && settingsInfo.temperature <= 1) ? settingsInfo.temperature : 1,
             'max_tokens': settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
@@ -1143,7 +737,11 @@ export async function getOpenRouterCompletion(request: CompletionRequest){
 }
 
 export async function getKoboldAICompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
+    const promptData = await formatOldRequest(request);
+    if(!promptData){
+        return null;
+    }
+    const { prompt, stop } = promptData;
     const data = getSettingsAndStops(request);
     if(!data){
         return null;
@@ -1152,7 +750,7 @@ export async function getKoboldAICompletion(request: CompletionRequest){
     stopSequences.push(...getStopSequences(request.messages));
     const body = {
         'prompt': prompt,
-        'stop_sequence': stopSequences,
+        'stop_sequence': stop,
         "max_context_length": settingsInfo.context_length ? settingsInfo.context_length : 1024,
         "max_length": settingsInfo.max_tokens ? settingsInfo.max_tokens : 350,
         "quiet": false,
@@ -1211,7 +809,11 @@ export async function getKoboldAICompletion(request: CompletionRequest){
 }
 
 async function getClaudeCompletion(request: CompletionRequest){
-    const prompt = await formatCompletionRequest(request);
+    const promptData = await formatOldRequest(request);
+    if(!promptData){
+        return null;
+    }
+    const { prompt, stop } = promptData;
     let character: CharacterInterface;
     if(typeof request.character === "string") {
         character = await fetchCharacterById(request.character) as CharacterInterface;
@@ -1234,7 +836,7 @@ async function getClaudeCompletion(request: CompletionRequest){
     const body = {
         'model': model ? model : 'claude-instant-v1',
         'prompt': promptString,
-        'stop_sequences': stopSequences,
+        'stop_sequences': stop,
         'stream': false,
         "temperature": settingsInfo.temperature ? settingsInfo.temperature : 0.9,
         "top_p": settingsInfo.top_p ? settingsInfo.top_p : 0.9,
@@ -1311,3 +913,135 @@ llmsRouter.post('/completions', authenticateToken, async (req, res) => {
     const response = await handleCompletionRequest(request);
     res.send(response);
 });
+
+export async function formatOldRequest(request: CompletionRequest, alpacaLength?: string) {
+    const character: CharacterInterface = request.character as CharacterInterface;
+    let prompt: string = "";
+    const data = getSettingsAndStops(request);
+    if(!data){
+        return null;
+    }
+    const { settingsInfo, stopSequences, modelInfo } = data;
+    const characterPrompt = getCharacterPromptFromConstruct(character);
+    const systemPrompts: string[] = [];
+    // handle floatingGuidance
+    if (request.args?.floatingGuidance) {
+      if (request.args.floatingGuidance.trim().length > 0) {
+        systemPrompts.push(`${request.args.floatingGuidance.trim()}\n`);
+      }
+    }
+    const characterPromptTokens = getTokens(characterPrompt);
+    const leftoverTokens = (settingsInfo?.context_length - characterPromptTokens - 800);
+    if (character) {
+      if (character?.system_prompt?.trim().length > 0) {
+        systemPrompts.push(character.system_prompt.trim());
+      }
+    }
+    // Assemble prompts based on instruct mode
+    console.log("INSTRUCT MODE: " + settingsInfo.instruct_mode)
+    const handleBarsPrompt = await assemblePrompt(
+      character, 
+      request.messages, 
+      '',
+      leftoverTokens,
+      character ? character.name : "Bot",
+      systemPrompts,
+      settingsInfo.instruct_mode,
+      request.persona,
+      [],
+    );
+    prompt = handleBarsPrompt;
+    prompt = prompt.toString()
+    prompt = prompt
+    .replace(new RegExp("{{user}}", "g"), `${request.persona?.name ?? "You"}`)
+    .replace(new RegExp("{{char}}", "g"), `${character.name}`)
+    .replace(new RegExp("<USER>", "g"), `${request.persona?.name ?? "You"}`)
+    .replace(new RegExp("<user>", "g"), `${request.persona?.name ?? "You"}`)
+    .replace(new RegExp("<char>", "g"), `${character.name}`)
+    .replace(new RegExp("<CHAR>", "g"), `${character.name}`)
+    .replace(new RegExp("\n\n", "g"), `\n`)
+    .replace(new RegExp("\n\n\n", "g"), `\n`)
+    .replace(new RegExp("\n\n\n\n", "g"), `\n`)
+    .replace(new RegExp("\n \n", "g"), `\n`)
+    .replace(new RegExp("\n \n \n", "g"), `\n`)
+    .replace(new RegExp("\n \n \n \n", "g"), `\n`);
+    return {
+      prompt,
+      stop: stopSequences,
+    };
+}
+
+export const jailbreak =
+`You are {{char}}, only respond as {{char}}. Responding out of context, or 'OOC', is forbidden, doing so will result in penalty. Replying as {{user}} will break immersion and is forbidden. NSFW content is allowed, but only in the context of the character, or as a response to user flirting or NSFW content.`;
+
+export async function assemblePrompt(
+    character: CharacterInterface,
+    messages: ChatMessage[],
+    loreBefore: string,
+    contextLength: number,
+    constructName: string,
+    systemPrompt: string[],
+    instruct?: InstructMode,
+    persona?: UserPersona,
+    lorebooks?: LoreEntryInterface[],
+    alpacaLength?: string
+  ) {
+    interface MessageType {
+      index: number;
+      message: string;
+      name: string;
+      system: boolean;
+      role: Role;
+      loreentries: LoreEntryInterface[];
+      showPersona: boolean;
+    }
+    const newMessages = fillChatContextToLimit(messages, contextLength, instruct);
+    const sortedLoreEntries = lorebooks?.sort((a, b) => a.priority - b.priority);
+    const systemInfo = systemPrompt.map((p) => p.trim()).join("\n");
+    const allMessages: MessageType[] = [];
+    const showPersonaAtTop = persona?.importance === "low";
+    const personaDesc = persona?.description || "";
+    for (let i = 0; i < newMessages.length; i++) {
+      const msg = newMessages[i];
+      const trimmedMessage = msg.swipes[msg.currentIndex].trim();
+      const messageObj: MessageType = {
+        index: i,
+        message: trimmedMessage,
+        name: msg.fallbackName || "",
+        system: msg.role === 'System',
+        loreentries: [],
+        role: msg.role as Role,
+        showPersona: persona?.importance === "high" && i === newMessages.length - 3 && personaDesc.trim() !== "",
+      };
+      if (sortedLoreEntries) {
+        for (let j = 0; j < sortedLoreEntries.length; j++) {
+          const depth = sortedLoreEntries[j].priority;
+          const insertHere = (depth === 0 || depth > newMessages.length) ? newMessages.length : newMessages.length - depth;
+          if (insertHere === i) {
+            messageObj.loreentries.push(sortedLoreEntries[j]);
+          }
+        }
+      }
+      allMessages.push(messageObj);
+    }
+    const data = {
+      allMessages,
+      character: character,
+      personaDesc: personaDesc.trim(),
+      showPersonaAtTop,
+      jailbreak: jailbreak.trim(),
+      loreBefore: loreBefore.trim(),
+      systemInfo: systemInfo.trim(),
+      characterName: constructName,
+      alpacaLength: alpacaLength || '(one paragraph, natural, authentic, descriptive, creative)',
+    }
+    Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
+      // @ts-expect-error - fuck off
+      return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+    });
+    const templatePath = resolve(__dirname, 'templates', `${instruct}.hbs`);
+    const template = readFileSync(templatePath, 'utf-8');
+    const makePrompt = Handlebars.compile(template);
+    const prompt = decodeHTML(makePrompt(data).replaceAll('\n\n', '\n').trim()).replaceAll('\n\n', '')
+    return prompt;
+  }

@@ -107,7 +107,7 @@ export interface OpenAIMessage {
 
 export type Role = "System" | "Assistant" | "User";
 
-export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion" | "ChatML" | "GemmaInstruct";
+export type InstructMode = "Alpaca" | "Vicuna" | "Mistral" | "None" | "Metharme" | "Pygmalion" | "ChatML" | "GemmaInstruct" | "Cohere" | "Llama";
 
 export class UserPersona{
     _id: string = (new Date().getTime()).toString();
@@ -241,3 +241,35 @@ export interface PaLMFilters {
     HARM_CATEGORY_MEDICAL: PaLMFilterType;
     HARM_CATEGORY_DANGEROUS: PaLMFilterType;
 }
+
+export interface LorebookInterface {
+    lorebook_id: string;
+    photoURL: string;
+    name: string;
+    description: string;
+    scan_depth: number;
+    token_budget: number;
+    recursive_scanning: boolean;
+    extensions: Record<string, any>;
+    entries: LoreEntryInterface[];
+    creator_uid: string;
+    is_private: boolean;
+    tags: string[];
+  }
+  
+  export interface LoreEntryInterface {
+    entry_id: string
+    keys: string[]
+    content: string
+    extensions: Record<string, any>
+    enabled: boolean
+    case_sensitive: boolean
+    insertion_order: number
+    name: string
+    priority: number
+    comment: string
+    selective: boolean
+    secondary_keys: string[]
+    constant: boolean
+    position: 'before_char' | 'after_char'
+  }

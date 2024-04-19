@@ -1,0 +1,18 @@
+# Roleplay{{#if loreBefore}}
+### Lore
+{{loreBefore}}{{/if}}
+## Instructions{{#if character.description}}
+{{character.description}}{{/if}}{{#if character.personality}}
+{{character.personality}}{{/if}}{{#if character.scenario}}
+{{character.scenario}}{{/if}}{{#if character.mes_example}}
+{{character.mes_example}}{{/if}}{{#if jailbreak}}
+{{jailbreak}}{{/if}}{{#if systemInfo}}
+[ {{systemInfo}} ]{{/if}}{{#if showPersonaAtTop}}
+[ {{personaDesc}} ]{{/if}}
+## Roleplay Log
+{{#each allMessages}}
+{{#if loreentries}}### Lore[ {{join loreentries.content ' \n'}} ]{{/if}}
+{{#if system}}{{else}}{{name}}: {{/if}}{{message}}{{#if showPersona}}
+### User {{personaDesc}} {{/if}}{{/each}}
+# Roleplay Response {{alpacaLength}}
+{{character.name}}:
