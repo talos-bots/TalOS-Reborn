@@ -78,7 +78,7 @@ export class RoomPipeline implements Room {
             discordGuildId: message.guild?.id || '',
             message: {
                 userId: message.author.id,
-                fallbackName: alias?.name || message.author.username,
+                fallbackName: alias?.name || (message.member?.displayName ? message.member?.displayName : message.author.displayName),
                 swipes: [message.cleanContent.startsWith('-') ? message.cleanContent.replace('-', '') : message.cleanContent],
                 currentIndex: 0,
                 role: 'User' as Role,
