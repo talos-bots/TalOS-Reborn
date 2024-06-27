@@ -5,6 +5,46 @@ import { CharacterInterface, defaultCharacterObject } from '../typings/types.js'
 
 export const charactersRouter = express.Router();
 
+function serializeCharacter(character: CharacterInterface): any {
+    return {
+        ...character,
+        tags: JSON.stringify(character.tags),
+        alternate_greetings: JSON.stringify(character.alternate_greetings),
+        response_settings: JSON.stringify(character.response_settings),
+    };
+}
+
+function deserializeCharacter(row: any): CharacterInterface {
+    let tags = [];
+    let alternate_greetings = [];
+    let response_settings = {};
+
+    try {
+        tags = JSON.parse(row.tags || '[]');
+    } catch (error) {
+        console.error("Error parsing tags:", error);
+    }
+
+    try {
+        alternate_greetings = JSON.parse(row.alternate_greetings || '[]');
+    } catch (error) {
+        console.error("Error parsing alternate_greetings:", error);
+    }
+
+    try {
+        response_settings = JSON.parse(row.response_settings || '{}');
+    } catch (error) {
+        console.error("Error parsing response_settings:", error);
+    }
+
+    return {
+        ...row,
+        tags,
+        alternate_greetings,
+        response_settings,
+    };
+}
+
 // get all characters from the ../data/characters/ folder
 export async function fetchAllCharacters(): Promise<CharacterInterface[]> {
     const charas = await new Promise((resolve, reject) => {
@@ -17,7 +57,7 @@ export async function fetchAllCharacters(): Promise<CharacterInterface[]> {
         });
     }) as CharacterInterface[];
 
-    return charas.map((chara: any) => ({...defaultCharacterObject, ...chara}));
+    return charas.map((chara: any) => ({...defaultCharacterObject, ...deserializeCharacter(chara)}));
 }
 
 charactersRouter.get('/characters', async (req, res) => {
@@ -25,6 +65,7 @@ charactersRouter.get('/characters', async (req, res) => {
         const characterData = await fetchAllCharacters();
         res.send(characterData);
     } catch (error: any) {
+        console.log(error);
         res.status(500).send({ error: error.message });
     }
 });
@@ -32,9 +73,29 @@ charactersRouter.get('/characters', async (req, res) => {
 // save a character to the ../data/characters/ folder
 function saveOrUpdateCharacter(character: CharacterInterface): Promise<void> {
     return new Promise((resolve, reject) => {
-        const upsertQuery = `REPLACE INTO characters (_id, name, avatar, description, personality, mes_example, creator_notes, system_prompt, post_history_instructions, tags, creator, visual_description, thought_pattern, first_mes, alternate_greetings, scenario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const upsertQuery = `REPLACE INTO characters (_id, name, avatar, description, personality, mes_example, creator_notes, system_prompt, post_history_instructions, tags, creator, visual_description, thought_pattern, first_mes, alternate_greetings, scenario, response_settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-        db.run(upsertQuery, Object.values(character), (err) => {
+        const serializedCharacter = serializeCharacter({...defaultCharacterObject, ...character});
+
+        db.run(upsertQuery, [
+            serializedCharacter._id,
+            serializedCharacter.name,
+            serializedCharacter.avatar,
+            serializedCharacter.description,
+            serializedCharacter.personality,
+            serializedCharacter.mes_example,
+            serializedCharacter.creator_notes,
+            serializedCharacter.system_prompt,
+            serializedCharacter.post_history_instructions,
+            serializedCharacter.tags,
+            serializedCharacter.creator,
+            serializedCharacter.visual_description,
+            serializedCharacter.thought_pattern,
+            serializedCharacter.first_mes,
+            serializedCharacter.alternate_greetings,
+            serializedCharacter.scenario,
+            serializedCharacter.response_settings,
+        ], (err) => {
             if (err) {
                 reject(err);
                 return;
@@ -46,9 +107,14 @@ function saveOrUpdateCharacter(character: CharacterInterface): Promise<void> {
 
 charactersRouter.post('/save/character', authenticateToken, async (req, res) => {
     try {
+        console.log("Saving character...");
+        console.log(req.body);
         await saveOrUpdateCharacter(req.body);
+        console.log("Character saved successfully!");
         res.send({ message: "Character saved successfully!" });
     } catch (error: any) {
+        console.log("Error saving character...");
+        console.log(error);
         res.status(500).send({ error: error.message });
     }
 });
@@ -68,7 +134,7 @@ export async function fetchCharacterById(id: string): Promise<CharacterInterface
     if (!chara) {
         return null;
     } else {
-        return {...defaultCharacterObject, ...chara};
+        return {...defaultCharacterObject, ...deserializeCharacter(chara)};
     }
 }
 
@@ -81,6 +147,7 @@ charactersRouter.get('/character/:id', async (req, res) => {
             res.status(404).send({ message: "Character not found" });
         }
     } catch (error: any) {
+        console.log(error);
         res.status(500).send({ error: error.message });
     }
 });

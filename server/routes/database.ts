@@ -28,7 +28,8 @@ const db = new sqlite3.Database(dbFile, (err: any) => {
 });
 
 db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS users (
+    // Create new users table with the same schema
+    db.run(`CREATE TABLE IF NOT EXISTS new_users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
         hashed_password TEXT,
@@ -40,7 +41,8 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS characters (
+    // Create new characters table with the updated schema
+    db.run(`CREATE TABLE IF NOT EXISTS new_characters (
         _id TEXT PRIMARY KEY,
         name TEXT,
         avatar TEXT,
@@ -56,9 +58,31 @@ db.serialize(() => {
         thought_pattern TEXT,
         first_mes TEXT,
         alternate_greetings TEXT,
-        scenario TEXT
+        scenario TEXT,
+        response_settings TEXT
     )`);
+
+    // Copy data from old users table to new users table
+    db.run(`INSERT INTO new_users (id, username, hashed_password, profile_pic, display_name, tagline, bio, background_pic, created_at)
+            SELECT id, username, hashed_password, profile_pic, display_name, tagline, bio, background_pic, created_at FROM users`);
+
+    // Copy data from old characters table to new characters table
+    db.run(`INSERT INTO new_characters (_id, name, avatar, description, personality, mes_example, creator_notes, system_prompt, post_history_instructions, tags, creator, visual_description, thought_pattern, first_mes, alternate_greetings, scenario)
+            SELECT _id, name, avatar, description, personality, mes_example, creator_notes, system_prompt, post_history_instructions, tags, creator, visual_description, thought_pattern, first_mes, alternate_greetings, scenario FROM characters`);
+
+    // Drop old users table
+    db.run(`DROP TABLE users`);
+
+    // Drop old characters table
+    db.run(`DROP TABLE characters`);
+
+    // Rename new users table to users
+    db.run(`ALTER TABLE new_users RENAME TO users`);
+
+    // Rename new characters table to characters
+    db.run(`ALTER TABLE new_characters RENAME TO characters`);
 });
+
 
 export async function clearUsers() {
     db.run(`DELETE FROM users`);

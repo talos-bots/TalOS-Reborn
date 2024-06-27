@@ -54,6 +54,10 @@ const CharacterCRUD = () => {
     const [first_mes, setFirstMes] = useState<string>('');
     const [alternate_greetings, setAlternateGreetings] = useState<string[]>([]);
     const [scenario, setScenario] = useState<string>('');
+    const [botReplyChance, setBotReplyChance] = useState<number>(50);
+    const [botReplyMentionChance, setBotReplyMentionChance] = useState<number>(70);
+    const [userReplyChance, setUserReplyChance] = useState<number>(100);
+    const [userReplyMentionChance, setUserReplyMentionChance] = useState<number>(100);
     const [isSuccessful, setIsSuccessful] = useState<boolean>(false);
     const [imageGenerationError, setImageGenerationError] = useState<boolean>(false);
     const [currentSlide, setCurrentSlide] = useState<slides>('chat');
@@ -132,6 +136,11 @@ const CharacterCRUD = () => {
             setFirstMes(character?.first_mes);
             setAlternateGreetings(character?.alternate_greetings);
             setScenario(character?.scenario);
+            setAvatar(character?.avatar);
+            setBotReplyChance(character?.response_settings?.reply_to_bot ?? 50);
+            setBotReplyMentionChance(character?.response_settings?.reply_to_bot_mention ?? 70);
+            setUserReplyChance(character?.response_settings?.reply_to_user ?? 100);
+            setUserReplyMentionChance(character?.response_settings?.reply_to_user_mention ?? 100);
         }
     }
 
@@ -188,6 +197,10 @@ const CharacterCRUD = () => {
         newCharacter.setFirstMes(first_mes);
         newCharacter.setAlternateGreetings(alternate_greetings);
         newCharacter.setScenario(scenario);
+        newCharacter.setBotMentionReplyChance(botReplyMentionChance);
+        newCharacter.setBotReplyChance(botReplyChance);
+        newCharacter.setUserMentionReplyChance(userReplyMentionChance);
+        newCharacter.setUserReplyChance(userReplyChance);
         newCharacter.save().then(() => {
             navigate('/characters');
         }).catch((error) => {
@@ -516,6 +529,57 @@ const CharacterCRUD = () => {
                             required={false}
                             className={"w-full h-full"}
                         />                            
+                    </div>
+                    <h3 className="text-xl">Response Settings (Discord)</h3>
+                    <div className='flex flex-col w-full gap-4'>
+                        <div className="dy-form-control">
+                            <label className="font-bold w-full text-left">Character Reply Chance</label>
+                            <input
+                                disabled={notAuthorized}
+                                min={0}
+                                max={100}
+                                type="number"
+                                className="dy-input dy-input-bordered"
+                                value={botReplyChance}
+                                onChange={(e) => setBotReplyChance(parseInt(e.target.value))}
+                            />
+                        </div>
+                        <div className="dy-form-control">
+                            <label className="font-bold w-full text-left">Character Mention Reply Chance</label>
+                            <input
+                                disabled={notAuthorized}
+                                min={0}
+                                max={100}
+                                type="number"
+                                className="dy-input dy-input-bordered"
+                                value={botReplyMentionChance}
+                                onChange={(e) => setBotReplyMentionChance(parseInt(e.target.value))}
+                            />
+                        </div>
+                        <div className="dy-form-control">
+                            <label className="font-bold w-full text-left">User Reply Chance</label>
+                            <input
+                                disabled={notAuthorized}
+                                min={0}
+                                max={100}
+                                type="number"
+                                className="dy-input dy-input-bordered"
+                                value={userReplyChance}
+                                onChange={(e) => setUserReplyChance(parseInt(e.target.value))}
+                            />
+                        </div>
+                        <div className="dy-form-control">
+                            <label className="font-bold w-full text-left">User Mention Reply Chance</label>
+                            <input
+                                disabled={notAuthorized}
+                                min={0}
+                                max={100}
+                                type="number"
+                                className="dy-input dy-input-bordered"
+                                value={userReplyMentionChance}
+                                onChange={(e) => setUserReplyMentionChance(parseInt(e.target.value))}
+                            />
+                        </div>
                     </div>
                 </div>
                 

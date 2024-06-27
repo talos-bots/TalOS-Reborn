@@ -23,6 +23,17 @@ export class Character{
         public first_mes: string = '',
         public alternate_greetings: string[] = [],
         public scenario: string = '',
+        public response_settings: {
+            reply_to_bot: number,
+            reply_to_bot_mention: number,
+            reply_to_user: number,
+            reply_to_user_mention: number,
+        } = {
+            reply_to_bot: 50,
+            reply_to_bot_mention: 70,
+            reply_to_user: 100,
+            reply_to_user_mention: 100,
+        }
     ){}
 
     toCharacter(): Character {
@@ -73,7 +84,8 @@ export class Character{
             thought_pattern: this.thought_pattern,
             first_mes: this.first_mes,
             alternate_greetings: this.alternate_greetings,
-            scenario: this.scenario
+            scenario: this.scenario,
+            response_settings: this.response_settings,
         };
     }
 
@@ -137,6 +149,22 @@ export class Character{
         this.scenario = scenario;
     }
 
+    setBotReplyChance(reply_to_bot: number){
+        this.response_settings.reply_to_bot = reply_to_bot;
+    }
+
+    setBotMentionReplyChance(reply_to_bot_mention: number){
+        this.response_settings.reply_to_bot_mention = reply_to_bot_mention;
+    }
+
+    setUserReplyChance(reply_to_user: number){
+        this.response_settings.reply_to_user = reply_to_user;
+    }
+
+    setUserMentionReplyChance(reply_to_user_mention: number){
+        this.response_settings.reply_to_user_mention = reply_to_user_mention;
+    }
+
     async save(){
         saveCharacterToLocal(this);
     }
@@ -158,7 +186,13 @@ export class Character{
             json.thought_pattern,
             json.first_mes,
             json.alternate_greetings,
-            json.scenario
+            json.scenario,
+            json.response_settings ? json.response_settings : {
+                reply_to_bot: 50,
+                reply_to_bot_mention: 70,
+                reply_to_user: 100,
+                reply_to_user_mention: 100,
+            }
         );
     }
 }

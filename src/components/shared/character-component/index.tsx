@@ -29,7 +29,11 @@ const CharacterComponent = (props: CharacterComponentProps) => {
 		if (character) {
 			getUserdataByID(character.creator).then((newUser) => {
 				setCreatorName(newUser?.displayName || '');
-				setCreatorProfilePic(newUser?.profilePic || '');
+                if(newUser?.profilePic && newUser?.profilePic.trim().length > 0){
+                    setCreatorProfilePic(newUser?.profilePic);
+                } else {
+                    setCreatorProfilePic(defaultPhotoURL);
+                }
                 if(newUser?.id === user?.id) {
                     setIsAuthor(true);
                 }
