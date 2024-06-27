@@ -1,13 +1,13 @@
 import express from 'express';
 import db from './database.js';
 import { authenticateToken } from './authenticate-token.js';
-import { CharacterInterface } from '../typings/types.js';
+import { CharacterInterface, defaultCharacterObject } from '../typings/types.js';
 
 export const charactersRouter = express.Router();
 
 // get all characters from the ../data/characters/ folder
-export function fetchAllCharacters(): Promise<CharacterInterface[]> {
-    return new Promise((resolve, reject) => {
+export async function fetchAllCharacters(): Promise<CharacterInterface[]> {
+    const charas = await new Promise((resolve, reject) => {
         db.all('SELECT * FROM characters', [], (err, rows: any) => {
             if (err) {
                 reject(err);
@@ -15,7 +15,9 @@ export function fetchAllCharacters(): Promise<CharacterInterface[]> {
             }
             resolve(rows);
         });
-    });
+    }) as CharacterInterface[];
+
+    return charas.map((chara: any) => ({...defaultCharacterObject, ...chara}));
 }
 
 charactersRouter.get('/characters', async (req, res) => {
@@ -52,8 +54,8 @@ charactersRouter.post('/save/character', authenticateToken, async (req, res) => 
 });
 
 // get a character by id from the ../data/characters/ folder
-export function fetchCharacterById(id: string): Promise<CharacterInterface | null> {
-    return new Promise((resolve, reject) => {
+export async function fetchCharacterById(id: string): Promise<CharacterInterface | null> {
+    const chara = await new Promise((resolve, reject) => {
         db.get('SELECT * FROM characters WHERE _id = ?', [id], (err, row: any) => {
             if (err) {
                 reject(err);
@@ -62,6 +64,12 @@ export function fetchCharacterById(id: string): Promise<CharacterInterface | nul
             resolve(row || null);
         });
     });
+
+    if (!chara) {
+        return null;
+    } else {
+        return {...defaultCharacterObject, ...chara};
+    }
 }
 
 charactersRouter.get('/character/:id', async (req, res) => {

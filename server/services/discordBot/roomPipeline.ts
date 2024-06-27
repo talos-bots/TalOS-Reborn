@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Alias, AuthorsNote, CharacterSettingsOverride, ChatMessage, Room, RoomMessage } from "../../typings/discordBot.js";
+import { Alias, AuthorsNote, CharacterSettingsOverride, ChatMessage, defaultRoom, Room, RoomMessage } from "../../typings/discordBot.js";
 import { roomsPath } from "../../server.js";
 import fs from 'fs';
 import path from 'path';
@@ -30,6 +30,7 @@ export class RoomPipeline implements Room {
     public authorsNoteDepth: number = 0;
     public allowRegeneration: boolean = false;
     public allowDeletion: boolean = false;
+    public allowMultiline: boolean = false;
     public overrides: CharacterSettingsOverride[] = [];
     public users: string[] = [];
 
@@ -172,6 +173,7 @@ export class RoomPipeline implements Room {
             authorsNoteDepth: this.authorsNoteDepth,
             allowRegeneration: this.allowRegeneration,
             allowDeletion: this.allowDeletion,
+            allowMultiline: this.allowMultiline,
             overrides: this.overrides,
             users: this.users
         }
@@ -233,7 +235,7 @@ export class RoomPipeline implements Room {
         const rooms = [];
         for(const fileName of roomFiles) {
             const room = JSON.parse(fs.readFileSync(path.join(roomsPath, fileName), 'utf8')) as Room;
-            rooms.push(room);
+            rooms.push({...defaultRoom, ...room});
         }
         const room = rooms.find(room => room.channelId === channelId);
         if (room) {
@@ -306,7 +308,7 @@ export class RoomPipeline implements Room {
                     throw new Error('Failed to generate response');
                 }
                 value = unparsedResponse?.choices[0]?.text.trim();
-                refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), false);
+                refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), this.allowMultiline);
                 tries++;
                 if(refinedResponse !== ''){
                     unfinished = false;
@@ -384,7 +386,7 @@ export class RoomPipeline implements Room {
                     throw new Error('Failed to generate response');
                 }
                 value = unparsedResponse?.choices[0]?.text.trim();
-                refinedResponse = breakUpCommands(character.name, value, this.getLastUserMessage()?.message.fallbackName , this.getStopList(), false);
+                refinedResponse = breakUpCommands(character.name, value, this.getLastUserMessage()?.message.fallbackName , this.getStopList(), this.allowMultiline);
                 tries++;
                 if(refinedResponse !== ''){
                     unfinished = false;

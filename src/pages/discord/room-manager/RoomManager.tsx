@@ -44,6 +44,7 @@ const RoomManager = ({ discordOnline } : RoomManagerProps) => {
             authorsNoteDepth: 0,
             allowRegeneration: false,
             allowDeletion: false,
+            allowMultiline: false,
             users: [],
             overrides: [], 
         }

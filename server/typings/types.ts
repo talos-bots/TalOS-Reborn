@@ -17,6 +17,39 @@ export type CharacterInterface = {
     first_mes: string;
     alternate_greetings: string[];
     scenario: string;
+    response_settings?: CharacterResponseSettings;
+}
+
+export type CharacterResponseSettings = {
+    reply_to_bot: number;
+    reply_to_bot_mention: number;
+    reply_to_user: number;
+    reply_to_user_mention: number;
+}
+
+export const defaultCharacterObject: CharacterInterface = {
+    _id: '',
+    name: '',
+    avatar: '',
+    description: '',
+    personality: '',
+    mes_example: '',
+    creator_notes: '',
+    system_prompt: '',
+    post_history_instructions: '',
+    tags: [],
+    creator: '',
+    visual_description: '',
+    thought_pattern: '',
+    first_mes: '',
+    alternate_greetings: [],
+    scenario: '',
+    response_settings: {
+        reply_to_bot: 50,
+        reply_to_bot_mention: 70,
+        reply_to_user: 100,
+        reply_to_user_mention: 100,
+    }
 }
 
 export type CompletionRequest = {

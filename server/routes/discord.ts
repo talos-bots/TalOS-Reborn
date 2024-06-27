@@ -4,7 +4,7 @@ import { DiscordBotService } from "../services/discordBot.js";
 import { fetchCharacterById } from "./characters.js";
 import { getGlobalConfig } from "./discordConfig.js";
 import { Request, Response, Application, NextFunction, Router } from "express";
-import { CharacterInterface } from "../typings/types.js";
+import { CharacterInterface, defaultCharacterObject } from "../typings/types.js";
 import { Alias, RoomMessage } from "../typings/discordBot.js";
 
 const activePipelines: RoomPipeline[] = [];
@@ -60,24 +60,98 @@ async function handleMessageProcessing(room: RoomPipeline, message: RoomMessage,
     }
     let roster: CharacterInterface[] = characters;
     // shuffle the roster
-    roster = roster.sort(() => Math.random() - 0.5);
     activeDiscordClient.sendTyping(discordMessage)
-    while(roster.length > 0){
-        const character = roster.shift();
-        if(!character) continue;
-        const usageArgs = room.getUsageArgumentsForCharacter(character._id);
-        if(!usageArgs){
-            roster = roster.filter((char) => {
-                return char._id !== character._id;
+    let toGo: string[] = [];
+    if(containsName(message.message.swipes[message.message.currentIndex], characters)){
+        let id = containsName(message.message.swipes[message.message.currentIndex], characters);
+        if(id !== false){
+            //determine if the character should respond, by using the character's response rate to user mentions
+            let char = roster.find((char) => {
+                return char._id === id;
             });
-            const response = await room.generateResponse(message, character._id);
-            if(!response) break;
-            const responseMessage = response.message.swipes[response.message.currentIndex];
-            await activeDiscordClient?.sendMessageAsCharacter(room.channelId, character, responseMessage);
+            if(char){
+                let responseRate = char.response_settings?.reply_to_user_mention ?? defaultCharacterObject?.response_settings?.reply_to_user_mention ?? 100;
+                // get random number between 0 and 100
+                let random = Math.floor(Math.random() * 101);
+                if(random <= responseRate){
+                    toGo.push(char._id);
+                }
+            }
+        }
+    } else {
+        //determine if the character should respond, by using the character's response rate to users without mention
+        for(let i = 0; i < roster.length; i++){
+            let responseRate = roster[i].response_settings?.reply_to_user ?? defaultCharacterObject?.response_settings?.reply_to_user ?? 100;
+            // get random number between 0 and 100
+            let random = Math.floor(Math.random() * 101);
+            if(random <= responseRate){
+                toGo.push(roster[i]._id);
+            }
         }
     }
+
+    const generateNewMessage = async (character: CharacterInterface) => {
+        roster = roster.filter((char) => {
+            return char._id !== character._id;
+        });
+        const response = await room.generateResponse(message, character._id);
+        if(!response) return;
+        const responseMessage = response.message.swipes[response.message.currentIndex];
+        await activeDiscordClient?.sendMessageAsCharacter(room.channelId, character, responseMessage);
+        let name = containsName(responseMessage, characters);
+        if(name && name !== character._id){
+            const char = roster.find((char) => {
+                return char._id === name;
+            });
+            if(char){
+                //determine if the character should respond, by using the character's response rate to bots
+                let responseRate = char.response_settings?.reply_to_bot_mention ?? defaultCharacterObject?.response_settings?.reply_to_bot_mention ?? 70;
+                // get random number between 0 and 100
+                let random = Math.floor(Math.random() * 101);
+                if(random <= responseRate){
+                    toGo.push(char._id);
+                }
+            }
+            return;
+        }
+        //determine if the character should respond, by using the character's response rate to bots without mention
+        let responseRate = character.response_settings?.reply_to_bot ?? defaultCharacterObject?.response_settings?.reply_to_bot ?? 50;
+        // get random number between 0 and 100
+        let random = Math.floor(Math.random() * 101);
+        if(random <= responseRate){
+            toGo.push(character._id);
+        }
+        message = response;
+    }
+
+    while(toGo.length > 0){
+        let id = toGo.shift();
+        let char = roster.find((char) => {
+            return char._id === id;
+        });
+        if(char){
+            await generateNewMessage(char);
+        }
+    }
+
     isProcessing = false;
     processMessage();
+}
+
+function containsName(message: string, chars: CharacterInterface[]){
+    for(let i = 0; i < chars.length; i++){
+        if(isMentioned(message, chars[i])){
+            return chars[i]._id;
+        }
+    }
+    return false;
+}
+
+function isMentioned(message: string, char: CharacterInterface){
+    if((message.toLowerCase().trim().includes(char.name.toLowerCase().trim()) && char.name !== '')){
+        return true;
+    }
+    return false;
 }
 
 async function generateDiscordResponse(room: RoomPipeline, message: RoomMessage){
@@ -138,6 +212,14 @@ export async function addOrChangeAliasForUser(alias: Alias, roomId: string){
     if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
     if(!roomPipeline) return;
     await roomPipeline.addOrChangeAlias(alias);
+    roomPipeline.saveToFile();
+}
+
+export async function setMultiline(roomId: string, multiline: boolean){
+    let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
+    if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
+    if(!roomPipeline) return;
+    roomPipeline.allowMultiline = multiline;
     roomPipeline.saveToFile();
 }
 

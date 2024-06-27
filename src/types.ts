@@ -264,6 +264,7 @@ export interface Room {
     authorsNoteDepth: number;
     allowRegeneration: boolean;
     allowDeletion: boolean;
+    allowMultiline: boolean;
     users: string[];
     overrides: CharacterSettingsOverride[];
 }

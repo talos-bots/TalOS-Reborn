@@ -34,7 +34,7 @@ export interface SlashCommandOption {
 export interface SlashCommand {
     name: string;
     description: string;
-    requiresAdmin: boolean;
+    requiresAdmin?: boolean;
     options?: SlashCommandOption[];
     execute: (interaction: CommandInteraction) => void | Promise<void>;
 }
@@ -81,8 +81,35 @@ export interface Room {
     authorsNoteDepth: number;
     allowRegeneration: boolean;
     allowDeletion: boolean;
+    allowMultiline: boolean;
     users: string[];
     overrides: CharacterSettingsOverride[];
+}
+
+export const defaultRoom: Room = {
+    _id: '',
+    name: '',
+    description: '',
+    createdBy: '',
+    channelId: '',
+    guildId: '',
+    isPrivate: false,
+    isLocked: false,
+    createdAt: new Date(),
+    lastModified: new Date(),
+    messages: [],
+    bannedUsers: [],
+    bannedPhrases: [],
+    whitelistUsers: [],
+    characters: [],
+    aliases: [],
+    authorsNotes: [],
+    authorsNoteDepth: 0,
+    allowRegeneration: false,
+    allowDeletion: false,
+    allowMultiline: false,
+    users: [],
+    overrides: [],
 }
 
 export interface CharacterSettingsOverride {

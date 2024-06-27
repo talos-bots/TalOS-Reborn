@@ -1,7 +1,7 @@
 import { AttachmentBuilder, CommandInteraction, EmbedBuilder, Message } from "discord.js";
 import { Alias, Room, SlashCommand } from "../../typings/discordBot.js";
 import { RoomPipeline } from "./roomPipeline.js";
-import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages, clearWebhooks, continueGenerateResponse, sendCharacterGreeting } from "../../routes/discord.js";
+import { addOrChangeAliasForUser, addSystemMessageAndGenerateResponse, clearRoomMessages, clearWebhooks, continueGenerateResponse, sendCharacterGreeting, setMultiline } from "../../routes/discord.js";
 import { fetchAllCharacters } from "../../routes/characters.js";
 import { findNovelAIConnection, findSDXLConnection, generateNovelAIImage, novelAIDefaults, sdxlImage } from "../../routes/diffusion.js";
 import { NovelAIModels, novelAIUndesiredContentPresets, samplersArray, sizePresets } from "../../typings/novelAI.js";
@@ -218,6 +218,7 @@ export const DefaultCommands: SlashCommand[] = [
                 aliases: [],
                 allowDeletion: false,
                 allowRegeneration: false,
+                allowMultiline: false,
                 authorsNoteDepth: 0,
                 authorsNotes: [],
                 bannedPhrases: [],
@@ -842,6 +843,37 @@ export const DefaultCommands: SlashCommand[] = [
                 });
                 return;
             }
+        }
+    } as SlashCommand,
+    {
+        name: 'setmultiline',
+        description: 'Sets the multiline for the current channel.',
+        options: [
+            {
+                name: 'multiline',
+                description: 'Whether to enable multiline.',
+                type: 5,
+                required: true,
+            }
+        ],
+        execute: async (interaction: CommandInteraction) => {
+            await interaction.deferReply({ephemeral: true});
+            if (interaction.channelId === null) {
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            if(interaction.guildId === null){
+                await interaction.editReply({
+                content: "This command can only be used in a server.",
+                });
+                return;
+            }
+            await setMultiline(interaction.channelId, interaction.options.get('multiline')?.value as boolean);
+            await interaction.editReply({
+                content: `Multiline set to ${interaction.options.get('multiline')?.value as boolean}.`,
+            });
         }
     } as SlashCommand,
 ];
