@@ -150,6 +150,12 @@ function containsName(message: string, chars: CharacterInterface[]){
 function isMentioned(message: string, char: CharacterInterface){
     if((message.toLowerCase().trim().includes(char.name.toLowerCase().trim()) && char.name !== '')){
         return true;
+    } else if(char.nicknames){
+        for(let i = 0; i < char.nicknames.length; i++){
+            if(message.toLowerCase().trim().includes(char.nicknames[i].toLowerCase().trim())){
+                return true;
+            }
+        }
     }
     return false;
 }
