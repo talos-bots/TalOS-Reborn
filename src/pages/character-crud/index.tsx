@@ -58,6 +58,7 @@ const CharacterCRUD = () => {
     const [botReplyMentionChance, setBotReplyMentionChance] = useState<number>(70);
     const [userReplyChance, setUserReplyChance] = useState<number>(100);
     const [userReplyMentionChance, setUserReplyMentionChance] = useState<number>(100);
+    const [nicknames, setNicknames] = useState<string[]>([]);
     const [isSuccessful, setIsSuccessful] = useState<boolean>(false);
     const [imageGenerationError, setImageGenerationError] = useState<boolean>(false);
     const [currentSlide, setCurrentSlide] = useState<slides>('chat');
@@ -134,13 +135,16 @@ const CharacterCRUD = () => {
             setVisualDescription(character?.visual_description);
             setThoughtPattern(character?.thought_pattern);
             setFirstMes(character?.first_mes);
+            if(character?.avatar !== undefined && character?.avatar !== null && character?.avatar?.trim() !== ''){
+                setAvatar(character?.avatar);
+            }
             setAlternateGreetings(character?.alternate_greetings);
             setScenario(character?.scenario);
-            setAvatar(character?.avatar);
             setBotReplyChance(character?.response_settings?.reply_to_bot ?? 50);
             setBotReplyMentionChance(character?.response_settings?.reply_to_bot_mention ?? 70);
             setUserReplyChance(character?.response_settings?.reply_to_user ?? 100);
             setUserReplyMentionChance(character?.response_settings?.reply_to_user_mention ?? 100);
+            setNicknames(character?.nicknames ?? []);
         }
     }
 
@@ -201,6 +205,7 @@ const CharacterCRUD = () => {
         newCharacter.setBotReplyChance(botReplyChance);
         newCharacter.setUserMentionReplyChance(userReplyMentionChance);
         newCharacter.setUserReplyChance(userReplyChance);
+        newCharacter.setNicknames(nicknames);
         newCharacter.save().then(() => {
             navigate('/characters');
         }).catch((error) => {
@@ -578,6 +583,17 @@ const CharacterCRUD = () => {
                                 className="dy-input dy-input-bordered"
                                 value={userReplyMentionChance}
                                 onChange={(e) => setUserReplyMentionChance(parseInt(e.target.value))}
+                            />
+                        </div>
+                        <div className='dy-form-control'>
+                            <label className='font-bold w-full text-left'>Nicknames (Comma Separated)</label>
+                            <textarea
+                                disabled={notAuthorized}
+                                placeholder="wizard, private investigator, detective"
+                                value={nicknames.join(',')}
+                                onChange={(e) => setNicknames(e.currentTarget.value.split(','))}
+                                required={false}
+                                className={"w-full h-full dy-textarea dy-textarea-bordered"}
                             />
                         </div>
                     </div>

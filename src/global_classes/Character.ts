@@ -33,7 +33,8 @@ export class Character{
             reply_to_bot_mention: 70,
             reply_to_user: 100,
             reply_to_user_mention: 100,
-        }
+        },
+        public nicknames: string[] = [],
     ){}
 
     toCharacter(): Character {
@@ -86,6 +87,7 @@ export class Character{
             alternate_greetings: this.alternate_greetings,
             scenario: this.scenario,
             response_settings: this.response_settings,
+            nicknames: this.nicknames,
         };
     }
 
@@ -165,6 +167,10 @@ export class Character{
         this.response_settings.reply_to_user_mention = reply_to_user_mention;
     }
 
+    setNicknames(nicknames: string[]){
+        this.nicknames = nicknames;
+    }
+
     async save(){
         saveCharacterToLocal(this);
     }
@@ -192,7 +198,8 @@ export class Character{
                 reply_to_bot_mention: 70,
                 reply_to_user: 100,
                 reply_to_user_mention: 100,
-            }
+            },
+            json.nicknames ? json.nicknames : [],
         );
     }
 }

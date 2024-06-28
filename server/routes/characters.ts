@@ -11,6 +11,7 @@ function serializeCharacter(character: CharacterInterface): any {
         tags: JSON.stringify(character.tags),
         alternate_greetings: JSON.stringify(character.alternate_greetings),
         response_settings: JSON.stringify(character.response_settings),
+        nicknames: JSON.stringify(character.nicknames),
     };
 }
 
@@ -18,23 +19,30 @@ function deserializeCharacter(row: any): CharacterInterface {
     let tags = [];
     let alternate_greetings = [];
     let response_settings = {};
+    let nicknames = [];
 
     try {
         tags = JSON.parse(row.tags || '[]');
     } catch (error) {
-        console.error("Error parsing tags:", error);
+        // console.error("Error parsing tags:", error);
     }
 
     try {
         alternate_greetings = JSON.parse(row.alternate_greetings || '[]');
     } catch (error) {
-        console.error("Error parsing alternate_greetings:", error);
+        // console.error("Error parsing alternate_greetings:", error);
     }
 
     try {
         response_settings = JSON.parse(row.response_settings || '{}');
     } catch (error) {
-        console.error("Error parsing response_settings:", error);
+        // console.error("Error parsing response_settings:", error);
+    }
+
+    try {
+        nicknames = JSON.parse(row.nicknames || '[]');
+    } catch (error) {
+        // console.error("Error parsing nicknames:", error);
     }
 
     return {
@@ -42,6 +50,7 @@ function deserializeCharacter(row: any): CharacterInterface {
         tags,
         alternate_greetings,
         response_settings,
+        nicknames,
     };
 }
 
@@ -73,7 +82,7 @@ charactersRouter.get('/characters', async (req, res) => {
 // save a character to the ../data/characters/ folder
 function saveOrUpdateCharacter(character: CharacterInterface): Promise<void> {
     return new Promise((resolve, reject) => {
-        const upsertQuery = `REPLACE INTO characters (_id, name, avatar, description, personality, mes_example, creator_notes, system_prompt, post_history_instructions, tags, creator, visual_description, thought_pattern, first_mes, alternate_greetings, scenario, response_settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const upsertQuery = `REPLACE INTO characters (_id, name, avatar, description, personality, mes_example, creator_notes, system_prompt, post_history_instructions, tags, creator, visual_description, thought_pattern, first_mes, alternate_greetings, scenario, response_settings, nicknames) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const serializedCharacter = serializeCharacter({...defaultCharacterObject, ...character});
 
@@ -95,6 +104,7 @@ function saveOrUpdateCharacter(character: CharacterInterface): Promise<void> {
             serializedCharacter.alternate_greetings,
             serializedCharacter.scenario,
             serializedCharacter.response_settings,
+            serializedCharacter.nicknames,
         ], (err) => {
             if (err) {
                 reject(err);

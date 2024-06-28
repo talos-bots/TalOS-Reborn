@@ -870,7 +870,14 @@ export const DefaultCommands: SlashCommand[] = [
                 });
                 return;
             }
-            await setMultiline(interaction.channelId, interaction.options.get('multiline')?.value as boolean);
+            const registered = RoomPipeline.getRoomByChannelId(interaction.channelId);
+            if(!registered){
+                await interaction.editReply({
+                    content: "This channel is not a room.",
+                });
+                return;
+            }
+            await setMultiline(registered._id, interaction.options.get('multiline')?.value as boolean);
             await interaction.editReply({
                 content: `Multiline set to ${interaction.options.get('multiline')?.value as boolean}.`,
             });

@@ -18,6 +18,7 @@ export type CharacterInterface = {
     alternate_greetings: string[];
     scenario: string;
     response_settings?: CharacterResponseSettings;
+    nicknames?: string[];
 }
 
 export type CharacterResponseSettings = {
