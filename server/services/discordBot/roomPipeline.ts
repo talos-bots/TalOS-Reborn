@@ -207,6 +207,14 @@ export class RoomPipeline implements Room {
         return new RoomPipeline(room);
     }
 
+    public static deleteRoom(roomId: string): void {
+        if (!fs.existsSync(path.join(roomsPath, `${roomId}.json`))) {
+            throw new Error(`Room not found: ${roomId}`);
+        } else {
+            fs.unlinkSync(path.join(roomsPath, `${roomId}.json`));
+        }
+    }
+
     public static doesRoomExist(roomId: string): boolean {
         if (!fs.existsSync(path.join(roomsPath, `${roomId}.json`))) {
             return false;
@@ -261,85 +269,89 @@ export class RoomPipeline implements Room {
         return userMessages[userMessages.length - 1];
     }
 
-    async generateResponse(roomMessage: RoomMessage, characterId: string): Promise<RoomMessage> {
-        const messages = this.messages;
-        if(!this.messages.includes(roomMessage)){
-            messages.push(roomMessage);
-            this.addRoomMessage(roomMessage);
-        }
-        const processedMessages = [];
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            const alias = this.aliases.find(alias => alias.userId === message.message.userId);
-            message.message.fallbackName = alias?.name || message.message.fallbackName;
-            processedMessages.push(message);
-        }
-        this.messages = processedMessages;
-        const requestMessages = this.roomMessagesToChatMessages();
-        const character = await fetchCharacterById(characterId);
-        if (!character) {
-            throw new Error(`Character not found: ${characterId}`);
-        }
-        const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
-        const lastMessage = this.getLastUserMessage();
-        const completionRequest: CompletionRequest = {
-            messages: requestMessages,
-            character: characterId,
-            args: characterSettingsOverride?.args || undefined,
-            persona: {
-                _id: lastMessage?.message.userId || 'system',
-                name: this.getLastUserMessage()?.message.fallbackName || 'User',
-                description: '',
-                avatar: '',
-            } as UserPersona,
-        }
-        let tries = 0;
-        let unfinished = true;
-        let value = '';
-        let refinedResponse = '';
-        while(unfinished && tries <= 3){
-            try {
-                const unparsedResponse = await handleCompletionRequest(completionRequest);
-                if(unparsedResponse === null){
-                    throw new Error('Failed to generate response');
-                }
-                console.log(unparsedResponse);
-                if(unparsedResponse?.choices[0]?.text === undefined){
-                    throw new Error('Failed to generate response');
-                }
-                value = unparsedResponse?.choices[0]?.text.trim();
-                refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), this.allowMultiline);
-                tries++;
-                if(refinedResponse !== ''){
-                    unfinished = false;
-                }
-            } catch (error) {
-                console.error('Error during response generation:', error);
-                tries++;
+    async generateResponse(roomMessage: RoomMessage, characterId: string): Promise<RoomMessage | void> {
+        try {
+            const messages = this.messages;
+            if(!this.messages.includes(roomMessage)){
+                messages.push(roomMessage);
+                this.addRoomMessage(roomMessage);
             }
-        }
-        if(refinedResponse === ''){
-            throw new Error('Failed to generate response');
-        }
-        const characterResponse: RoomMessage = {
-            _id: new Date().getTime().toString(),
-            timestamp: new Date().getTime(),
-            attachments: [],
-            embeds: [],
-            discordChannelId: this.channelId,
-            discordGuildId: this.guildId,
-            message: {
-                userId: character._id,
-                fallbackName: character.name,
-                swipes: [refinedResponse],
-                currentIndex: 0,
-                role: 'Assistant' as Role,
-                thought: false,
+            const processedMessages = [];
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                const alias = this.aliases.find(alias => alias.userId === message.message.userId);
+                message.message.fallbackName = alias?.name || message.message.fallbackName;
+                processedMessages.push(message);
             }
-        };
-        this.addRoomMessage(characterResponse);
-        this.saveToFile();
-        return characterResponse;
+            this.messages = processedMessages;
+            const requestMessages = this.roomMessagesToChatMessages();
+            const character = await fetchCharacterById(characterId).then(character => character).catch(error => console.error('Error during response generation:', error));
+            if (!character) {
+                throw new Error(`Character not found: ${characterId}`);
+            }
+            const characterSettingsOverride = this.overrides.find(override => override.characterId === characterId);
+            const lastMessage = this.getLastUserMessage();
+            const completionRequest: CompletionRequest = {
+                messages: requestMessages,
+                character: characterId,
+                args: characterSettingsOverride?.args || undefined,
+                persona: {
+                    _id: lastMessage?.message.userId || 'system',
+                    name: this.getLastUserMessage()?.message.fallbackName || 'User',
+                    description: '',
+                    avatar: '',
+                } as UserPersona,
+            }
+            let tries = 0;
+            let unfinished = true;
+            let value = '';
+            let refinedResponse = '';
+            while(unfinished && tries <= 3){
+                try {
+                    const unparsedResponse = await handleCompletionRequest(completionRequest).then(response => response).catch(error => console.error('Error during response generation:', error));
+                    if(unparsedResponse === null){
+                        throw new Error('Failed to generate response');
+                    }
+                    console.log(unparsedResponse);
+                    if(unparsedResponse?.choices[0]?.text === undefined){
+                        throw new Error('Failed to generate response');
+                    }
+                    value = unparsedResponse?.choices[0]?.text.trim();
+                    refinedResponse = breakUpCommands(character.name, value, roomMessage.message.fallbackName, this.getStopList(), this.allowMultiline);
+                    tries++;
+                    if(refinedResponse !== ''){
+                        unfinished = false;
+                    }
+                } catch (error) {
+                    console.error('Error during response generation:', error);
+                    tries++;
+                }
+            }
+            if(refinedResponse === ''){
+                throw new Error('Failed to generate response');
+            }
+            const characterResponse: RoomMessage = {
+                _id: new Date().getTime().toString(),
+                timestamp: new Date().getTime(),
+                attachments: [],
+                embeds: [],
+                discordChannelId: this.channelId,
+                discordGuildId: this.guildId,
+                message: {
+                    userId: character._id,
+                    fallbackName: character.name,
+                    swipes: [refinedResponse],
+                    currentIndex: 0,
+                    role: 'Assistant' as Role,
+                    thought: false,
+                }
+            };
+            this.addRoomMessage(characterResponse);
+            this.saveToFile();
+            return characterResponse;    
+        } catch (error) {
+            console.error('Error during response generation:', error);
+        }
     }
     
     async continueChat(): Promise<RoomMessage> {

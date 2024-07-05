@@ -550,13 +550,13 @@ export class DiscordBotService {
 
     public async sendMessageAsCharacter(channelId: string, char: CharacterInterface, message: string){
         if(!this.client) return;
-        let webhook = await this.getWebhookForCharacter(char.name, channelId);
-
-        if (!webhook) {
-            webhook = await this.createWebhookForChannel(channelId, char);
-        }
-        if(!webhook) return;
         try {
+            let webhook = await this.getWebhookForCharacter(char.name, channelId);
+
+            if (!webhook) {
+                webhook = await this.createWebhookForChannel(channelId, char);
+            }
+            if(!webhook) return;
             await webhook.send(message);
         } catch (error) {
             console.error(error);
@@ -565,13 +565,13 @@ export class DiscordBotService {
 
     public async sendEmbedAsCharacter(channelId: string, char: CharacterInterface, embed: any | any[]){
         if(!this.client) return;
-        let webhook = await this.getWebhookForCharacter(char.name, channelId);
-
-        if (!webhook) {
-            webhook = await this.createWebhookForChannel(channelId, char);
-        }
-        if(!webhook) return;
         try {
+            let webhook = await this.getWebhookForCharacter(char.name, channelId);
+
+            if (!webhook) {
+                webhook = await this.createWebhookForChannel(channelId, char);
+            }
+            if(!webhook) return;
             await webhook.send({embeds: Array.isArray(embed) ? embed : [embed]});
         } catch (error) {
             console.error(error);
@@ -580,13 +580,13 @@ export class DiscordBotService {
 
     public async sendFileAsCharacter(channelId: string, char: CharacterInterface, file: string | Buffer | any[]){
         if(!this.client) return;
-        let webhook = await this.getWebhookForCharacter(char.name, channelId);
-
-        if (!webhook) {
-            webhook = await this.createWebhookForChannel(channelId, char);
-        }
-        if(!webhook) return;
         try {
+            let webhook = await this.getWebhookForCharacter(char.name, channelId);
+
+            if (!webhook) {
+                webhook = await this.createWebhookForChannel(channelId, char);
+            }
+            if(!webhook) return;
             await webhook.send({files: Array.isArray(file) ? file : [file]});
         } catch (error) {
             console.error(error);
@@ -594,30 +594,34 @@ export class DiscordBotService {
     }
 
     public async setNameAndAvatar(config?: DiscordConfig){
-        if(!this.client) return;
-        let currentConfig: DiscordConfig | undefined;
-        if(!config){
-            if(this.currentConfigId === "") return;
-            const settings = fetchdiscordConfigById(this.currentConfigId);
-            if(!settings) return;
-            currentConfig = settings;
-        }
-        if(!currentConfig) return;
-        if(currentConfig.photoUrl){
-            try {
-                const avatar = await base642Buffer(currentConfig.photoUrl);
-                this.client.user?.setAvatar(avatar);
-            } catch (error) {
-                console.error(error);
+        try {
+            if(!this.client) return;
+            let currentConfig: DiscordConfig | undefined;
+            if(!config){
+                if(this.currentConfigId === "") return;
+                const settings = fetchdiscordConfigById(this.currentConfigId);
+                if(!settings) return;
+                currentConfig = settings;
             }
+            if(!currentConfig) return;
+            if(currentConfig.photoUrl){
+                try {
+                    const avatar = await base642Buffer(currentConfig.photoUrl);
+                    this.client.user?.setAvatar(avatar);
+                } catch (error) {
+                    console.error(error);
+                }
 
-        }
-        if(currentConfig.name){
-            try {
-                this.client.user?.setUsername(currentConfig.name);
-            } catch (error) {
-                console.error(error);
             }
+            if(currentConfig.name){
+                try {
+                    this.client.user?.setUsername(currentConfig.name);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        } catch (error) {
+            console.error(error);
         }
     }
 

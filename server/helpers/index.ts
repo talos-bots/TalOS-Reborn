@@ -113,86 +113,304 @@ export function removeBrackets(input: string): string {
     return input.replace(/\[.*?\]/g, '');
 }
 
-export function breakUpCommands(charName: string, commandString: string, user = 'You', stopList: string[] = [], doMultiLine: boolean = true): string {
-    const lines = commandString.split('\n');
-    const formattedCommands = [];
-    let currentCommand = '';
-    let isFirstLine = true;
-    
-    if (doMultiLine === false){
-        let command = lines[0];
-        if(command.trim() === ''){
-            if(lines.length > 1){
-                command = lines[1];
-            }
+export function removeCodeBlocks(input: string): string {
+    return input.replace(/```.*?```/g, "");
+}
+
+function processTextForItalics(text: string) {
+    const lines = text.split('\n');
+  
+    const processedLines = lines.map((line) => {
+      // Check if the line starts with an asterisk and doesn't end with one
+      if (/^\s*\*/.test(line) && !/\*$/.test(line)) {
+        // Attempt to find the last bit of text to wrap in asterisks
+        // This will add an asterisk at the end of the line, assuming that's the intent
+        return line + '*';
+      }
+      return line;
+    });
+  
+    // Reassemble the processed lines into a single string
+    return processedLines.join('\n');
+}
+
+//process text for bold
+
+export function processTextForBold(text: string) {
+    const lines = text.split('\n');
+
+    const processedLines = lines.map((line) => {
+        // Check if the line starts with two asterisks and doesn't end with two
+        if (/^\s*\*\*/.test(line) && !/\*\*$/.test(line)) {
+        // Attempt to find the last bit of text to wrap in asterisks
+        // This will add an asterisk at the end of the line, assuming that's the intent
+        return line + '**';
         }
-        return removeHTMLTags(command.replaceAll('<start>', '')
-        .replaceAll('<end>', '').replaceAll('###', '')
-        .replaceAll('<user>', '').replaceAll('user:', '')
-        .replaceAll('USER:', '').replaceAll('ASSISTANT:', '')
-        .replaceAll('<|user|>', '').replaceAll('<|model|>', '')
-        .replaceAll(`${charName}: `, '')
-        .replaceAll(`${user}: `, '')
-        .replaceAll(`<BOT>`, charName)
-        .replaceAll(`<bot>`, charName)
-        .replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
+        return line;
+    });
+
+    // Reassemble the processed lines into a single string
+    return processedLines.join('\n');
+}
+
+export function processTextForQoutes(text: string){
+const lines = text.split('\n');
+
+const processedLines = lines.map((line) => {
+    // Check if the line starts with a quote and doesn't end with one
+    if (/^\s*"/.test(line) && !/"/.test(line)) {
+    // Attempt to find the last bit of text to wrap in quotes
+    // This will add a quote at the end of the line, assuming that's the intent
+    return line + '"';
     }
-    
-    for (let i = 0; i < lines.length; i++) {
-        // If the line starts with a colon, it's the start of a new command
-        const lineToTest = lines[i].toLocaleLowerCase();
+    return line;
+});
+
+// Reassemble the processed lines into a single string
+return processedLines.join('\n');
+}
+
+export function removeLastLineLeaks(input: string, potential_leaks: string[]): string {
+const lines = input.split('\n');
+const lastLine = lines[lines.length - 1];
+// Check if the last line (trimmed) is in the potential_leaks array or is 'You'
+if (potential_leaks.includes(lastLine.trim()) || lastLine.trim() === 'You') {
+    return lines.slice(0, -1).join('\n');
+} else {
+    // check if the last line is less than 10 characters
+    if (lastLine.trim().length < 10) {
+    return lines.slice(0, -1).join('\n');
+    }
+    return input;
+}
+}
+
+export function transformText(text: string): string {
+    // Split the text into lines
+    const lines = text.split('\n');
+
+    // Function to transform a single line
+    const transformLine = (line: string): string => {
+        // New regex to exclude {{user}}: and {{char}}: placeholders from being wrapped
+        const regex = /(\{\{user\}\}:|\{\{char\}\}:)|\*([^\*]+)\*|([^*]+)/g;
+        let transformedLine = '';
+        let match: RegExpExecArray | null;
+
+        while ((match = regex.exec(line)) !== null) {
+        // If the match is a {{user}}: or {{char}}: placeholder
+        if (match[1]) {
+            transformedLine += match[1] + ' ';
+        // If the match is an action
+        } else if (match[2]) {
+            transformedLine += match[2] + ' ';
+        // If the match is dialogue
+        } else if (match[3]) {
+            // Add condition to skip wrapping if match is preceded by a placeholder which is handled in previous condition
+            transformedLine += `"${match[3].trim()}" `;
+        }
+        }
+        transformedLine.replaceAll(`"" `, '')
+        return transformedLine.trim();
+    };
+
+    // Transform each line and join them back together
+    return lines.map(line => transformLine(line)).join('\n');
+}
+
+export function novelToMarkdown(text: string): string {
+    // Split the text into lines
+    const lines = text.split('\n');
+
+    // Function to revert transformations on a single line
+    const revertLineTransformation = (line: string): string => {
+        // Regex to identify quoted dialogue, preserving placeholders and plaintext
+        const regex = /(\{\{user\}\}:|\{\{char\}\}:)|"([^"]+)"|([^\{\}"]+)/g;
+        let revertedLine = '';
+        let match: RegExpExecArray | null;
         
-        if (lineToTest.startsWith(`${user.toLocaleLowerCase()}:`) || lineToTest.startsWith('you:') || lineToTest.startsWith('<start>') || lineToTest.startsWith('<end>') || lineToTest.startsWith('<user>') || lineToTest.toLocaleLowerCase().startsWith('user:')) {
+        while ((match = regex.exec(line)) !== null) {
+        // If the match is a {{user}}: or {{char}}: placeholder
+        if (match[1]) {
+            revertedLine += match[1] + ' ';
+        // If the match is quoted dialogue
+        } else if (match[2]) {
+            revertedLine += match[2] + ' ';
+        // If the match is plaintext (potentially an action)
+        } else if (match[3]) {
+            // We need to identify actions here; this simple case wraps all non-placeholder text in asterisks
+            // More complex logic might be required depending on the specificity of action identification
+            revertedLine += `*${match[3].trim()}* `;
+        }
+        }
+
+        return revertedLine.trim();
+    };
+
+    // Transform each line and join them back together
+    return lines.map(line => revertLineTransformation(line)).join('\n');
+}
+  
+export function breakUpCommands(
+  charName: string,
+  commandString: string,
+  user = "You",
+  stopList: string[] = [],
+  doMultiLine: boolean = true,
+  ban_brackets: boolean = false,
+  ban_html: boolean = false,
+  ban_code: boolean = false
+): string {
+  if (doMultiLine === false) {
+    const lines = commandString.split("\n");
+    // filter out any empty lines
+    const newlines = lines.filter((line) => line.trim() !== "");
+    let command = newlines[0].replaceAll(`${charName}:`, "").trim();
+    // remove any line that is just the character name, or the user name
+    command = command
+      .replaceAll("<start>", "")
+      .replaceAll("<end>", "")
+      .replaceAll("###", "")
+      .replaceAll("<user>", "")
+      .replaceAll("user:", "")
+      .replaceAll("USER:", "")
+      .replaceAll("ASSISTANT:", "")
+      .replaceAll("<|user|>", "")
+      .replaceAll("<|model|>", "")
+      .replaceAll(`${charName}: `, "")
+      .replaceAll(`${user}: `, "")
+      .replaceAll(`<BOT>`, charName)
+      .replaceAll(`<bot>`, charName)
+      .replaceAll(`<CHAR>`, charName)
+      .replaceAll("</s>", "")
+      .replaceAll("<s>", "")
+      .replaceAll(`Instruction:`, "")
+      .replaceAll(`\nInstruction`, "")
+      .replaceAll(`/bit `, "")
+    if(ban_brackets){
+      command = removeBrackets(command);
+    }
+    if(ban_html){
+      command = removeHTMLTags(command);
+    }
+    if(ban_code){
+      command = removeCodeBlocks(command);
+    }
+    command = command.replaceAll(`${charName}: `, ``)
+    command = processTextForBold(command);
+    command = processTextForItalics(command);
+    command = processTextForQoutes(command);
+    command = removeLastLineLeaks(command, [charName, user]);
+    const asterisks = command.match(/\*/g);
+    if (asterisks && asterisks.length % 2 !== 0) {
+      // remove the last asterisk
+      command = command.substring(0, command.lastIndexOf("*"));
+    }
+    return command;
+  }
+  let lines = commandString.split("\n\n");
+  if (lines.length === 1) {
+    lines = lines[0].split("\n");
+  }
+  const formattedCommands = [];
+  let currentCommand = "";
+  let isFirstLine = true;
+  for (let i = 0; i < lines.length; i++) {
+    // If the line starts with a colon, it's the start of a new command
+    const lineToTest = lines[i].toLocaleLowerCase();
+
+    if (
+      (lineToTest.startsWith(`${user.toLocaleLowerCase()}:`) ||
+      lineToTest.startsWith("you:") ||
+      lineToTest.startsWith("<start>") ||
+      lineToTest.startsWith("<end>") ||
+      lineToTest.startsWith("<user>") ||
+      lineToTest.toLocaleLowerCase().startsWith("user:")) && 
+      !isFirstLine
+    ) {
+      break;
+    }
+    let isStopListed = false;
+    if (stopList !== null) {
+      for (let j = 0; j < stopList.length; j++) {
+        if (lineToTest.startsWith(`${stopList[j].toLocaleLowerCase()}`)) {
+          isStopListed = true;
           break;
         }
-        let isStopListed = false;
-        if (stopList !== null) {
-            for(let j = 0; j < stopList.length; j++){
-                if(lineToTest.startsWith(`${stopList[j].toLocaleLowerCase()}`)){
-                    isStopListed = true;
-                    break;
-                }
-            }
-        }
-        if(isStopListed){
-            break;
-        }
-        
-        if (lineToTest.startsWith(`${charName}:`)) {
-            isFirstLine = false;
-            if (currentCommand !== '') {
-                // Push the current command to the formattedCommands array
-                formattedCommands.push(currentCommand);
-            }
-        } else {
-            if (currentCommand !== '' || isFirstLine){
-                currentCommand += (isFirstLine ? '' : '\n') + lines[i]
-            }
-            if (isFirstLine){
-                isFirstLine = false;
-                currentCommand += '\n'
-            }
-        }
+      }
     }
-    let final = '';
-    // Don't forget to add the last command
-    if (currentCommand !== '') {
+    if (isStopListed) {
+      break;
+    }
+
+    if (lineToTest.startsWith(`${charName}:`)) {
+      isFirstLine = false;
+      if (currentCommand !== "") {
+        // Push the current command to the formattedCommands array
         formattedCommands.push(currentCommand);
+      }
+    } else {
+      if (currentCommand !== "" || isFirstLine) {
+        currentCommand += (isFirstLine ? "" : "\n") + lines[i];
+      }
+      if (isFirstLine) {
+        isFirstLine = false;
+        currentCommand += "\n";
+      }
     }
-    // if(!get1PP()){
-        const removedEmptyLines = formattedCommands.filter((command) => {
-            return command.trim() !== '';
-        });
-        final = removedEmptyLines.join('\n\n');
-    // }else {
-    //     final = formattedCommands.join('\n');
-    // }
-    return removeHTMLTags(final.replaceAll('<start>', '').replaceAll('<end>', '')
-    .replaceAll('###', '').replaceAll('<user>', '')
-    .replaceAll('user:', '').replaceAll('USER:', '')
-    .replaceAll('ASSISTANT:', '').replaceAll('<|user|>', '')
-    .replaceAll('<|model|>', '').replaceAll(`${user}: `, '').replaceAll(`<BOT>`, charName)
-    .replaceAll(`<bot>`, charName).replaceAll(`<CHAR>`, charName)).replaceAll('</s>', '').replaceAll('<s>', '');
+  }
+  let final = "";
+  // Don't forget to add the last command
+  if (currentCommand !== "") {
+    formattedCommands.push(currentCommand);
+  }
+  let removedEmptyLines = formattedCommands.filter((command) => {
+    return command.trim() !== "";
+  });
+  //remove any lines that are just, the character name, or the user name
+  removedEmptyLines = removedEmptyLines.filter((command) => {
+    return !command.trim().startsWith(user) && !command.trim().startsWith("You");
+  });
+  final = removedEmptyLines.join("\n");
+  final = final.replaceAll("<start>", "")
+    .replaceAll("<end>", "")
+    .replaceAll("###", "")
+    .replaceAll("<user>", "")
+    .replaceAll("user:", "")
+    .replaceAll("USER:", "")
+    .replaceAll("ASSISTANT:", "")
+    .replaceAll("<|user|>", "")
+    .replaceAll("<|model|>", "")
+    .replaceAll(`${user}: `, "")
+    .replaceAll(`<BOT>`, charName)
+    .replaceAll(`<bot>`, charName)
+    .replaceAll(`<CHAR>`, charName)
+    .replaceAll("</s>", "")
+    .replaceAll("<s>", "")
+    .replaceAll(`[INST`, "")
+    .replaceAll(`Instruction:`, "")
+    .replaceAll(`\nInstruction`, "")
+    .replaceAll(`/bit `, "")
+  if(ban_brackets){
+    final = removeBrackets(final);
+  }
+  if(ban_html){
+    final = removeHTMLTags(final);
+  }
+  if(ban_code){
+    final = removeCodeBlocks(final);
+  }
+  final = final.replaceAll(`${charName}: `, ``)
+  final = processTextForBold(final);
+  final = processTextForItalics(final);
+  final = processTextForQoutes(final);
+  final = removeLastLineLeaks(final, [charName, user]);
+  // are there an odd number of asterisks in the string?
+  const asterisks = final.match(/\*/g);
+  if (asterisks && asterisks.length % 2 !== 0) {
+    // remove the last asterisk
+    final = final.substring(0, final.lastIndexOf("*"));
+  }
+  return final;
 }
 
 /**

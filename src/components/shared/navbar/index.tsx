@@ -88,12 +88,6 @@ const NavBar = (props: NavBarProps) => {
                     <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Chat" to="/chat">
                         <MessageCircle />
                     </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Realms" to="/realms">
-                        <Castle />
-                    </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Art" to="/art">
-                        <Paintbrush />
-                    </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost z-[1000]" title="Discord" to="/discord">
                         <FontAwesomeIcon icon={faDiscord} />
                     </NavLink>
@@ -116,12 +110,6 @@ const NavBar = (props: NavBarProps) => {
                     </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Chat" to="/chat">
                         <MessageCircle/>
-                    </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Realms" to="/realms">
-                        <Castle />
-                    </NavLink>
-                    <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Art" to="/art">
-                        <Paintbrush/>
                     </NavLink>
                     <NavLink className="dy-btn dy-btn-ghost dy-btn-square" title="Discord" to="/discord">
                         <FontAwesomeIcon icon={faDiscord} size='lg'/>

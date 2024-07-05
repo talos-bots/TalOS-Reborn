@@ -67,7 +67,15 @@ export function fetchConnectionById(id: string) {
         const fileData = fs.readFileSync(filePath, "utf-8");
         return JSON.parse(fileData) as GenericCompletionConnectionTemplate;
     } else {
-        return null; // or handle the error as needed
+        // find the last modified file in the folder and use that
+        const connectionFiles = fs.readdirSync(connectionFolderPath);
+        const connectionData = connectionFiles.map((file) => {
+            if(!file.endsWith(".json")) return;
+            const filePath = path.join(connectionFolderPath, file);
+            const fileData = fs.readFileSync(filePath, "utf-8");
+            return JSON.parse(fileData);
+        });
+        return connectionData[connectionData.length - 1];
     }
 }
 

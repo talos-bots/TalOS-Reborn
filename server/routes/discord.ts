@@ -284,6 +284,11 @@ export async function clearWebhooks(channelId: string){
     await activeDiscordClient.clearWebhooksFromChannel(channelId);
 }
 
+export async function deleteRoom(roomId: string){
+    removeRoomFromActive(roomId);
+    RoomPipeline.deleteRoom(roomId);
+}
+
 DiscordManagementRouter.post('/start', async (req, res) => {
     let config;
     if(req.body.config){
