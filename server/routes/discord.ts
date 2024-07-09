@@ -17,7 +17,7 @@ export async function processMessage(){
         return;
     }
     // wait 2 seconds before processing the next message
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     isProcessing = true;
     try {
         const message = activeDiscordClient.messageQueue.shift();
