@@ -34,7 +34,7 @@ const ConnectionPanel = () => {
     const [connectionModel, setConnectionModel] = useState<string>(localStorage.getItem('connectionModel') as string || 'davinci')
     const [connectionStatus, setConnectionStatus] = useState<string>('Untested')
     const [connectionModelList, setConnectionModelList] = useState<string[]>([])
-
+    const [searchQuery, setSearchQuery] = useState<string>('')
     const [urlValid, setURLValid] = useState<boolean>(false)
 
     useEffect(() => {
@@ -269,6 +269,13 @@ const ConnectionPanel = () => {
                 <p className="dy-textarea dy-textarea-bordered p-4 w-full flex flex-row justify-between">
                     <b>Connection Status</b> {connectionStatus}
                 </p>
+                <input
+                    type="text"
+                    placeholder="Search Models"
+                    value={searchQuery}
+                    onChange={(e)=> setSearchQuery(e.target.value)}
+                    className="dy-input dy-input-bordered"
+                />
                 <RequiredSelectField
                     label="Connection Model"
                     value={connectionModel}
@@ -276,7 +283,9 @@ const ConnectionPanel = () => {
                     required={false}
                     className={''}
                 >
-                    {connectionModelList.map((connectionOption, index) => (
+                    {connectionModelList.filter(
+                        (model) => model.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map((connectionOption, index) => (
                         <option key={index} value={connectionOption}>{connectionOption}</option>
                     ))}
                 </RequiredSelectField>

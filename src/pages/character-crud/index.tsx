@@ -487,7 +487,7 @@ const CharacterCRUD = () => {
                         />
                         <TokenTextarea
                             disabled={notAuthorized}
-                            label="System Prompt"
+                            label="Character's Note"
                             placeholder="{{char}} is a wizard, and is a private investigator. {{char}} wants to help {{user}} with their problem."
                             value={system_prompt}
                             onChange={(e) => setSystemPrompt(e)}

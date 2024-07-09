@@ -346,6 +346,7 @@ async function getGenericCompletion(request: CompletionRequest){
         'model': model,
         'prompt': prompt,
         'stop': stop,
+        'stopping_strings': stop,
         'stream': false,
         'repetition_penality': settingsInfo.rep_pen,
         'repetition_penality_slope': settingsInfo.rep_pen_slope,

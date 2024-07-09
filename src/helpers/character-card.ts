@@ -152,6 +152,17 @@ export const importTavernCharacter = (file: File): Promise<Character> => {
     ) {
       construct.system_prompt = characterData.system_prompt.replaceAll("\r", "");
     }
+
+    if (
+      characterData.extensions &&
+      characterData.extensions.depth_prompt &&
+      characterData.extensions.depth_prompt.prompt
+    ) {
+      construct.system_prompt = characterData.extensions.depth_prompt.prompt.replaceAll(
+        "\r",
+        ""
+      );
+    }
     return construct;
   }
   interface Chunk {
