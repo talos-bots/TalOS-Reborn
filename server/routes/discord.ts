@@ -60,7 +60,6 @@ async function handleMessageProcessing(room: RoomPipeline, message: RoomMessage,
     }
     let roster: CharacterInterface[] = characters;
     // shuffle the roster
-    activeDiscordClient.sendTyping(discordMessage)
     let toGo: string[] = [];
     if(containsName(message.message.swipes[message.message.currentIndex], characters)){
         let id = containsName(message.message.swipes[message.message.currentIndex], characters);
@@ -75,22 +74,26 @@ async function handleMessageProcessing(room: RoomPipeline, message: RoomMessage,
                 let random = Math.floor(Math.random() * 101);
                 if(random <= responseRate){
                     toGo.push(char._id);
+                    console.log('Mentioned Character should respond:', char.name);
                 }
             }
         }
     } else {
+        console.log('No character mentioned');
         //determine if the character should respond, by using the character's response rate to users without mention
         for(let i = 0; i < roster.length; i++){
-            let responseRate = roster[i].response_settings?.reply_to_user ?? defaultCharacterObject?.response_settings?.reply_to_user ?? 100;
+            let responseRate = roster[i].response_settings?.reply_to_user ?? defaultCharacterObject?.response_settings?.reply_to_user ?? 0;
             // get random number between 0 and 100
             let random = Math.floor(Math.random() * 101);
             if(random <= responseRate){
+                console.log('Character should respond:', roster[i].name);
                 toGo.push(roster[i]._id);
             }
         }
     }
 
     const generateNewMessage = async (character: CharacterInterface) => {
+        activeDiscordClient.sendTyping(discordMessage);
         roster = roster.filter((char) => {
             return char._id !== character._id;
         });
@@ -149,10 +152,15 @@ function containsName(message: string, chars: CharacterInterface[]){
 
 function isMentioned(message: string, char: CharacterInterface){
     if((message.toLowerCase().trim().includes(char.name.toLowerCase().trim()) && char.name !== '')){
+        console.log('Name found:', char.name);
+        console.log('Message:', message);
         return true;
     } else if(char.nicknames){
         for(let i = 0; i < char.nicknames.length; i++){
-            if(message.toLowerCase().trim().includes(char.nicknames[i].toLowerCase().trim())){
+            console.log('Checking nickname:', char.nicknames[i]);
+            if(message.toLowerCase().trim().includes(char.nicknames[i].toLowerCase().trim()) && char.nicknames[i].trim() !== ''){
+                console.log('Nickname found:', char.nicknames[i]);
+                console.log('Message:', message);
                 return true;
             }
         }
