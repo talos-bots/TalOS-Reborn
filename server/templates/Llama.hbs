@@ -11,6 +11,7 @@
 {{else}}<|start_header_id|>{{name}}<|end_header_id|>
 {{name}}: {{/if}}{{message}}{{#if showPersona}}
 <|start_header_id|>system<|end_header_id|>
-[{{personaDesc}}]{{/if}}{{/each}}
+[{{personaDesc}}]{{/if}}{{/each}}{{#if showSystem }}{{#if systemInfo}}<|start_header_id|>system<|end_header_id|>
+[ {{systemInfo}} ]{{/if}}{{/if}}
 <|start_header_id|>{{character.name}}<|end_header_id|>
 {{character.name}}:

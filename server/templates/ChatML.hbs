@@ -1,6 +1,5 @@
-### Input:
 {{#if loreBefore}}
-{{loreBefore}}{{/if}}{{#if character.description}}
+<|im_start|>system{{loreBefore}}<|im_end|>{{/if}}<|im_start|>system{{#if character.description}}
 {{character.description}}{{/if}}{{#if character.personality}}
 {{character.personality}}{{/if}}{{#if character.scenario}}
 {{character.scenario}}{{/if}}{{#if character.mes_example}}
@@ -8,11 +7,15 @@
 {{jailbreak}}{{/if}}{{#if systemInfo}}
 [ {{systemInfo}} ]{{/if}}{{#if showPersonaAtTop}}
 [ {{personaDesc}} ]{{/if}}
+<|im_end|>
 {{#each allMessages}}
 {{#if loreentries}}[ {{join loreentries.content ' \n'}} ]{{/if}}
-{{#if system}}### Input:{{else}}{{#ifEquals role 'User'}}### Instructions:{{else}}### Response:{{/ifEquals}}
-{{name}}: {{/if}}{{message}}{{#if showPersona}}
-[{{personaDesc}}]{{/if}}{{#if showSystem }}{{#if systemInfo}}
-[ {{systemInfo}} ]{{/if}}{{/if}}{{/each}}
-### Response {{alpacaLength}}:
+{{#if system}}<|im_start|>system{{else}}{{#ifEquals role 'User'}}<|im_start|>user{{else}}<|im_start|>assistant{{/ifEquals}}
+{{name}}: {{/if}}{{message}}
+<|im_end|>{{#if showPersona}}
+<|im_start|>system 
+[{{personaDesc}}]{{/if}}{{#if showSystem }}{{#if systemInfo}}<|im_start|>system 
+[ {{systemInfo}} ]{{/if}}{{/if}}
+<|im_end|>{{/each}}
+<|im_start|>assistant
 {{character.name}}:
