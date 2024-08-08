@@ -17,11 +17,11 @@ export async function processMessage(){
         return;
     }
     // wait 2 seconds before processing the next message
-    await new Promise(resolve => setTimeout(resolve, 5000));
     isProcessing = true;
     try {
         const message = activeDiscordClient.messageQueue.shift();
         if(!message) return;
+        if(message.content.startsWith('.') && !message.content.startsWith('...')) return isProcessing = false;
         let roomPipeline = activePipelines.find(pipeline => pipeline.channelId === message.channel.id);
         if(!roomPipeline){
             const newPipeline = RoomPipeline.getRoomByChannelId(message.channel.id);
@@ -32,12 +32,12 @@ export async function processMessage(){
             activePipelines.push(newPipeline);
         }
         if(!activeDiscordClient?.isLoggedIntoDiscord()) return isProcessing = false;
-        if(message.content.startsWith('.') && !message.content.startsWith('...')) return isProcessing = false;
         const roomMessage = roomPipeline.processDiscordMessage(message);
         if(!roomMessage) return isProcessing = false;
         roomPipeline.saveToFile();
         activeDiscordClient.removeMessageFromQueue(message);
         if(message.content.startsWith('-')) return isProcessing = false;
+        await new Promise(resolve => setTimeout(resolve, 2000));
         if(activeDiscordClient?.messageQueue[activeDiscordClient.messageQueue.length - 1]?.channel.id === message.channel.id) return isProcessing = false;
         await handleMessageProcessing(roomPipeline, roomMessage, message);
     } catch (error) {
@@ -232,9 +232,9 @@ export async function addOrChangeAliasForUser(alias: Alias, roomId: string){
 export async function setMultiline(roomId: string, multiline: boolean){
     let roomPipeline = activePipelines.find(pipeline => pipeline._id === roomId);
     if(!roomPipeline) roomPipeline = RoomPipeline.loadFromFile(roomId);
-    if(!roomPipeline) return;
-    roomPipeline.allowMultiline = multiline;
-    roomPipeline.saveToFile();
+    if(!roomPipeline) return console.error('Room not found');
+    console.log('Setting multiline:', multiline);
+    await roomPipeline.setMultiline(multiline);
 }
 
 export async function addSystemMessageAndGenerateResponse(roomId: string, message: string){

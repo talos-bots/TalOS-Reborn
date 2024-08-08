@@ -30,7 +30,7 @@ export class RoomPipeline implements Room {
     public authorsNoteDepth: number = 0;
     public allowRegeneration: boolean = false;
     public allowDeletion: boolean = false;
-    public allowMultiline: boolean = false;
+    public allowMultiline: boolean = true;
     public overrides: CharacterSettingsOverride[] = [];
     public users: string[] = [];
 
@@ -55,6 +55,7 @@ export class RoomPipeline implements Room {
         this.authorsNoteDepth = room.authorsNoteDepth;
         this.allowRegeneration = room.allowRegeneration;
         this.allowDeletion = room.allowDeletion;
+        this.allowMultiline = room.allowMultiline;
         this.overrides = room.overrides;
         this.users = room.users;
     }
@@ -192,7 +193,9 @@ export class RoomPipeline implements Room {
         this.messages = processedMessages;
         this.updateLastModified();
         try {
-            fs.writeFileSync(path.join(roomsPath, `${this._id}.json`), JSON.stringify(this.toRoom(), null, 4));
+            fs.writeFileSync(path.join(roomsPath, `${this._id}.json`), JSON.stringify(this.toRoom(), null, 4))
+            console.log('Room saved to file:', this._id);
+            console.log(this.toRoom());
         } catch (error) {
             console.error('Failed to save room to file:', error);
         }
@@ -483,6 +486,11 @@ export class RoomPipeline implements Room {
         this.messages = [];
         this.updateLastModified();
         this.saveToFile();
+    }
+
+    async setMultiline(value: boolean): Promise<void> {
+        this.allowMultiline = value;
+        await this.saveToFile();
     }
 
     createRoomMessageFromChar(message: string, charId: string): RoomMessage {

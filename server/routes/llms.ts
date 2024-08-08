@@ -970,7 +970,8 @@ export async function formatOldRequest(request: CompletionRequest, alpacaLength?
     .replace(new RegExp("\n\n\n\n", "g"), `\n`)
     .replace(new RegExp("\n \n", "g"), `\n`)
     .replace(new RegExp("\n \n \n", "g"), `\n`)
-    .replace(new RegExp("\n \n \n \n", "g"), `\n`);
+    .replace(new RegExp("\n \n \n \n", "g"), `\n`)
+    .replace(new RegExp("\r", "g"), ``)
     return {
       prompt,
       stop: stopSequences,

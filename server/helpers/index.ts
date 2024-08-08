@@ -260,6 +260,7 @@ export function breakUpCommands(
   ban_html: boolean = false,
   ban_code: boolean = false
 ): string {
+  console.log('doMultiLine', doMultiLine)
   if (doMultiLine === false) {
     const lines = commandString.split("\n");
     // filter out any empty lines
@@ -296,9 +297,6 @@ export function breakUpCommands(
       command = removeCodeBlocks(command);
     }
     command = command.replaceAll(`${charName}: `, ``)
-    command = processTextForBold(command);
-    command = processTextForItalics(command);
-    command = processTextForQoutes(command);
     command = removeLastLineLeaks(command, [charName, user]);
     const asterisks = command.match(/\*/g);
     if (asterisks && asterisks.length % 2 !== 0) {
@@ -400,9 +398,6 @@ export function breakUpCommands(
     final = removeCodeBlocks(final);
   }
   final = final.replaceAll(`${charName}: `, ``)
-  final = processTextForBold(final);
-  final = processTextForItalics(final);
-  final = processTextForQoutes(final);
   final = removeLastLineLeaks(final, [charName, user]);
   // are there an odd number of asterisks in the string?
   const asterisks = final.match(/\*/g);
