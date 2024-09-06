@@ -200,7 +200,7 @@ const ConnectionPanel = () => {
 
     return (
         <div className="flex flex-col gap-2 text-base-content">
-            <div className="flex flex-row gap-2 w-full items-center justify-center">
+            <div className="flex flex-row gap-2 w-full items-end justify-center">
                 <RequiredSelectField
                     label="Connection Profile"
                     value={connectionID}

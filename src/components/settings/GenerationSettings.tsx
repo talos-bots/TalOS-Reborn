@@ -190,7 +190,7 @@ const GenerationSettings = () => {
 
     return (
         <div className="text-base-content flex flex-col gap-2">
-            <div className="flex flex-row gap-2 w-full items-center justify-center">
+            <div className="flex flex-row gap-2 w-full items-end justify-center">
                 <RequiredSelectField
                     label="Settings Preset"
                     value={presetID}
