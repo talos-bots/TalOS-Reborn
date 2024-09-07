@@ -42,7 +42,7 @@ export const RequiredTextAreaField = ({ label, required, className, characterLim
   }
 
   return (
-    <div className={'flex flex-col gap-2 ' + className}>
+    <div className={'flex flex-col gap-1 ' + className}>
       <label className={`${required ? 'required-field' : ''} ${isError() ? 'error-field' : ''} font-bold w-full `}>
         {label}
       </label>

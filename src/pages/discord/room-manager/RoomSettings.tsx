@@ -106,7 +106,7 @@ const RoomSettings = ({ discordOnline, selectedRoom, setSelectedRoom }: RoomSett
   }
 
   return (
-    <div className="w-full h-full flex flex-col gap-2">
+    <div className="grow flex flex-col gap-2 dy-textarea dy-textarea-bordered overflow-y-auto w-full">
       <RequiredInputField
         label='Room Name'
         value={roomName}
@@ -165,6 +165,7 @@ const RoomSettings = ({ discordOnline, selectedRoom, setSelectedRoom }: RoomSett
           <option value={option.value} key={option.value}>{option.name}</option>
         ))}
       </RequiredSelectField>
+      <label className='font-bold'>Room Characters</label>
       <CharacterMultiSelect characters={availableCharacters} selectedCharacters={characterIds} setSelectedCharacters={setCharacterIds} />
       <button className='dy-btn dy-btn-primary w-full' onClick={() => { saveRoomState() }} disabled={!selectedRoom}>
         Save

@@ -53,14 +53,14 @@ const CharacterMultiSelect = ({ characters, selectedCharacters, setSelectedChara
       </div>
 
       {/* Dropdown for character selection */}
-      <ul tabIndex={0} className="dy-dropdown-content z-[1] dy-menu shadow w-full p-2 dy-textarea dy-textarea-bordered">
+      <div tabIndex={0} className="dy-dropdown-content z-[1] dy-menu shadow w-full p-2 dy-textarea dy-textarea-bordered gap-1">
         {characters.map((character) => (
-          <div key={character._id} className={'flex flex-row dy-btn dy-btn-outline ' + (selectedCharacters.includes(character._id) ? 'dy-btn-secondary' : '')} onClick={() => handleSelectCharacter(character)}>
+          <div key={character._id} className={'flex flex-row justify-start border dy-textarea-bordered rounded-md px-2 py-1 bg-base-200 hover:bg-base-300 ' + (selectedCharacters.includes(character._id) ? 'bg-secondary' : '')} onClick={() => handleSelectCharacter(character)}>
             <img src={character.avatar} alt={character.name} className='rounded-full w-8 h-8' />
             <p>{character.name}</p>
           </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };

@@ -70,10 +70,7 @@ const RoomManager = ({ discordOnline }: RoomManagerProps) => {
         </div>
       </div>
       <div className='flex flex-col gap-2 md:col-span-3 h-full max-h-full w-full'>
-        <span className="font-bold w-full justify-between flex flex-row"><p>Room Settings</p></span>
-        <div className='dy-textarea dy-textarea-bordered flex-grow overflow-y-scroll w-full'>
-          <RoomSettings discordOnline={discordOnline} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} />
-        </div>
+        <RoomSettings discordOnline={discordOnline} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} />
       </div>
     </div>
   );
