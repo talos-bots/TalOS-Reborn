@@ -63,7 +63,7 @@ const RoomManager = ({ discordOnline }: RoomManagerProps) => {
     <div className='grid grid-cols-1 md:grid-cols-4 md:gap-2 h-full w-full'>
       <div className='flex flex-col gap-2 md:col-span-1 h-full max-h-full'>
         <button className='dy-btn dy-btn-primary dy-btn-sm' onClick={() => { createNewRoom() }}>Create Room</button>
-        <div className='flex flex-col gap-2 overflow-y-auto h-full border dy-textarea-bordered p-2'>
+        <div className='flex flex-col gap-2 overflow-y-auto h-full border dy-textarea-bordered p-2 rounded-md'>
         {rooms.map((room) => (
           <RoomItem key={room._id} room={room} setSelectedRoom={setSelectedRoom} delRoom={delRoom} />
         ))}
