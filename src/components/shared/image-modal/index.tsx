@@ -7,7 +7,7 @@ interface ImageModalProps {
   imageURL: string;
 }
 
-const ImageModal = ({ imageURL}: ImageModalProps) => {
+const ImageModal = ({ imageURL }: ImageModalProps) => {
   const [isVisible, setIsVisible] = useState(true);
   emitCloseSides();
 

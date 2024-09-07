@@ -13,13 +13,13 @@ import { HelmetProvider } from 'react-helmet-async';
 import { UserProvider } from './components/shared/auth-provider/index.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-	<React.StrictMode>
-		<HelmetProvider>
-			<ThemeProvider theme={theme}>
-				<UserProvider>
-					<App />
-				</UserProvider>
-			</ThemeProvider>
-		</HelmetProvider>
-	</React.StrictMode>,
+  <React.StrictMode>
+    <HelmetProvider>
+      <ThemeProvider theme={theme}>
+        <UserProvider>
+          <App />
+        </UserProvider>
+      </ThemeProvider>
+    </HelmetProvider>
+  </React.StrictMode>,
 )

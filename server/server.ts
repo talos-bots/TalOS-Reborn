@@ -28,32 +28,32 @@ import { AppSettingsInterface } from './typings/types.js';
 import { datasetsRouter } from './routes/dataset.js';
 
 const defaultAppSettings: AppSettingsInterface = {
-    defaultConnection: "",
-    defaultSettings: "1",
-    admins: ['1'],
-    enableCaptioning: false,
-    enableEmbedding: false,
-    enableQuestionAnswering: false,
-    enableZeroShotClassification: false,
-    enableYesNoMaybe: false,
-    defaultDiffusionConnection: "",
-    jwtSecret: ""
+  defaultConnection: "",
+  defaultSettings: "1",
+  admins: ['1'],
+  enableCaptioning: false,
+  enableEmbedding: false,
+  enableQuestionAnswering: false,
+  enableZeroShotClassification: false,
+  enableYesNoMaybe: false,
+  defaultDiffusionConnection: "",
+  jwtSecret: ""
 };
 let useVarFolder = false;
 const args = process.argv.slice(2);
 
 args.forEach(arg => {
-    if (arg.startsWith('--linux-server')) {
-        useVarFolder = true;
-        console.log("Using /var/local for data storage");
-    }
+  if (arg.startsWith('--linux-server')) {
+    useVarFolder = true;
+    console.log("Using /var/local for data storage");
+  }
 });
 
 const __dirname = path.resolve();
 //get the userData directory
-const appDataDir = process.env.APPDATA || 
-                   (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : 
-                   (useVarFolder ? '/var/local' : process.env.HOME + '/.local/share'));//get the talos directory
+const appDataDir = process.env.APPDATA ||
+  (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' :
+    (useVarFolder ? '/var/local' : process.env.HOME + '/.local/share'));//get the talos directory
 const talosDir = path.join(appDataDir, 'TalOS');
 //get the uploads directory
 fs.mkdirSync(talosDir, { recursive: true });
@@ -117,390 +117,390 @@ const port = 3003;
 let appSettings = { ...defaultAppSettings };
 
 let discordSettings: DiscordGlobalConfig = {
-    currentConfig: "",
-    autoRestart: false,
+  currentConfig: "",
+  autoRestart: false,
 };
 
 export interface DiscordGlobalConfig {
-    currentConfig: string;
-    autoRestart: boolean;
+  currentConfig: string;
+  autoRestart: boolean;
 }
 
-if(!fs.existsSync(discordSettingsPath)) {
-    fs.writeFileSync(discordSettingsPath, JSON.stringify(discordSettings));
+if (!fs.existsSync(discordSettingsPath)) {
+  fs.writeFileSync(discordSettingsPath, JSON.stringify(discordSettings));
 }
 
-if(fs.existsSync(discordSettingsPath)) {
-    try {
-        const settingsData = fs.readFileSync(discordSettingsPath, 'utf8');
-        if (settingsData) {
-            //merge the default settings with the settings from the file
-            discordSettings = { ...discordSettings, ...JSON.parse(settingsData) };
-        } else {
-            console.error('Discord settings file is empty. Using default settings.');
-        }
-    } catch (err) {
-        console.error('Error parsing discord settings file. Using default settings.', err);
+if (fs.existsSync(discordSettingsPath)) {
+  try {
+    const settingsData = fs.readFileSync(discordSettingsPath, 'utf8');
+    if (settingsData) {
+      //merge the default settings with the settings from the file
+      discordSettings = { ...discordSettings, ...JSON.parse(settingsData) };
+    } else {
+      console.error('Discord settings file is empty. Using default settings.');
     }
+  } catch (err) {
+    console.error('Error parsing discord settings file. Using default settings.', err);
+  }
 }
 
 // Check if app settings file exists
 if (fs.existsSync(appSettingsPath)) {
-    try {
-        const settingsData = fs.readFileSync(appSettingsPath, 'utf8');
-        if (settingsData) {
-            //merge the default settings with the settings from the file
-            appSettings = { ...defaultAppSettings, ...JSON.parse(settingsData) };
-        } else {
-            console.error('App settings file is empty. Using default settings.');
-        }
-    } catch (err) {
-        console.error('Error parsing app settings file. Using default settings.', err);
+  try {
+    const settingsData = fs.readFileSync(appSettingsPath, 'utf8');
+    if (settingsData) {
+      //merge the default settings with the settings from the file
+      appSettings = { ...defaultAppSettings, ...JSON.parse(settingsData) };
+    } else {
+      console.error('App settings file is empty. Using default settings.');
     }
+  } catch (err) {
+    console.error('Error parsing app settings file. Using default settings.', err);
+  }
 }
 fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
 fs.writeFileSync(discordSettingsPath, JSON.stringify(discordSettings));
 export let JWT_SECRET = appSettings.jwtSecret;
-if((JWT_SECRET.trim() === "") || (JWT_SECRET === undefined) || (JWT_SECRET === null)) {
-    const generateSecret = () => crypto.randomBytes(64).toString('hex');
-    const secret = generateSecret()
-    appSettings.jwtSecret = secret;
-    JWT_SECRET = secret;
-    clearUsers();
-    console.log("JWT secret not found. Generated new secret.");
+if ((JWT_SECRET.trim() === "") || (JWT_SECRET === undefined) || (JWT_SECRET === null)) {
+  const generateSecret = () => crypto.randomBytes(64).toString('hex');
+  const secret = generateSecret()
+  appSettings.jwtSecret = secret;
+  JWT_SECRET = secret;
+  clearUsers();
+  console.log("JWT secret not found. Generated new secret.");
 }
 
 
 function isPortInUse(port: number): Promise<boolean> {
-    return new Promise((resolve) => {
-      const server = net.createServer()
-        .once('error', (err: NodeError) => {
-          if (err.code === 'EADDRINUSE') {
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        })
-        .once('listening', () => {
-          server.close();
+  return new Promise((resolve) => {
+    const server = net.createServer()
+      .once('error', (err: NodeError) => {
+        if (err.code === 'EADDRINUSE') {
+          resolve(true);
+        } else {
           resolve(false);
-        })
-        .listen(port);
-    });
+        }
+      })
+      .once('listening', () => {
+        server.close();
+        resolve(false);
+      })
+      .listen(port);
+  });
 }
 
-async function main(){
-    try {
-        if (await isPortInUse(port)) {
-            console.log(`Port ${port} is already in use. Server may already be running.`);
-            return;
-        }
-        const expressApp = express();
-        expressApp.use(bodyParser.json({ limit: '1000mb' }));
-        expressApp.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
-
-        const corsOptions = {
-            origin: "*", 
-            methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            credentials: true
-        };
-
-        expressApp.use(cookieParser());
-        expressApp.use(cors(corsOptions));
-        expressApp.use('/images', express.static(uploadsPath));
-        expressApp.use('/pfp', express.static(profilePicturesPath));
-        expressApp.use('/backgrounds', express.static(backgroundsPath), express.static(defaultBackgroundsPath));
-        expressApp.use('/sprites', express.static(spritesPath));
-        expressApp.use(express.static(path.join(__dirname, '../dist-react')));
-        const server = createServer(expressApp);
-
-        let userConnections: UserConnection[] = []
-
-        interface UserConnection {
-            userId: string;
-            socketId: string;
-        }
-
-        const expressAppIO = new Server(server, {
-            cors: corsOptions
-        });
-        fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
-        // Graceful shutdown function
-        function gracefulShutdown() {
-            console.log('Shutting down gracefully...');
-            process.exit(0);
-        }
-
-        const authenticateTokenSocket = (token: string) => {
-            if (token == null) return false;
-
-            try {
-                let userid = null;
-                jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-                    if (err) return false;
-                    userid = user.userId;
-                });
-                return userid;
-            } catch (err) {
-                return false;
-            }
-        };
-
-        // Handle termination signals
-        process.on('SIGTERM', gracefulShutdown);
-        process.on('SIGINT', gracefulShutdown);
-
-        //enable * on CORS for socket.io
-        expressAppIO.sockets.on('connection', (socket) => {
-            socket.on('authenticate', (token: string) => {
-                // Implement your authentication logic here
-                const userId = authenticateTokenSocket(token); // Replace with your auth logic
-                if (userId) {
-                    userConnections.push({ userId: userId, socketId: socket.id });
-                    fetchUserByID(userId).then((user) => {
-                        console.log(`User ${user?.display_name} authenticated with socket ${socket.id}`);
-                    });
-                }
-            });
-
-            // Handle disconnection
-            socket.on('disconnect', () => {
-                userConnections = userConnections.filter((user) => user.socketId !== socket.id);
-            });
-
-        });
-
-        function sendNotificationToUser(userId: string, notification: any) {
-            const socketId = userConnections.find((user) => user.userId === userId)?.socketId;
-            if (socketId) {
-                expressAppIO.sockets.to(socketId).emit('notification', notification);
-            }
-        }
-
-        function sendNotificationToAll(notification: any) {
-            expressAppIO.sockets.emit('notification', notification);
-        }
-
-        function sendNotificationToAllExcept(userId: string, notification: any) {
-            userConnections.forEach((user) => {
-                if (user.userId !== userId) {
-                    expressAppIO.sockets.to(user.socketId).emit('notification', notification);
-                }
-            });
-        }
-
-        // create a function that gets all of the profile data for connected users
-        function getConnectedUsers() {
-            const connectedUsers: any[] = [];
-            userConnections.forEach((user) => {
-                connectedUsers.push(user.userId);
-            });
-            return connectedUsers;
-        }
-
-        server.listen(port, () => {
-            console.log(`Server started on http://localhost:${port}`);
-            if(!useVarFolder){
-                console.log(`Frontend runs by default on http://localhost:5173`);
-            }
-        });
-
-        const storage = multer.diskStorage({
-            destination: (req, file, cb) => {
-                cb(null, uploadsPath)
-            },
-            filename: (req, file, cb) => {
-                cb(null, file.originalname)
-            }
-        });
-
-        const upload = multer({ storage: storage });
-
-        expressApp.post('/api/files/upload', authenticateToken, upload.single('image'), (req, res) => {
-            if (!req.file) {
-                return res.status(400).send('No file uploaded.');
-            }
-            res.send(`File uploaded: ${req.file.originalname}`);
-        });
-
-        const profilePicStorage = multer.diskStorage({
-            destination: (req, file, cb) => {
-                cb(null, profilePicturesPath)
-            },
-            filename: (req, file, cb) => {
-                cb(null, file.originalname)
-            }
-        });
-
-        const uploadPfp = multer({ storage: profilePicStorage });
-
-        const backgroundStorage = multer.diskStorage({
-            destination: (req, file, cb) => {
-                cb(null, backgroundsPath)
-            },
-            filename: (req, file, cb) => {
-                cb(null, file.originalname)
-            }
-        });
-
-        const uploadBackground = multer({ storage: backgroundStorage });
-
-        expressApp.post('/api/background/upload', authenticateToken, uploadBackground.single('image'), (req, res) => {
-            if (!req.file) {
-                return res.status(400).send('No file uploaded.');
-            }
-            res.send(`File uploaded: ${req.file.originalname}`);
-        });
-
-        expressApp.post('/api/background/delete', authenticateToken, (req, res) => {
-            try {
-                const filename = req.body.filename;
-                const path = `${backgroundsPath}/${filename}`;
-                fs.unlink(path, (err) => {
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).send(err);
-                    }
-                    res.send(`File deleted: ${filename}`);
-                });
-            } catch (error) {
-                console.log(error);
-            }
-        });
-
-        // rename background
-        expressApp.post('/api/background/rename', authenticateToken, (req, res) => {
-            try{
-                const oldFilename = req.body.oldFilename;
-                const newFilename = req.body.newFilename;
-                const oldPath = `${backgroundsPath}/${oldFilename}`;
-                const newPath = `${backgroundsPath}/${newFilename}`;
-                fs.rename(oldPath, newPath, (err) => {
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).send(err);
-                    }
-                    res.send(`File renamed: ${oldFilename} to ${newFilename}`);
-                });
-            }catch(err){
-                console.log(err);
-            }
-        });
-
-        // get all image file names in backgrounds folder
-        expressApp.get('/api/background/all', authenticateToken, async (req, res) => {
-            try {
-                const filesArr: string[] = [];
-                const files = fs.readdirSync(backgroundsPath);
-                files.forEach((file) => {
-                    filesArr.push(file);
-                });
-                const defaultFiles = fs.readdirSync(defaultBackgroundsPath);
-                defaultFiles.forEach((file) => {
-                    filesArr.push(file);
-                });
-                res.send(filesArr);
-            } catch (error) {
-                console.log(error);
-            }
-        });
-
-        expressApp.post('/api/pfp/upload', authenticateToken, uploadPfp.single('image'), (req, res) => {
-            if (!req.file) {
-                return res.status(400).send('No file uploaded.');
-            }
-            res.send(`File uploaded: ${req.file.originalname}`);
-        });
-
-        expressApp.post('/api/upload/sprite', authenticateToken, upload.single('sprite'), (req, res) => {
-            if (!req.file) {
-                console.log('No file uploaded');
-                return res.status(400).send('No file uploaded');
-            }
-            try {
-                const { emotion, characterid } = req.body;
-                const filename = `${emotion}.png`;
-                const oldPath = req.file.path;
-                const newPath = `${spritesPath}/${characterid}/${filename}`;
-
-                fs.mkdirSync(`${spritesPath}/${characterid}`, { recursive: true });
-                fs.renameSync(oldPath, newPath);
-                
-                console.log(`File uploaded: ${filename}`);
-                res.send(`File uploaded: ${filename}`);
-            } catch (error) {
-                console.error(error);
-                res.status(500).send('Error uploading file');
-            }
-        });
-
-        async function fetchUserByID(id: string): Promise<any> {
-            return new Promise((resolve, reject) => {
-                db.get('SELECT * FROM users WHERE id = ?', [id], (err, row: any) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    resolve(row || null);
-                });
-            });
-        }
-
-        expressApp.get('/api/stats/users', async (req, res) => {
-            const users = await getAllUsers();
-            res.json({ users: users, activeUsers: userConnections });
-        });
-
-        expressApp.use('/api', settingsRouter);
-        expressApp.use('/api', usersRouter);
-        expressApp.use('/api', charactersRouter);
-        expressApp.use('/api', conversationsRouter);
-        expressApp.use('/api', connectionsRouter);
-        expressApp.use('/api', llmsRouter);
-        expressApp.use('/api', lorebooksRouter);
-        expressApp.use('/api/transformers', transformersRouter);
-        expressApp.use('/api', diffusionRouter);
-        expressApp.use('/api', discordConfigRoute);
-        expressApp.use('/api/discordManagement', DiscordManagementRouter)
-        expressApp.use('/api/rooms', roomsRouter);
-        expressApp.use('/api', datasetsRouter);
-        startDiscordRoutes();
-
-        expressApp.use('*', (req, res) => res.sendFile(path.join(__dirname, '../dist-react', 'index.html')));
-    } catch (error) {
-        console.error(error);
+async function main() {
+  try {
+    if (await isPortInUse(port)) {
+      console.log(`Port ${port} is already in use. Server may already be running.`);
+      return;
     }
+    const expressApp = express();
+    expressApp.use(bodyParser.json({ limit: '1000mb' }));
+    expressApp.use(bodyParser.urlencoded({ limit: '1000mb', extended: true }));
+
+    const corsOptions = {
+      origin: "*",
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true
+    };
+
+    expressApp.use(cookieParser());
+    expressApp.use(cors(corsOptions));
+    expressApp.use('/images', express.static(uploadsPath));
+    expressApp.use('/pfp', express.static(profilePicturesPath));
+    expressApp.use('/backgrounds', express.static(backgroundsPath), express.static(defaultBackgroundsPath));
+    expressApp.use('/sprites', express.static(spritesPath));
+    expressApp.use(express.static(path.join(__dirname, '../dist-react')));
+    const server = createServer(expressApp);
+
+    let userConnections: UserConnection[] = []
+
+    interface UserConnection {
+      userId: string;
+      socketId: string;
+    }
+
+    const expressAppIO = new Server(server, {
+      cors: corsOptions
+    });
+    fs.writeFileSync(appSettingsPath, JSON.stringify(appSettings));
+    // Graceful shutdown function
+    function gracefulShutdown() {
+      console.log('Shutting down gracefully...');
+      process.exit(0);
+    }
+
+    const authenticateTokenSocket = (token: string) => {
+      if (token == null) return false;
+
+      try {
+        let userid = null;
+        jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+          if (err) return false;
+          userid = user.userId;
+        });
+        return userid;
+      } catch (err) {
+        return false;
+      }
+    };
+
+    // Handle termination signals
+    process.on('SIGTERM', gracefulShutdown);
+    process.on('SIGINT', gracefulShutdown);
+
+    //enable * on CORS for socket.io
+    expressAppIO.sockets.on('connection', (socket) => {
+      socket.on('authenticate', (token: string) => {
+        // Implement your authentication logic here
+        const userId = authenticateTokenSocket(token); // Replace with your auth logic
+        if (userId) {
+          userConnections.push({ userId: userId, socketId: socket.id });
+          fetchUserByID(userId).then((user) => {
+            console.log(`User ${user?.display_name} authenticated with socket ${socket.id}`);
+          });
+        }
+      });
+
+      // Handle disconnection
+      socket.on('disconnect', () => {
+        userConnections = userConnections.filter((user) => user.socketId !== socket.id);
+      });
+
+    });
+
+    function sendNotificationToUser(userId: string, notification: any) {
+      const socketId = userConnections.find((user) => user.userId === userId)?.socketId;
+      if (socketId) {
+        expressAppIO.sockets.to(socketId).emit('notification', notification);
+      }
+    }
+
+    function sendNotificationToAll(notification: any) {
+      expressAppIO.sockets.emit('notification', notification);
+    }
+
+    function sendNotificationToAllExcept(userId: string, notification: any) {
+      userConnections.forEach((user) => {
+        if (user.userId !== userId) {
+          expressAppIO.sockets.to(user.socketId).emit('notification', notification);
+        }
+      });
+    }
+
+    // create a function that gets all of the profile data for connected users
+    function getConnectedUsers() {
+      const connectedUsers: any[] = [];
+      userConnections.forEach((user) => {
+        connectedUsers.push(user.userId);
+      });
+      return connectedUsers;
+    }
+
+    server.listen(port, () => {
+      console.log(`Server started on http://localhost:${port}`);
+      if (!useVarFolder) {
+        console.log(`Frontend runs by default on http://localhost:5173`);
+      }
+    });
+
+    const storage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, uploadsPath)
+      },
+      filename: (req, file, cb) => {
+        cb(null, file.originalname)
+      }
+    });
+
+    const upload = multer({ storage: storage });
+
+    expressApp.post('/api/files/upload', authenticateToken, upload.single('image'), (req, res) => {
+      if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+      }
+      res.send(`File uploaded: ${req.file.originalname}`);
+    });
+
+    const profilePicStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, profilePicturesPath)
+      },
+      filename: (req, file, cb) => {
+        cb(null, file.originalname)
+      }
+    });
+
+    const uploadPfp = multer({ storage: profilePicStorage });
+
+    const backgroundStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, backgroundsPath)
+      },
+      filename: (req, file, cb) => {
+        cb(null, file.originalname)
+      }
+    });
+
+    const uploadBackground = multer({ storage: backgroundStorage });
+
+    expressApp.post('/api/background/upload', authenticateToken, uploadBackground.single('image'), (req, res) => {
+      if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+      }
+      res.send(`File uploaded: ${req.file.originalname}`);
+    });
+
+    expressApp.post('/api/background/delete', authenticateToken, (req, res) => {
+      try {
+        const filename = req.body.filename;
+        const path = `${backgroundsPath}/${filename}`;
+        fs.unlink(path, (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).send(err);
+          }
+          res.send(`File deleted: ${filename}`);
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    // rename background
+    expressApp.post('/api/background/rename', authenticateToken, (req, res) => {
+      try {
+        const oldFilename = req.body.oldFilename;
+        const newFilename = req.body.newFilename;
+        const oldPath = `${backgroundsPath}/${oldFilename}`;
+        const newPath = `${backgroundsPath}/${newFilename}`;
+        fs.rename(oldPath, newPath, (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).send(err);
+          }
+          res.send(`File renamed: ${oldFilename} to ${newFilename}`);
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    // get all image file names in backgrounds folder
+    expressApp.get('/api/background/all', authenticateToken, async (req, res) => {
+      try {
+        const filesArr: string[] = [];
+        const files = fs.readdirSync(backgroundsPath);
+        files.forEach((file) => {
+          filesArr.push(file);
+        });
+        const defaultFiles = fs.readdirSync(defaultBackgroundsPath);
+        defaultFiles.forEach((file) => {
+          filesArr.push(file);
+        });
+        res.send(filesArr);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    expressApp.post('/api/pfp/upload', authenticateToken, uploadPfp.single('image'), (req, res) => {
+      if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+      }
+      res.send(`File uploaded: ${req.file.originalname}`);
+    });
+
+    expressApp.post('/api/upload/sprite', authenticateToken, upload.single('sprite'), (req, res) => {
+      if (!req.file) {
+        console.log('No file uploaded');
+        return res.status(400).send('No file uploaded');
+      }
+      try {
+        const { emotion, characterid } = req.body;
+        const filename = `${emotion}.png`;
+        const oldPath = req.file.path;
+        const newPath = `${spritesPath}/${characterid}/${filename}`;
+
+        fs.mkdirSync(`${spritesPath}/${characterid}`, { recursive: true });
+        fs.renameSync(oldPath, newPath);
+
+        console.log(`File uploaded: ${filename}`);
+        res.send(`File uploaded: ${filename}`);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Error uploading file');
+      }
+    });
+
+    async function fetchUserByID(id: string): Promise<any> {
+      return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM users WHERE id = ?', [id], (err, row: any) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(row || null);
+        });
+      });
+    }
+
+    expressApp.get('/api/stats/users', async (req, res) => {
+      const users = await getAllUsers();
+      res.json({ users: users, activeUsers: userConnections });
+    });
+
+    expressApp.use('/api', settingsRouter);
+    expressApp.use('/api', usersRouter);
+    expressApp.use('/api', charactersRouter);
+    expressApp.use('/api', conversationsRouter);
+    expressApp.use('/api', connectionsRouter);
+    expressApp.use('/api', llmsRouter);
+    expressApp.use('/api', lorebooksRouter);
+    expressApp.use('/api/transformers', transformersRouter);
+    expressApp.use('/api', diffusionRouter);
+    expressApp.use('/api', discordConfigRoute);
+    expressApp.use('/api/discordManagement', DiscordManagementRouter)
+    expressApp.use('/api/rooms', roomsRouter);
+    expressApp.use('/api', datasetsRouter);
+    startDiscordRoutes();
+
+    expressApp.use('*', (req, res) => res.sendFile(path.join(__dirname, '../dist-react', 'index.html')));
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 //make it so when the terminal is closed, the server is closed
 process.on('SIGINT', () => {
-    process.exit();
+  process.exit();
 });
 
 process.on('SIGTERM', () => {
-    process.exit();
+  process.exit();
 });
 
 process.on('exit', () => {
-    process.exit();
+  process.exit();
 });
 
 interface NodeError extends Error {
-    code?: string;
+  code?: string;
 }
 
 process.on('uncaughtException', async (error: NodeError) => {
-    console.error('Uncaught Exception:', error);
-    if (error?.code === 'EADDRINUSE') {
-      console.log('Server is already running or port is in use.');
-    } else {
-      await main().catch(console.error);
-    }
-});
-  
-process.on('unhandledRejection', async (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('Uncaught Exception:', error);
+  if (error?.code === 'EADDRINUSE') {
+    console.log('Server is already running or port is in use.');
+  } else {
     await main().catch(console.error);
+  }
 });
-  
+
+process.on('unhandledRejection', async (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  await main().catch(console.error);
+});
+
 main().catch(console.error);

@@ -10,22 +10,22 @@ const api = axios.create({
 export const fetchAllDatasets = async () => {
   try {
     const response = await api.get('/datasets');
-    if(response.data && Array.isArray(response.data)){
-        const datasets: Dataset[] = [];
-        for(const dataset of response.data){
-            datasets.push(new Dataset(
-                dataset.id,
-                dataset.name,
-                dataset.description,
-                dataset.messages,
-                dataset.badWords,
-                dataset.characters,
-                dataset.systemPrompts,
-                dataset.retries,
-                dataset.badWordsGenerated,
-                ));
-        }
-        return datasets;
+    if (response.data && Array.isArray(response.data)) {
+      const datasets: Dataset[] = [];
+      for (const dataset of response.data) {
+        datasets.push(new Dataset(
+          dataset.id,
+          dataset.name,
+          dataset.description,
+          dataset.messages,
+          dataset.badWords,
+          dataset.characters,
+          dataset.systemPrompts,
+          dataset.retries,
+          dataset.badWordsGenerated,
+        ));
+      }
+      return datasets;
     }
   } catch (error) {
     // Handle error
@@ -45,7 +45,7 @@ export const saveDataset = async (dataset: Dataset) => {
 };
 
 // Fetch a dataset by ID
-export const fetchDatasetById = async (id : string) => {
+export const fetchDatasetById = async (id: string) => {
   try {
     const response = await api.get(`/datasets/${id}`);
     return response.data;
@@ -56,7 +56,7 @@ export const fetchDatasetById = async (id : string) => {
 };
 
 // Remove a dataset by ID
-export const removeDatasetById = async (id : string) => {
+export const removeDatasetById = async (id: string) => {
   try {
     const response = await api.delete(`/datasets/${id}`);
     return response.data;
@@ -71,16 +71,16 @@ export const generateBatchForDataset = async (dataset: Dataset, batches: number)
   try {
     const response = await api.post('/generate/dataset', { dataset: dataset, batches: batches });
     return new Dataset(
-        response.data.id,
-        response.data.name,
-        response.data.description,
-        response.data.messages,
-        response.data.badWords,
-        response.data.characters,
-        response.data.systemPrompts,
-        response.data.retries,
-        response.data.badWordsGenerated,
-        );
+      response.data.id,
+      response.data.name,
+      response.data.description,
+      response.data.messages,
+      response.data.badWords,
+      response.data.characters,
+      response.data.systemPrompts,
+      response.data.retries,
+      response.data.badWordsGenerated,
+    );
   } catch (error) {
     // Handle error
     console.error('Error generating data for dataset:', error);

@@ -112,7 +112,7 @@
     "tsc": "^2.0.4",
     "tsc-watch": "^6.0.4",
     "tslib": "^2.6.2",
-    "typescript": "^5.3.3",
+    "typescript": "^5.5.4",
     "vite": "^5.0.0"
   }
 }

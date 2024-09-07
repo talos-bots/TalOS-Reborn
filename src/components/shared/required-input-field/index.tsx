@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './RequiredInputField.css';
 
-const RequiredInputField = ({ characterLimit = null, label, required, className, ...props}) => {
+const RequiredInputField = ({ characterLimit = null, label, required, className, ...props }) => {
   const [touched, setTouched] = useState(false);
   const isError = () => required && touched && !props.value;
 
@@ -24,13 +24,13 @@ const RequiredInputField = ({ characterLimit = null, label, required, className,
         onBlur={() => setTouched(true)}
         className={(isError() ? 'error-field' : '') + ' dy-input dy-input-bordered flex-grow' + className}
       />
-      <p className='w-full justify-between flex flex-row'><span className={'text-right text-xs text-gray-500 mb-0'  + (!characterLimit && ' hidden')}>{characterLimit ? `${props?.value?.length}/${characterLimit}` : ''}</span><span className={"error-field text-left"  + (!isError() && ' hidden')}>{isError() && 'This field is required.'}</span></p>
+      <p className='w-full justify-between flex flex-row'><span className={'text-right text-xs text-gray-500 mb-0' + (!characterLimit && ' hidden')}>{characterLimit ? `${props?.value?.length}/${characterLimit}` : ''}</span><span className={"error-field text-left" + (!isError() && ' hidden')}>{isError() && 'This field is required.'}</span></p>
     </div>
   );
 };
 export default RequiredInputField;
 
-export const RequiredTextAreaField = ({ label, required, className, characterLimit = null, ...props}) => {
+export const RequiredTextAreaField = ({ label, required, className, characterLimit = null, ...props }) => {
   const [touched, setTouched] = useState(false);
   const isError = () => required && touched && !props.value;
 
@@ -53,20 +53,20 @@ export const RequiredTextAreaField = ({ label, required, className, characterLim
         onBlur={() => setTouched(true)}
         className={(isError() ? 'error-field' : '') + ' dy-textarea dy-textarea-bordered flex-grow' + className}
       />
-      <p className='w-full justify-between flex flex-row'><span className={'text-right text-xs text-gray-500 mb-0'  + (!characterLimit && ' hidden')}>{characterLimit ? `${props?.value?.length}/${characterLimit}` : ''}</span><span className={"error-field text-left"  + (!isError() && ' hidden')}>{isError() && 'This field is required.'}</span></p>
+      <p className='w-full justify-between flex flex-row'><span className={'text-right text-xs text-gray-500 mb-0' + (!characterLimit && ' hidden')}>{characterLimit ? `${props?.value?.length}/${characterLimit}` : ''}</span><span className={"error-field text-left" + (!isError() && ' hidden')}>{isError() && 'This field is required.'}</span></p>
     </div>
   );
 }
 
-export const RequiredSelectField = ({ label, required, className, ...props}) => {
+export const RequiredSelectField = ({ label = null, required, className, ...props }) => {
   const [touched, setTouched] = useState(false);
   const isError = () => required && touched && (!props.value || props.value === null) && props.value !== 0;
 
   return (
     <div className={'flex flex-col gap-2 ' + className}>
-      <label className={`${required ? 'required-field ' : ''} ${isError() ? ' error-field ' : ''} font-bold w-full`}>
+      {label && <label className={`${required ? 'required-field' : ''} ${isError() ? 'error-field' : ''} font-bold w-full `}>
         {label}
-      </label>
+      </label>}
       <select
         {...props}
         required={required}
