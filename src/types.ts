@@ -50,6 +50,7 @@ export type SettingsInterface = {
   rep_pen_range: number;
   rep_pen_slope: number;
   temperature: number;
+  banned_tokens: string[];
   sampler_order: number[];
   top_k: number;
   top_p: number;

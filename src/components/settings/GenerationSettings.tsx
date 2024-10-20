@@ -19,6 +19,7 @@ const GenerationSettings = () => {
   const [topP, setTopP] = useState<number>(localStorage.getItem('topP') ? parseFloat(localStorage.getItem('topP') as string) : 0.9);
   const [minP, setMinP] = useState<number>(localStorage.getItem('minP') ? parseFloat(localStorage.getItem('minP') as string) : 0.0);
   const [typical, setTypical] = useState<number>(localStorage.getItem('typical') ? parseFloat(localStorage.getItem('typical') as string) : 1);
+  const [bannedTokens, setBannedTokens] = useState<string[]>(localStorage.getItem('bannedTokens') ? localStorage.getItem('bannedTokens')?.split(',').map(String) : []);
   const [samplerOrder, setSamplerOrder] = useState<number[]>(localStorage.getItem('samplerOrder') ? localStorage.getItem('samplerOrder')?.split(',').map(Number) : [6, 3, 2, 5, 0, 1, 4]);
   const [stopBrackets, setStopBrackets] = useState<boolean>(localStorage.getItem('stopBrackets') ? localStorage.getItem('stopBrackets') === 'true' : false);
   const [presencePenalty, setPresencePenalty] = useState<number>(localStorage.getItem('presencePenalty') ? parseFloat(localStorage.getItem('presencePenalty') as string) : 0.0);
@@ -75,6 +76,7 @@ const GenerationSettings = () => {
       top_p: topP,
       typical: typical,
       tfs: tfs,
+      banned_tokens: bannedTokens,
       sampler_order: samplerOrder,
       sampler_full_determinism: true,
       singleline: false,
@@ -146,6 +148,7 @@ const GenerationSettings = () => {
       localStorage.setItem('topP', topP.toString())
       localStorage.setItem('minP', minP.toString())
       localStorage.setItem('typical', typical.toString())
+      localStorage.setItem('bannedTokens', bannedTokens.toString())
       localStorage.setItem('samplerOrder', samplerOrder.toString())
       localStorage.setItem('stopBrackets', stopBrackets.toString())
       localStorage.setItem('presencePenalty', presencePenalty.toString())
@@ -156,7 +159,7 @@ const GenerationSettings = () => {
       localStorage.setItem('instructMode', instructMode.toString())
     }
     saveToLocalStorage()
-  }, [maxContextLength, maxTokens, minLength, repPen, repPenRange, repPenSlope, temperature, tfs, topA, topK, topP, minP, typical, samplerOrder, stopBrackets, presencePenalty, frequencyPenalty, mirostatMode, mirostatTau, mirostatEta, instructMode])
+  }, [maxContextLength, maxTokens, minLength, repPen, repPenRange, repPenSlope, temperature, tfs, topA, topK, topP, minP, typical, bannedTokens, samplerOrder, stopBrackets, presencePenalty, frequencyPenalty, mirostatMode, mirostatTau, mirostatEta, instructMode])
 
   useEffect(() => {
     const handleLoadConnection = () => {
@@ -175,6 +178,7 @@ const GenerationSettings = () => {
         setRepPen(connection.rep_pen)
         setRepPenRange(connection.rep_pen_range)
         setRepPenSlope(connection.rep_pen_slope)
+        setBannedTokens(connection.banned_tokens)
         setSamplerOrder(connection.sampler_order)
         setTemperature(connection.temperature)
         setTopA(connection.top_a)
@@ -424,6 +428,13 @@ const GenerationSettings = () => {
             <input className="w-2/3 dy-range dy-range-bordered" type="range" min='0.00' max='1' step='0.01' value={tfs} onChange={async (e) => { setTfs(parseFloat(e.target.value)) }} />
             <input className="w-1/3 dy-input dy-input-bordered" id='input-container' type="number" min='0.00' max='1' step='0.01' value={tfs} onChange={async (e) => { setTfs(parseFloat(e.target.value)) }} />
           </div>
+        </div>
+        <div>
+          <span><i>Add comma-seperated phrases to ban. (Kobold, Tabby)</i></span>
+        </div>
+        <div className="flex flex-col">
+          <span className=" font-semibold">Banned Strings</span>
+          <input className="dy-input dy-input-bordered" type="text" value={bannedTokens.join()} onChange={async (e) => { setBannedTokens(e.target.value.split(',').map(String)) }} />
         </div>
         <div>
           <span><i>The order by which all 7 samplers are applied, separated by commas. 0=top_k, 1=top_a, 2=top_p, 3=tfs, 4=typ, 5=temp, 6=rep_pen (Kobold, Horde)</i></span>

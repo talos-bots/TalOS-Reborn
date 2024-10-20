@@ -243,11 +243,13 @@ export function getSettingsAndStops(request: CompletionRequest): { settingsInfo:
   if (settingsInfo.instruct_mode === "ChatML") {
     stopSequences.push("<|im_start|>user");
     stopSequences.push("<|im_start|>assistant");
+    stopSequences.push("<|im_end|>");
   }
-  if (settingsInfo.instruct_mode === "GemmaInstruct") {
+ if (settingsInfo.instruct_mode === "GemmaInstruct") {
+    stopSequences.push("<end_of_turn>");
     stopSequences.push("<start_of_turn>user");
     stopSequences.push("<start_of_turn>model");
-  }
+  } 
   if (request.args?.overrideSettings) {
     settingsInfo = { ...settingsInfo, ...request.args.overrideSettings };
   }
@@ -764,6 +766,7 @@ export async function getKoboldAICompletion(request: CompletionRequest) {
     "top_k": settingsInfo.top_k ? settingsInfo.top_k : 0,
     "top_p": settingsInfo.top_p ? settingsInfo.top_p : 0,
     "typical": settingsInfo.typical ? settingsInfo.typical : 0.9,
+    "banned_tokens": settingsInfo.banned_tokens ? settingsInfo.banned_tokens : [],
     "sampler_order": settingsInfo.sampler_order ? settingsInfo.sampler_order : [
       6,
       5,
